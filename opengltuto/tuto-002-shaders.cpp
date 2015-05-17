@@ -259,6 +259,11 @@ public:
   
   void render()
   {
+    // Transparence
+    // Enable alpha
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     while (!glfwWindowShouldClose(_window)) {
       float ratio;
       int width, height;
@@ -316,7 +321,7 @@ private:
 int main( int argc, char *argv[] )
 {
   Window win("Un triangle Moderne", 600, 600);
-  win.init_resources();
-  win.render();
+  if( win.init_resources() == 1 )
+    win.render();
   return 0;
 }
