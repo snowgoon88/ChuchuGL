@@ -7,7 +7,11 @@
  * http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_02
  */
 
-#include <GL/glew.h>
+//#include <GL/glew.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#include <GL/glext.h>
+
 #include <GLFW/glfw3.h>
 #include <string>
 #include <stdlib.h>
@@ -41,13 +45,13 @@ public:
     glfwMakeContextCurrent(_window);
     glfwSetKeyCallback(_window, key_callback);
 
-    // GLEW
-    GLenum glew_status = glewInit();
-    if (glew_status != GLEW_OK)
-      {
-	std::cerr << "Error: " <<  glewGetErrorString(glew_status) << std::endl;
-	exit(EXIT_FAILURE);
-      }
+    // // GLEW
+    // GLenum glew_status = glewInit();
+    // if (glew_status != GLEW_OK)
+    //   {
+    // 	std::cerr << "Error: " <<  glewGetErrorString(glew_status) << std::endl;
+    // 	exit(EXIT_FAILURE);
+    //   }
   }
   /** Destruction */
   ~Window() 
