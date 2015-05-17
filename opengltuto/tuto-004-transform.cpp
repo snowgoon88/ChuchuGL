@@ -1,10 +1,15 @@
 /* -*- coding: utf-8 -*- */
 
 /** 
- * tuto-003-passVar.cpp
+ * tuto-004-transform.cpp
  *
- * Plus d'interaction avec les Shaders
- * http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_03
+ * Matrices de projection et autres
+ * http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_04
+ * Se souvenir
+ * Transformations are applied by multiplying 4x4 matrices in the reverse order. M = M_translation * M_rotation means rotate first, then translate.
+ * The identity matrix is the matrix that does nothing - no transformation at all.
+ * To transform a vertex, we multiply it by the matrix: v' = M * v
+ * 4x4 matrices can be applied to 4x1 vectors only, which we obtain by using 1 in the 4th dimensions for vertices: (x, y, z, 1).
  */
 
 //#include <GL/glew.h>
@@ -12,11 +17,24 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
+
 #include <GLFW/glfw3.h>
 #include <string>
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>      // std::ifstream 
+#include <chrono>         //std::chrono
+
+// Une structure pour les données
+struct attributes {
+  GLfloat coord3d[3];
+  GLfloat v_color[3];
+};
 
 // ******************************************************************** Window
 /**
@@ -184,13 +202,13 @@ public:
     GLuint vs, fs;
     /** Vertex Shader */
     // Transforme les coordonnées du modèle en coordonnées écran.
-    if ((vs = create_shader("../opengltuto/triangle-003.v.glsl", GL_VERTEX_SHADER))   == 0)
+    if ((vs = create_shader("../opengltuto/triangle-004.v.glsl", GL_VERTEX_SHADER))   == 0)
       return 0;
     /** Fragment Shader */
     // Que faire avec tous les points dans le triangle
     // Couleur dépend des coordonnées
     // Peindre en bleu
-    if ((fs = create_shader("../opengltuto/triangle-003.f.glsl", GL_FRAGMENT_SHADER)) == 0)
+    if ((fs = create_shader("../opengltuto/triangle-004.f.glsl", GL_FRAGMENT_SHADER)) == 0)
       return 0;
 
     /** GLSL program */
@@ -210,9 +228,9 @@ public:
     /** Passer les données */
     // La variable GLOBALE attribute_coord2d est créée, en lien avec
     // la variable 'coord2d' du programme GLSL
-    const char* attribute_name = "coord2d";
-    _attribute_coord2d= glGetAttribLocation(_program, attribute_name);
-    if (_attribute_coord2d == -1) {
+    const char* attribute_name = "coord3d";
+    _attribute_coord3d= glGetAttribLocation(_program, attribute_name);
+    if (_attribute_coord3d == -1) {
       std::cerr <<  "Pb pour lier l'attribut " << attribute_name << std::endl;
       return 0;
     }
@@ -230,45 +248,46 @@ public:
       std::cerr <<  "Pb pour lier l'uniform " << uniform_name << std::endl;
       return 0;
     }
+    // la variable uniforme m_transform
+    uniform_name = "m_transform";
+    _uniform_m_transform = glGetUniformLocation(_program, uniform_name);
+    if (_uniform_m_transform == -1) {
+      std::cerr <<  "Pb pour lier l'uniform " << uniform_name << std::endl;
+      return 0;
+    }
 
     // Définition du triangle dans un VBO (Vertex Buffer Object)
-    // Les points du triangle
-    GLfloat triangle_vertices[] = {
-      0.0,  0.8,
-      -0.8, -0.8,
-      0.8, -0.8,
+    struct attributes triangle_attributes[] = {
+      {{ 0.0,  0.8, 0.0}, {1.0, 1.0, 0.0}},
+      {{-0.8, -0.8, 0.0}, {0.0, 0.0, 1.0}},
+      {{ 0.8, -0.8, 0.0}, {1.0, 0.0, 0.0}}
     };
+
     // Un VBO
     glGenBuffers(1, &_vbo_triangle);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_triangle);
     // Pousse les points dans le VBO
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_vertices), 
-		 triangle_vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_attributes), 
+		 triangle_attributes, GL_STATIC_DRAW);
     // Qu'on peut rendre inactif avec
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // Les couleurs du triangle
-    GLfloat triangle_colors[] = {
-    1.0, 1.0, 0.0,
-    0.0, 0.0, 1.0,
-    1.0, 0.0, 0.0,
-    };
-    glGenBuffers(1, &_vbo_triangle_colors);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_triangle_colors);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_colors),
-		 triangle_colors, GL_STATIC_DRAW);
-
-    // Pourrait aussi passer les info de position et couleur dans
-    // un seul et même VBO, il faudrait alors gérer les différents
-    // offset dans 'glVertexAttribPointer' (voir display_cbk')
-    // http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_03
-    
     return 1;
   }
   
   // ******************************************************************** RENDER
   void display_cbk()
   {
+    // Calcul les transformations qui dépendent du temps
+    float move = (float) sin( _elapsed.count() * (2*3.14) / 5); // -1<->+1 every 5 seconds
+    float angle = (float) _elapsed.count() * M_PI / 4.0f;  // 45° per second
+    glm::vec3 axis_z(0,0,1);
+    glm::mat4 m_transform = glm::translate(glm::mat4(1.0f), glm::vec3(move, 0.0, 0.0))
+      * glm::rotate(glm::mat4(1.0f), angle, axis_z);
+    //m_transform = glm::mat4(1.0f);
+    // std::cout << "__M_TRANSFORM = " << std::endl;
+    // std::cout << glm::to_string(m_transform) << std::endl;
+
     /* Clear the background as white */
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -277,34 +296,35 @@ public:
     
     // Triangle 
     glBindBuffer( GL_ARRAY_BUFFER, _vbo_triangle );
-    glEnableVertexAttribArray(_attribute_coord2d);
+    glEnableVertexAttribArray(_attribute_coord3d);
     /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
     glVertexAttribPointer(
-      _attribute_coord2d, // attribute
-      2,                 // number of elements per vertex, here (x,y)
+      _attribute_coord3d, // attribute
+      3,                 // number of elements per vertex, here (x,y)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
-      0,                 // no extra data between each position
+      sizeof(struct attributes),  // stride
       0                  // offset of first element
 			  );
     // Color
     glEnableVertexAttribArray(_attribute_v_color);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_triangle_colors);
     glVertexAttribPointer(
       _attribute_v_color, // attribute
       3,                 // number of elements per vertex, here (r,g,b)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
-      0,                 // no extra data between each position
-      0                  // offset of first element
+      sizeof(struct attributes),  // stride
+      (GLvoid*) offsetof(struct attributes, v_color)  // offset
 			  );
    
     // Fade
-    glUniform1f( _uniform_fade, 0.2 );
+    glUniform1f( _uniform_fade, 0.9 );
+    glUniformMatrix4fv(_uniform_m_transform, 1, GL_FALSE,
+     		       glm::value_ptr(m_transform));
  
     /* Push each element in buffer_vertices to the vertex shader */
     glDrawArrays(GL_TRIANGLES, 0, 3);
-    glDisableVertexAttribArray(_attribute_coord2d);
+    glDisableVertexAttribArray(_attribute_coord3d);
     glDisableVertexAttribArray(_attribute_v_color);
   }
   
@@ -315,22 +335,26 @@ public:
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    // Stocke l'instant de début
+    auto start = std::chrono::steady_clock::now();
+
     while (!glfwWindowShouldClose(_window)) {
-      float ratio;
-      int width, height;
+      // float ratio;
+      // int width, height;
       
-      glfwGetFramebufferSize(_window, &width, &height);
-      ratio = width / (float) height;
+      // glfwGetFramebufferSize(_window, &width, &height);
+      // ratio = width / (float) height;
       
-      glViewport(0, 0, width, height);
-      glClear(GL_COLOR_BUFFER_BIT);
+      // glViewport(0, 0, width, height);
+      // glClear(GL_COLOR_BUFFER_BIT);
       
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-      glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
+      // glMatrixMode(GL_PROJECTION);
+      // glLoadIdentity();
+      // glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+      // glMatrixMode(GL_MODELVIEW);
+      // glLoadIdentity();
       
+      _elapsed = std::chrono::steady_clock::now() - start;
       display_cbk();
 
       glfwSwapBuffers(_window);
@@ -343,13 +367,15 @@ private:
   /** Program GLSL */
   GLuint _program;
   /** Variables globale du Programme GLSL */
-  GLint _attribute_coord2d, _attribute_v_color;
+  GLint _attribute_coord3d, _attribute_v_color;
   /** Uniform var */
-  GLint _uniform_fade;
+  GLint _uniform_fade, _uniform_m_transform;
   /** Vertex Buffer Object avec des triangles */
-  GLuint _vbo_triangle, _vbo_triangle_colors;
+  GLuint _vbo_triangle;
   /** Buffer pour lire des shaders */
   char* _buffer;
+  /** Timer en s */
+  std::chrono::duration<float> _elapsed;
   //******************************************************************************
   /**
    * Callback qui gère les événements 'key'
