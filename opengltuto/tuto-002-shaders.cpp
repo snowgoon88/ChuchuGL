@@ -57,6 +57,8 @@ public:
 
     // Détruit le programme GLSL
     glDeleteProgram(_program);
+    // Et les vbo
+    glDeleteBuffers(1, &_vbo_triangle);
 
     glfwTerminate();
     exit(EXIT_SUCCESS);
@@ -205,6 +207,22 @@ public:
       fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
       return 0;
     }
+
+    // Définition du triangle dans un VBO (Vertex Buffer Object)
+    // Les points du triangle
+    GLfloat triangle_vertices[] = {
+      0.0,  0.8,
+      -0.8, -0.8,
+      0.8, -0.8,
+    };
+    // Un VBO
+    glGenBuffers(1, &_vbo_triangle);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_triangle);
+    // Pousse les points dans le VBO
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_vertices), 
+		 triangle_vertices, GL_STATIC_DRAW);
+    // Qu'on peut rendre inactif avec
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);
     
     return 1;
   }
@@ -217,13 +235,9 @@ public:
     glClear(GL_COLOR_BUFFER_BIT);
  
     glUseProgram(_program);
+    glBindBuffer( GL_ARRAY_BUFFER, _vbo_triangle );
     glEnableVertexAttribArray(_attribute_coord2d);
-    // Les points du triangle
-    GLfloat triangle_vertices[] = {
-      0.0,  0.8,
-      -0.8, -0.8,
-      0.8, -0.8,
-    };
+    
     /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
     glVertexAttribPointer(
       _attribute_coord2d, // attribute
@@ -231,7 +245,7 @@ public:
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
       0,                 // no extra data between each position
-      triangle_vertices  // pointer to the C array
+      0                  // offset of first element
 			  );
  
     /* Push each element in buffer_vertices to the vertex shader */
@@ -270,6 +284,8 @@ private:
   GLuint _program;
   /** Variables globale du Programme GLSL */
   GLint _attribute_coord2d;
+  /** Vertex Buffer Object avec des triangles */
+  GLuint _vbo_triangle;
   /** Buffer pour lire des shaders */
   char* _buffer;
   //******************************************************************************
