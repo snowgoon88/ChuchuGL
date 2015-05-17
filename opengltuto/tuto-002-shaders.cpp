@@ -1,0 +1,302 @@
+/* -*- coding: utf-8 -*- */
+
+/** 
+ * tuto-002-shaders.cpp
+ *
+ * Essai pour faire un triangle avec OpenGL 2.1 et des shaders robustes
+ * http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_02
+ */
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <string>
+#include <stdlib.h>
+#include <iostream>
+#include <fstream>      // std::ifstream 
+
+// ******************************************************************** Window
+/**
+ *
+ */
+class Window
+{
+public:
+  // ****************************************************************** CREATION
+  /** Création avec titre et taille de fenetre.*/
+  Window(const std::string& title = "GLFW Window", int width=640, int height=400) :
+    _buffer(NULL)
+  {
+    std::cout << "Window creation" << std::endl;
+
+    glfwSetErrorCallback(error_callback);
+
+    if (!glfwInit())
+        exit(EXIT_FAILURE);
+    
+    _window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
+    if (!_window) {
+      glfwTerminate();
+      exit(EXIT_FAILURE);
+    }
+    glfwMakeContextCurrent(_window);
+    glfwSetKeyCallback(_window, key_callback);
+
+    // GLEW
+    GLenum glew_status = glewInit();
+    if (glew_status != GLEW_OK)
+      {
+	std::cerr << "Error: " <<  glewGetErrorString(glew_status) << std::endl;
+	exit(EXIT_FAILURE);
+      }
+  }
+  /** Destruction */
+  ~Window() 
+  {
+    if( _buffer ) delete[] _buffer;
+    glfwDestroyWindow(_window);
+
+    // Détruit le programme GLSL
+    glDeleteProgram(_program);
+
+    glfwTerminate();
+    exit(EXIT_SUCCESS);
+  }
+
+  // ********************************************************************** INIT
+  /** Charger des Shaders dans _buffer */
+  void read_shader( const std::string& filename ) 
+  {
+    // Stream pour lire
+    std::ifstream is ( filename.c_str(), std::ifstream::binary);
+    if (is) {
+      // get length of file:
+      is.seekg (0, is.end);
+      int length = is.tellg();
+      is.seekg (0, is.beg);
+      
+      if(_buffer) delete[] _buffer;
+      _buffer = new char[length];
+      
+      std::cout << filename << " reading " << length << " characters... ";
+      // read data as a block:
+      is.read (_buffer,length);
+      
+      if (is)
+	std::cout << "all characters read successfully." << std::endl;
+      else {
+	std::cout << "error: only " << is.gcount() << " could be read" << std::endl;
+	if(_buffer) delete[] _buffer;
+	_buffer = NULL;
+      }
+      is.close();
+    }
+  }
+  /** Donne des info sur la compilation de Shaders */
+  std::string str_compiler_log(GLuint object) 
+  {
+    
+    // Longueur du message
+    GLint log_length = 0;
+    if (glIsShader(object))
+      glGetShaderiv(object, GL_INFO_LOG_LENGTH, &log_length);
+    else if (glIsProgram(object))
+      glGetProgramiv(object, GL_INFO_LOG_LENGTH, &log_length);
+    else {
+      return std::string("'object' n'est ni un Shader ni un Program GLSL");
+    }
+
+    // Copie le message dans string
+    char* log = new char[log_length+1];
+    if (glIsShader(object))
+    glGetShaderInfoLog(object, log_length, NULL, log);
+  else if (glIsProgram(object))
+    glGetProgramInfoLog(object, log_length, NULL, log);
+    log[log_length] = '\0';
+
+    std::string str_log(log);
+    delete[] log;
+
+    return str_log;
+  }
+  /**
+   * Compile un Shader d'après un fichier. Avec erreur de compilation.
+   *
+   * @param type : GL_VERTEX_SHADER ou GL_FRAGMENT_SHADER
+   */
+  GLuint create_shader(const std::string& filename, GLenum type)
+  {
+    read_shader(filename);
+    if (_buffer == NULL) {
+      std::cerr << "Erreur avec " << filename << std::endl;
+      return 0;
+    }
+    
+    // Crée le Shader
+    GLuint res = glCreateShader(type);
+    const GLchar* sources[2] = {
+#ifdef GL_ES_VERSION_2_0
+      "#version 100\n"
+      "#define GLES2\n",
+#else
+      "#version 120\n",
+#endif
+      _buffer };
+    // Lie avec les sources lues
+    glShaderSource(res, 2, sources, NULL);
+    if( _buffer ) delete[] _buffer;
+    _buffer = NULL;
+ 
+    // Copile
+    glCompileShader(res);
+    GLint compile_ok = GL_FALSE;
+    glGetShaderiv(res, GL_COMPILE_STATUS, &compile_ok);
+    // Si pb, on affiche les erreurs.
+    if (compile_ok == GL_FALSE) {
+      std::cerr << "__" << filename << " : Pb de COMPILATION" << std::endl;
+      std::cerr << str_compiler_log(res) << std::endl;
+      glDeleteShader(res);
+      return 0;
+    }
+    
+    return res;
+  }
+  
+  int init_resources(void)
+  {
+#ifdef GL_ES_VERSION_2_0
+    std::cout << "OpenGL ES 2.0" << std::endl;
+#else
+    std::cout << "OpenGL ES 2.1" << std::endl;
+#endif
+    GLint link_ok = GL_FALSE;
+
+    GLuint vs, fs;
+    /** Vertex Shader */
+    // Transforme les coordonnées du modèle en coordonnées écran.
+    if ((vs = create_shader("../opengltuto/triangle.v.glsl", GL_VERTEX_SHADER))   == 0)
+      return 0;
+    /** Fragment Shader */
+    // Que faire avec tous les points dans le triangle
+    // Couleur dépend des coordonnées
+    // Peindre en bleu
+    if ((fs = create_shader("../opengltuto/triangle.f.glsl", GL_FRAGMENT_SHADER)) == 0)
+      return 0;
+
+    /** GLSL program */
+    // link Vertex et Fragment Shaders
+    // program est une variable GLOBALE
+    _program = glCreateProgram();
+    glAttachShader(_program, vs);
+    glAttachShader(_program, fs);
+    glLinkProgram(_program);
+    glGetProgramiv(_program, GL_LINK_STATUS, &link_ok);
+    if (!link_ok) {
+      std::cerr << "__Pb avec glLinkProgam "<< std::endl;
+      std::cerr << str_compiler_log(_program) << std::endl;
+      return 0;
+    }
+
+    /** Passer les données */
+    // La variable GLOBALE attribute_coord2d est créée, en lien avec
+    // la variable 'coord2d' du programme GLSL
+    const char* attribute_name = "coord2d";
+    _attribute_coord2d= glGetAttribLocation(_program, attribute_name);
+    if (_attribute_coord2d == -1) {
+      fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
+      return 0;
+    }
+    
+    return 1;
+  }
+  
+  // ******************************************************************** RENDER
+  void display_cbk()
+  {
+    /* Clear the background as white */
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+ 
+    glUseProgram(_program);
+    glEnableVertexAttribArray(_attribute_coord2d);
+    // Les points du triangle
+    GLfloat triangle_vertices[] = {
+      0.0,  0.8,
+      -0.8, -0.8,
+      0.8, -0.8,
+    };
+    /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
+    glVertexAttribPointer(
+      _attribute_coord2d, // attribute
+      2,                 // number of elements per vertex, here (x,y)
+      GL_FLOAT,          // the type of each element
+      GL_FALSE,          // take our values as-is
+      0,                 // no extra data between each position
+      triangle_vertices  // pointer to the C array
+			  );
+ 
+    /* Push each element in buffer_vertices to the vertex shader */
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDisableVertexAttribArray(_attribute_coord2d);
+  }
+  
+  void render()
+  {
+    while (!glfwWindowShouldClose(_window)) {
+      float ratio;
+      int width, height;
+      
+      glfwGetFramebufferSize(_window, &width, &height);
+      ratio = width / (float) height;
+      
+      glViewport(0, 0, width, height);
+      glClear(GL_COLOR_BUFFER_BIT);
+      
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+      
+      display_cbk();
+
+      glfwSwapBuffers(_window);
+      glfwPollEvents();
+    }
+  }
+private:
+  /** Ptr sur la Fenetre */
+  GLFWwindow* _window;
+  /** Program GLSL */
+  GLuint _program;
+  /** Variables globale du Programme GLSL */
+  GLint _attribute_coord2d;
+  /** Buffer pour lire des shaders */
+  char* _buffer;
+  //******************************************************************************
+  /**
+   * Callback qui gère les événements 'key'
+   */
+  static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+  {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+      glfwSetWindowShouldClose(window, GL_TRUE);
+  }
+  // ***************************************************************************
+  /**
+   * Callback pour gérer les messages d'erreur de GLFW
+   */
+  static void error_callback(int error, const char* description)
+  {
+    std::cerr <<  description << std::endl;
+    //fputs(description, stderr);
+  }
+};
+
+//******************************************************************************
+int main( int argc, char *argv[] )
+{
+  Window win("Un triangle Moderne", 600, 600);
+  win.init_resources();
+  win.render();
+  return 0;
+}
