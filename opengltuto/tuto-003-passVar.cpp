@@ -81,14 +81,18 @@ public:
       is.seekg (0, is.beg);
       
       if(_buffer) delete[] _buffer;
-      _buffer = new char[length];
+      _buffer = new char[length+1];
       
       std::cout << filename << " reading " << length << " characters... ";
       // read data as a block:
       is.read (_buffer,length);
-      
-      if (is)
-	std::cout << "all characters read successfully." << std::endl;
+      _buffer[length] = '\0';
+      if (is) {
+ 	std::cout << "all characters read successfully." << std::endl;
+	std::cout << "-----" << std::endl;
+	std::cout << _buffer << std::endl;
+	std::cout << "-----" << std::endl;
+      }
       else {
 	std::cout << "error: only " << is.gcount() << " could be read" << std::endl;
 	if(_buffer) delete[] _buffer;
@@ -219,6 +223,13 @@ public:
       std::cerr <<  "Pb pour lier l'attribut " << attribute_name << std::endl;
       return 0;
     }
+    // la variable uniform 'fade' du programme GLSL
+    const char* uniform_name = "fade";
+    _uniform_fade = glGetUniformLocation(_program, uniform_name);
+    if (_uniform_fade == -1) {
+      std::cerr <<  "Pb pour lier l'uniform " << uniform_name << std::endl;
+      return 0;
+    }
 
     // Définition du triangle dans un VBO (Vertex Buffer Object)
     // Les points du triangle
@@ -246,6 +257,11 @@ public:
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_triangle_colors);
     glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_colors),
 		 triangle_colors, GL_STATIC_DRAW);
+
+    // Pourrait aussi passer les info de position et couleur dans
+    // un seul et même VBO, il faudrait alors gérer les différents
+    // offset dans 'glVertexAttribPointer' (voir display_cbk')
+    // http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_03
     
     return 1;
   }
@@ -282,6 +298,9 @@ public:
       0,                 // no extra data between each position
       0                  // offset of first element
 			  );
+   
+    // Fade
+    glUniform1f( _uniform_fade, 0.2 );
  
     /* Push each element in buffer_vertices to the vertex shader */
     glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -324,7 +343,9 @@ private:
   /** Program GLSL */
   GLuint _program;
   /** Variables globale du Programme GLSL */
-  GLint _attribute_coord2d, _attribute_v_color;;
+  GLint _attribute_coord2d, _attribute_v_color;
+  /** Uniform var */
+  GLint _uniform_fade;
   /** Vertex Buffer Object avec des triangles */
   GLuint _vbo_triangle, _vbo_triangle_colors;
   /** Buffer pour lire des shaders */
