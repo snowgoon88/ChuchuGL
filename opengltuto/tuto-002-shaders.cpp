@@ -179,13 +179,13 @@ public:
     GLuint vs, fs;
     /** Vertex Shader */
     // Transforme les coordonnées du modèle en coordonnées écran.
-    if ((vs = create_shader("../opengltuto/triangle.v.glsl", GL_VERTEX_SHADER))   == 0)
+    if ((vs = create_shader("../opengltuto/triangle-002.v.glsl", GL_VERTEX_SHADER))   == 0)
       return 0;
     /** Fragment Shader */
     // Que faire avec tous les points dans le triangle
     // Couleur dépend des coordonnées
     // Peindre en bleu
-    if ((fs = create_shader("../opengltuto/triangle.f.glsl", GL_FRAGMENT_SHADER)) == 0)
+    if ((fs = create_shader("../opengltuto/triangle-002.f.glsl", GL_FRAGMENT_SHADER)) == 0)
       return 0;
 
     /** GLSL program */
