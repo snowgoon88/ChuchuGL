@@ -1,12 +1,12 @@
 /* -*- coding: utf-8 -*- */
 
-#ifndef WORLD_HPP
-#define WORLD_HPP
+#pragma once
 
 /** 
- * Le World est composé de Cases et de Chuchu.
+ * Le World est composé de Cell et de Chuchu.
+ * Il y a _nb_row x _nb_col Cell
  *
- * Actuellement _l_cell[idx+idy*NB_COL] est en (idx,idy)
+ * Actuellement _l_cell[idx+idy*_nb_col] est en (idx,idy)
  * - 5 case de (0,0) à (5,0)
  * - flèche_gauche dans (0,0)
  * - flèche_droite dans (2,0)
@@ -22,29 +22,54 @@
 #include <chuchu.hpp>
 
 // ******************************************************************** GLOBAL
-#define NB_COL 5
-#define NB_ROW 1
+
 // ***************************************************************************
 // ********************************************************************* WORLD
 // ***************************************************************************
 class World {
 public:
   // ****************************************************************** CREATION
-  World() 
+  World() {};
+  void init2x5()
   {
+    _nb_row = 2;
+    _nb_col = 5;
+    // Crée et ajoute les Cell avec murs autours
+    for( unsigned int row = 0; row < _nb_row; ++row) {
+      for( unsigned int col = 0; col < _nb_col; ++col) {
+	Cell cell({(TPos)col,(TPos)row} );
+	if( row == 0 ) cell.add_wall( _dir_down );
+	if( row == _nb_row-1 ) cell.add_wall( _dir_up );
+	if( col == 0 ) cell.add_wall( _dir_left );
+	if( col == _nb_col-1 ) cell.add_wall( _dir_right );
+	_l_cell.push_back( cell );
+      }
+    } 
+    // Down arrow in cell(3,1)
+    _l_cell[3+_nb_col*1].set_arrow( &_dir_down );
+
+    // Crée un ajoute les Chuchu
+    Chuchu chu( {3,0}, &_dir_right, 1.0 );
+    set_cell( chu );
+    _l_chuchu.push_back( chu );
+  };    
+  void init1x5()
+  {
+    _nb_row = 1;
+    _nb_col = 5;
     // Crée et ajoute les Cell
-    for( unsigned int row = 0; row < NB_ROW; ++row) {
-      for( unsigned int col = 0; col < NB_COL; ++col) {
+    for( unsigned int row = 0; row < _nb_row; ++row) {
+      for( unsigned int col = 0; col < _nb_col; ++col) {
 	_l_cell.push_back( Cell( {(TPos)col,(TPos)row} ));
       }
     }
     // Right arrow in cell(0,0)
-    _l_cell[0].set_arrow( &dir_right );
+    _l_cell[0].set_arrow( &_dir_right );
     // Left arrow in cell(2,0)
-    _l_cell[2].set_arrow( &dir_left );
+    _l_cell[2].set_arrow( &_dir_left );
     
     // Crée un ajoute les Chuchu
-    Chuchu chu( {0,0}, &dir_right, 1.0 );
+    Chuchu chu( {0,0}, &_dir_right, 1.0 );
     set_cell( chu );
     _l_chuchu.push_back( chu );
   };
@@ -55,7 +80,7 @@ public:
   {
     std::stringstream dump;
     
-    dump << "__WORLD__" << std::endl;
+    dump << "__WORLD__ " << _nb_row << " x " << _nb_col << std::endl;
     for( auto& cell : _l_cell ) {
       dump << cell.str_dump() << std::endl;
     }
@@ -88,14 +113,15 @@ private:
     unsigned int idx = (unsigned int) floor(chu.pos().x);
     unsigned int idy = (unsigned int) floor(chu.pos().y);
     std::cout << chu.str_dump() << " would be in cell(" << idx << "; "  << idy << ")" << std::endl;
-    chu.set_cell( &_l_cell[idx+NB_COL*idy] );
+    chu.set_cell( &_l_cell[idx+_nb_col*idy] );
   };
   
   // ****************************************************************** VARIABLE
 private:
+  /** Taille du monde */
+  unsigned int _nb_row, _nb_col;
   /** Toutes les cases */
   std::vector<Cell> _l_cell;
   /** Et les Chuchu */
   std::vector<Chuchu> _l_chuchu;
 };
-#endif // WORLD_HPP

@@ -10,6 +10,7 @@
 #include <sstream>                        // std::stringstream
 
 #include <global.hpp>
+#include <cell.hpp>
 
 // ***************************************************************************
 // ******************************************************************** CHUCHU
@@ -18,7 +19,7 @@ class Chuchu {
 public:
   // ****************************************************************** CREATION
   /** Creation avec une position et une vitesse */
-  Chuchu( TVec2 position = {0,0}, Direction* dir = &dir_right, TSpd speed = 0.1 ) :
+  Chuchu( TVec2 position = {0,0}, Direction* dir = &_dir_right, TSpd speed = 0.1 ) :
     _pos(position), _dir(dir), _spd(speed), _cell(NULL)
   {};
 
