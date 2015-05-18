@@ -20,6 +20,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include <SOIL/SOIL.h>               // Load images
+
 #include <GLFW/glfw3.h>
 #include <string>
 #include <stdlib.h>
@@ -80,6 +82,7 @@ public:
     glDeleteBuffers(1, &_vbo_cube_vertices);
     glDeleteBuffers(1, &_vbo_cube_color);
     glDeleteBuffers(1, &_ibo_cube_elements);
+    glDeleteTextures(1, &_texture_id);
 
     glfwTerminate();
     exit(EXIT_SUCCESS);
@@ -233,20 +236,27 @@ public:
       std::cerr <<  "Pb pour lier l'attribut " << attribute_name << std::endl;
       return 0;
     }
-    // la variable 'v_color' du programme GLSL
-    attribute_name = "v_color";
-    _attribute_v_color = glGetAttribLocation(_program, attribute_name);
-    if (_attribute_v_color == -1) {
+    // // la variable 'v_color' du programme GLSL
+    // attribute_name = "v_color";
+    // _attribute_v_color = glGetAttribLocation(_program, attribute_name);
+    // if (_attribute_v_color == -1) {
+    //   std::cerr <<  "Pb pour lier l'attribut " << attribute_name << std::endl;
+    //   return 0;
+    // }
+    // la variable de textute
+    attribute_name = "texcoord";
+    _attribute_texcoord = glGetAttribLocation(_program, attribute_name);
+    if (_attribute_texcoord == -1) {
       std::cerr <<  "Pb pour lier l'attribut " << attribute_name << std::endl;
       return 0;
     }
-    // la variable uniform 'fade' du programme GLSL
+    // // la variable uniform 'fade' du programme GLSL
     const char* uniform_name = "fade";
-    _uniform_fade = glGetUniformLocation(_program, uniform_name);
-    if (_uniform_fade == -1) {
-      std::cerr <<  "Pb pour lier l'uniform " << uniform_name << std::endl;
-      return 0;
-    }
+    // _uniform_fade = glGetUniformLocation(_program, uniform_name);
+    // if (_uniform_fade == -1) {
+    //   std::cerr <<  "Pb pour lier l'uniform " << uniform_name << std::endl;
+    //   return 0;
+    // }
     // // la variable uniforme m_transform
     // uniform_name = "m_transform";
     // _uniform_m_transform = glGetUniformLocation(_program, uniform_name);
@@ -326,6 +336,18 @@ public:
     glBufferData(GL_ARRAY_BUFFER, sizeof(cube_texcoords),
 		 cube_texcoords, GL_STATIC_DRAW);
 
+    // Charger la texture
+    glActiveTexture(GL_TEXTURE0);
+    _texture_id = SOIL_load_OGL_texture
+      (
+       "../Images/tex_dragonWalk.jpg",           // pathfile
+       SOIL_LOAD_AUTO,                           // 
+       SOIL_CREATE_NEW_ID,                       //
+       SOIL_FLAG_INVERT_Y                        // Corrige les Y upside/down
+       );
+    if(_texture_id == 0)
+      std::cerr << "SOIL loading error: '" << SOIL_last_result() << "' (" << "../Images/tex_dragonWalk.jpg" << ")" << std::endl;
+    
 
     return 1;
   }
@@ -383,19 +405,31 @@ public:
       0                  // offset of first element
 			  );
     // Color
-    glBindBuffer( GL_ARRAY_BUFFER, _vbo_cube_color );
-    glEnableVertexAttribArray(_attribute_v_color);
+    // glBindBuffer( GL_ARRAY_BUFFER, _vbo_cube_color );
+    // glEnableVertexAttribArray(_attribute_v_color);
+    // glVertexAttribPointer(
+    //   _attribute_v_color, // attribute
+    //   3,                 // number of elements per vertex, here (r,g,b)
+    //   GL_FLOAT,          // the type of each element
+    //   GL_FALSE,          // take our values as-is
+    //   0,                 // stride
+    //   0                  // offset
+    // 			  );
+
+    // Texture
+    glEnableVertexAttribArray(_attribute_texcoord);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_cube_texcoords);
     glVertexAttribPointer(
-      _attribute_v_color, // attribute
-      3,                 // number of elements per vertex, here (r,g,b)
-      GL_FLOAT,          // the type of each element
-      GL_FALSE,          // take our values as-is
-      0,                 // stride
-      0                  // offset
+       _attribute_texcoord, // attribute
+       2,                  // number of elements per vertex, here (x,y)
+       GL_FLOAT,           // the type of each element
+       GL_FALSE,           // take our values as-is
+       0,                  // no extra data between each position
+       0                   // offset of first element
 			  );
    
     // Fade and Transform
-    glUniform1f( _uniform_fade, 1.0 );
+    // glUniform1f( _uniform_fade, 1.0 );
     glUniformMatrix4fv(_uniform_mvp, 1, GL_FALSE,
      		       glm::value_ptr(mvp));
  
@@ -418,6 +452,12 @@ public:
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // Depth
     glEnable( GL_DEPTH_TEST );
+
+    // Les Textures ne changeront pas 
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _texture_id);
+    _uniform_mytexture = glGetUniformLocation(_program, "mytexture");
+    glUniform1i(_uniform_mytexture, /*GL_TEXTURE*/0);
 
     // Stocke l'instant de début
     auto start = std::chrono::steady_clock::now();
@@ -452,10 +492,12 @@ private:
   /** Program GLSL */
   GLuint _program;
   /** Variables globale du Programme GLSL */
-  GLint _attribute_coord3d, _attribute_v_color;
+  GLint _attribute_coord3d, _attribute_v_color, _attribute_texcoord;
+  GLuint _texture_id;
   /** Uniform var */
   GLint _uniform_fade, _uniform_m_transform;
   GLint _uniform_mvp;
+  GLint _uniform_mytexture;
   /** Vertex Buffer Objects */
   GLuint _vbo_cube_vertices, _vbo_cube_color;
   GLuint _ibo_cube_elements;

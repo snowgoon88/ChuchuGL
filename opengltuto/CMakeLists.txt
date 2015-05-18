@@ -1,7 +1,7 @@
 # Make sure the compiler can find include files from our library.
 include_directories (${CMAKE_SOURCE_DIR}/src)
 # Define the libs used to compile the examples
-set(TUTO_LIBS "${GLEW_LDFLAGS} ${GLFW_LDFLAGS}")
+set(TUTO_LIBS "-lSOIL ${GLEW_LDFLAGS} ${GLFW_LDFLAGS}")
 
 # Define our examples to compile in variable ${usage_examples}
 file(

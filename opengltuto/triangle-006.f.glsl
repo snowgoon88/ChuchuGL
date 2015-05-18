@@ -1,5 +1,6 @@
-varying vec3 f_color;
-uniform float fade;
+varying vec2 f_texcoord;
+uniform sampler2D mytexture;
+
 void main(void) {
-     gl_FragColor = vec4( f_color, fade);
+     gl_FragColor = texture2D( mytexture, f_texcoord );
 }
