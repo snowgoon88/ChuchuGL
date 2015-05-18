@@ -7,6 +7,8 @@
  * En s'inspirant de 
  * http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_06
  * essaie de mettre une texture sur un simple carré (2 triangles).
+ * => Ca marche, mais la texture du dragon n'est pas appropriée, et surtout
+ * les coordonnées dans SOIL commencent en bas à droite.
  */
 
 //#include <GL/glew.h>
@@ -324,12 +326,27 @@ public:
 
     // Les coordonnées de la texture
     // Au début, la texture en entier !
-    GLfloat cube_texcoords[] = {
-      // front
-      0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
+    // GLfloat cube_texcoords[] = {
+    //   // front
+    //   0.0, 0.0,
+    //   1.0, 0.0,
+    //   1.0, 1.0,
+    //   0.0, 1.0,
+    // };
+    // Les différentes sous-textures pour l'animation
+    // 7 x 7 sprites dans la texture
+    GLfloat cube_texcoords[7*7* 8];
+    for( unsigned int row = 0; row < 7; ++row) {
+      for( unsigned int col = 0; col < 7; ++col) {
+	cube_texcoords[(col+row*3)*8+0] = col * 1.0f/7.f;
+	cube_texcoords[(col+row*3)*8+1] = (6-row) * 1.0f/7.f;
+	cube_texcoords[(col+row*3)*8+2] = (col+1) * 1.0f/7.f;
+	cube_texcoords[(col+row*3)*8+3] = (6-row) * 1.0f/7.f;
+	cube_texcoords[(col+row*3)*8+4] = (col+1) * 1.0f/7.f;
+	cube_texcoords[(col+row*3)*8+5] = (6-row+1) * 1.0f/7.f;
+	cube_texcoords[(col+row*3)*8+6] = col * 1.0f/7.f;
+	cube_texcoords[(col+row*3)*8+7] = (6-row+1) * 1.0f/7.f;
+      }
     };
     glGenBuffers(1, &_vbo_cube_texcoords);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_cube_texcoords);
@@ -340,13 +357,13 @@ public:
     glActiveTexture(GL_TEXTURE0);
     _texture_id = SOIL_load_OGL_texture
       (
-       "../Images/tex_dragonWalk.jpg",           // pathfile
+       "../Images/tex_explosion.png",           // pathfile
        SOIL_LOAD_AUTO,                           // 
        SOIL_CREATE_NEW_ID,                       //
        SOIL_FLAG_INVERT_Y                        // Corrige les Y upside/down
        );
     if(_texture_id == 0)
-      std::cerr << "SOIL loading error: '" << SOIL_last_result() << "' (" << "../Images/tex_dragonWalk.jpg" << ")" << std::endl;
+      std::cerr << "SOIL loading error: '" << SOIL_last_result() << "' (" << "../Images/tex_explosion.png" << ")" << std::endl;
     
 
     return 1;
@@ -417,6 +434,10 @@ public:
     // 			  );
 
     // Texture
+    // index de la texture dépend du temps
+    int idtexture = (int)  ceil(_elapsed.count()/0.03);
+    idtexture =  idtexture % 21;
+    //int idtexture = 3;
     glEnableVertexAttribArray(_attribute_texcoord);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_cube_texcoords);
     glVertexAttribPointer(
@@ -425,7 +446,7 @@ public:
        GL_FLOAT,           // the type of each element
        GL_FALSE,           // take our values as-is
        0,                  // no extra data between each position
-       0                   // offset of first element
+       (GLvoid*) (idtexture * 8 * sizeof(GLfloat)) // offset of first element (as Ptr!!)
 			  );
    
     // Fade and Transform
@@ -529,7 +550,7 @@ private:
 //******************************************************************************
 int main( int argc, char *argv[] )
 {
-  Window win("Un cube Moderne", 600, 600);
+  Window win("Une explosion", 600, 600);
   if( win.init_resources() == 1 )
     win.render();
   return 0;
