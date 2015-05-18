@@ -13,6 +13,7 @@ file(
 # loop over the list to compile them
 # Prefer to use 'targer_link' over  set_target_properties'
 foreach(f ${usage_tuto})
+    #message( STATUS "f=${f}" )
     get_filename_component(fileName ${f} NAME_WE) 
     add_executable (${fileName} ${f})
     target_link_libraries (${fileName} ${TUTO_LIBS})
