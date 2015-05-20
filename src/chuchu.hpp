@@ -46,6 +46,7 @@ public:
   // ****************************************************************** VARIABLE
   /** _pos */
   TVec2& pos() {return _pos;};
+  void set_pos( const TPos& x, const TPos& y ) {_pos.x = x; _pos.y=y;};
   /** Quand on lui attribue une Cell, le Chuchu regarde s'il ENTER
    * ou EXIT cette CELL. 
    * En cas de EXIT, déterminer sa nouvelle _dir

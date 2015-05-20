@@ -108,10 +108,24 @@ private:
   // ***************************************************************** LINK CELL
   void set_cell( Chuchu& chu ) 
   {
+    // Un monde torique
+    if( chu.pos().x > _nb_col+1 ) {
+      chu.set_pos( chu.pos().x - (_nb_col+1), chu.pos().y );
+    }
+    else if( chu.pos().x < 0 ) {
+      chu.set_pos( chu.pos().x + (_nb_col+1), chu.pos().y );
+    }
+    if( chu.pos().y > _nb_row+1 ) {
+      chu.set_pos( chu.pos().x, chu.pos().y - (_nb_row+1) );
+    }
+    else if( chu.pos().y < 0 ) {
+      chu.set_pos( chu.pos().x,  chu.pos().y+ (_nb_row+1) );
+    }
     // La position du Chuchu devient des coordonnées entière, et 
     // donc l'index de la Cell dans _l_cell
     unsigned int idx = (unsigned int) floor(chu.pos().x);
     unsigned int idy = (unsigned int) floor(chu.pos().y);
+    // Implémente un monde torique
     std::cout << chu.str_dump() << " would be in cell(" << idx << "; "  << idy << ")" << std::endl;
     chu.set_cell( &_l_cell[idx+_nb_col*idy] );
   };
