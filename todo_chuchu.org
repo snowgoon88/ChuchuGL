@@ -7,6 +7,8 @@ nouvelle direction avec rotation horaire tant que mur existe
 ** DONE Toric world
 * TODO [1/5] Graphic
 ** TODO Simple graphic view (case et triangle)
+*** TODO Mur épais => 2 triangles
+*** TODO Chuchu => polyline avec effet pacman
 ** DONE Tutorial OpenGL -> animation
 ** TODO 3D Chuchu models
 ** TODO Animation texture + coord

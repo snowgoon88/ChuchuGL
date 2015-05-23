@@ -1,5 +1,4 @@
 /* -*- coding: utf-8 -*- */
-/* -*- coding: utf-8 -*- */
 
 #ifndef WORLD_CPP
 #define WORLD_CPP
@@ -186,6 +185,9 @@ private:
   };
   
   // ****************************************************************** VARIABLE
+public:
+  unsigned int nb_row() const {return _nb_col;};
+  unsigned int nb_col() const {return _nb_col;};
 private:
   /** Taille du monde */
   unsigned int _nb_row, _nb_col;
