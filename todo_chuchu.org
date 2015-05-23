@@ -1,11 +1,12 @@
-* [2/3] Model
+* [3/3] Model
 ** DONE [2/2] leaving Cell
 *** DONE _arrow => prend dir de _arrow
 *** DONE si mur
 nouvelle direction avec rotation horaire tant que mur existe
-** TODO enter cell with rocket
+** DONE enter cell with rocket
 ** DONE Toric world
-* TODO [1/4] Graphic
+* TODO [1/5] Graphic
+** TODO Simple graphic view (case et triangle)
 ** DONE Tutorial OpenGL -> animation
 ** TODO 3D Chuchu models
 ** TODO Animation texture + coord
