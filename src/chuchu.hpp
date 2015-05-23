@@ -1,6 +1,7 @@
 /* -*- coding: utf-8 -*- */
 
-#pragma once
+#ifndef CHUCHU_CPP
+#define CHUCHU_CPP
 
 /** 
  * Un Chuchu qui avance dans des Cell,
@@ -47,26 +48,40 @@ public:
   /** _pos */
   TVec2& pos() {return _pos;};
   void set_pos( const TPos& x, const TPos& y ) {_pos.x = x; _pos.y=y;};
-  /** Quand on lui attribue une Cell, le Chuchu regarde s'il ENTER
+  /** 
+   * Quand on lui attribue une Cell, le Chuchu regarde s'il ENTER
    * ou EXIT cette CELL. 
    * En cas de EXIT, déterminer sa nouvelle _dir
+   *
+   * @return : true si le chuchu vient de changer de Cell
    */
-  void set_cell( Cell* cell )
+  bool set_cell( Cell* cell )
   {
-    _cell=cell;
-    
     // Produit scalaire avec la cellule pour savoir si entre ou sort
-    if( _cell ) {
-      double pscal = (_pos.x - _cell->pos().x - 0.5) * _dir->vec.x +
-	(_pos.y - _cell->pos().y - 0.5) * _dir->vec.y;
+    if( cell ) {
+      double pscal = (_pos.x - cell->pos().x - 0.5) * _dir->vec.x +
+	(_pos.y - cell->pos().y - 0.5) * _dir->vec.y;
       if( pscal > 0.0 ) { // EXIT
-	std::cout << "pscal=" << pscal << " : EXIT cell " << _cell->str_dump() << std::endl;
+	std::cout << "pscal=" << pscal << " : EXIT cell " << cell->str_dump() << std::endl;
 	// Et donc une nouvelle Direction
-	_dir = _cell->dir_arrive_from( _dir );
+	_dir = cell->dir_arrive_from( _dir );
+	return true; // toujours vivant
       }
       else if( pscal < 0.0 ) { // ENTER
-	std::cout << "pscal=" << pscal << " : ENTER cell " << _cell->str_dump() << std::endl;
+	std::cout << "pscal=" << pscal << " : ENTER cell " << cell->str_dump() << std::endl;
+	//return cell->entered_cbk( this );
       }
+    }
+
+    // Mémorise la Cell actuelle et renvoir true si on vient 
+    // de changer de Cell
+    if( _cell != cell ) {
+      _cell = cell;
+      return true;
+    }
+    else {
+      _cell = cell;
+      return false;
     }
   };
 private:
@@ -79,3 +94,4 @@ private:
   /** Cell sur laquelle se trouve le Chuchu */
   Cell* _cell;
 };
+#endif // CHUCHU_CPP
