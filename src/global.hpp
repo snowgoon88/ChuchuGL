@@ -6,16 +6,16 @@
  * Quelques types et variables utiles partout
  */
 // ******************************************************************* TYPEDEF
-typedef double TPos;
-typedef double TSpd;
+typedef double Pos;
+typedef double Spd;
 typedef struct {
-  TPos x,y;
-} TVec2;
+  Pos x,y;
+} Vec2;
 
 // ***************************************************************** DIRECTION
 typedef struct {
   unsigned int index;
-  TVec2 vec;
+  Vec2 vec;
   std::string str;
 } Direction;
 

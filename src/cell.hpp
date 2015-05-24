@@ -22,7 +22,7 @@ class Cell
 public:
   // ****************************************************************** creation
   /** Avec position */
-  Cell( TVec2 position = {0,0} ) :
+  Cell( Vec2 position = {0,0} ) :
     _pos(position), _arrow(NULL), _wall{false, false, false, false},
     _type("CELL")
   {};
@@ -67,12 +67,12 @@ public:
     return next_dir;
   };
   // ***************************************************************** attributs
-  TVec2& pos() {return _pos;};
+  Vec2& pos() {return _pos;};
   bool set_arrow( Direction* dir) {_arrow = dir; return true;}
   void add_wall( const Direction& dir ) {_wall[dir.index] = true;};
 protected:
   /** Position */
-  TVec2 _pos;
+  Vec2 _pos;
   /** Arrow : NULL ou ref vers Direction */
   Direction* _arrow;
   /** Murs */
@@ -88,7 +88,7 @@ class Rocket : public Cell
 {
 public:
   // ****************************************************************** creation
-  Rocket( TVec2 position = {0,0} ) : Cell( position ), _count(0)
+  Rocket( Vec2 position = {0,0} ) : Cell( position ), _count(0)
   { _type = "ROCKET";};
   /** Dump avec string */
   virtual std::string str_dump()

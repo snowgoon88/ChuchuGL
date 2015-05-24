@@ -25,7 +25,10 @@
 #include <chuchu.hpp>
 
 // ******************************************************************** GLOBAL
-
+typedef struct {
+  Pos x, y;
+  unsigned int idd; // index direction
+} Wall;
 // ***************************************************************************
 // ********************************************************************* WORLD
 // ***************************************************************************
@@ -38,17 +41,20 @@ public:
     std::cout << "World.init3x4()" << "\n";
     _nb_row = 3;
     _nb_col = 4;
+    _l_wall.push_back( {0, 0, 2} );
+    _l_wall.push_back( {0, 0, 3} );
+    _l_wall.push_back( {0, 1, 3} );
     // Crée et ajoute les Cell avec murs autours
     for( unsigned int row = 0; row < _nb_row; ++row) {
       for( unsigned int col = 0; col < _nb_col; ++col) {
 	if( col == _nb_col-1 and row == _nb_row-1 ) {
-	  std::unique_ptr<Cell> rocket(new Rocket({(TPos)col,(TPos)row} ));
+	  std::unique_ptr<Cell> rocket(new Rocket({(Pos)col,(Pos)row} ));
 	  rocket->add_wall( _dir_up );
 	  rocket->add_wall( _dir_right );
 	  _l_cell.push_back( std::move(rocket) );
 	}
 	else {
-	  std::unique_ptr<Cell> cell(new Cell({(TPos)col,(TPos)row} ));
+	  std::unique_ptr<Cell> cell(new Cell({(Pos)col,(Pos)row} ));
 	  if( row == 0 ) cell->add_wall( _dir_down );
 	  if( row == _nb_row-1 ) cell->add_wall( _dir_up );
 	  if( col == 0 ) cell->add_wall( _dir_left );
@@ -73,7 +79,7 @@ public:
     // Crée et ajoute les Cell avec murs autours
     for( unsigned int row = 0; row < _nb_row; ++row) {
       for( unsigned int col = 0; col < _nb_col; ++col) {
-	std::unique_ptr<Cell> cell(new Cell({(TPos)col,(TPos)row} ));
+	std::unique_ptr<Cell> cell(new Cell({(Pos)col,(Pos)row} ));
 	if( row == 0 ) cell->add_wall( _dir_down );
 	if( row == _nb_row-1 ) cell->add_wall( _dir_up );
 	if( col == 0 ) cell->add_wall( _dir_left );
@@ -100,7 +106,7 @@ public:
     // Crée et ajoute les Cell
     for( unsigned int row = 0; row < _nb_row; ++row) {
       for( unsigned int col = 0; col < _nb_col; ++col) {
-	_l_cell.push_back( std::unique_ptr<Cell>(new Cell( {(TPos)col,(TPos)row} )) );
+	_l_cell.push_back( std::unique_ptr<Cell>(new Cell( {(Pos)col,(Pos)row} )) );
       }
     }
     // Right arrow in cell(0,0)
@@ -116,7 +122,7 @@ public:
 
   // *********************************************************************** STR
   /** Dump avec string */
-  std::string str_dump()
+  std::string str_dump() const
   {
     std::stringstream dump;
     
@@ -154,7 +160,7 @@ public:
 private:
   // ***************************************************************** LINK CELL
   /** @return true si le chuchu est toujours vivant */
-  bool set_cell( Chuchu& chu ) 
+  bool set_cell( Chuchu& chu ) const
   {
     // Un monde torique
     if( chu.pos().x > _nb_col+1 ) {
@@ -188,11 +194,14 @@ private:
 public:
   unsigned int nb_row() const {return _nb_col;};
   unsigned int nb_col() const {return _nb_col;};
+  std::vector<Wall> walls() const {return _l_wall;};
 private:
   /** Taille du monde */
   unsigned int _nb_row, _nb_col;
   /** Toutes les cases */
   std::vector<std::unique_ptr<Cell>> _l_cell;
+  /** Les murs */
+  std::vector<Wall> _l_wall;
   /** Et les Chuchu */
   std::list<Chuchu> _l_chuchu;
 };

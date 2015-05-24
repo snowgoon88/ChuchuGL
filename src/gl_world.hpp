@@ -16,6 +16,11 @@
 
 #include <world.hpp>
 
+// ******************************************************************** GLOBAL
+/** épaisseur d'un mur et nb de point pour dessiner un mur*/
+#define WALL_WIDTH 0.1f
+#define WALL_SIZE  (4*6)
+
 // ***************************************************************************
 // ******************************************************************* GLWorld
 // ***************************************************************************
@@ -46,12 +51,35 @@ public:
     // Pousse les points dans le VBO
     glBufferData(GL_ARRAY_BUFFER, sizeof(line_vtx), 
 		 line_vtx, GL_STATIC_DRAW);
+
+    // VBO avec les points des murs
+    GLfloat wall_vtx[(_model.walls().size())*WALL_SIZE];
+    _vbo_walls_size = 0;
+    for( auto& wall : _model.walls() ) {
+      if( wall.idd == 2 ) {
+    	_vbo_walls_size += add_wall_hor( (GLfloat) wall.x - 0.5f,
+    					 (GLfloat) wall.y - 0.5f,
+    					 &(wall_vtx[_vbo_walls_size]) );
+      }
+      else if ( wall.idd == 3 ) {
+    	_vbo_walls_size += add_wall_vert( (GLfloat) wall.x - 0.5f,
+    					  (GLfloat) wall.y - 0.5f,
+    					  &(wall_vtx[_vbo_walls_size]) );
+      } 
+    }
+    _vbo_walls_size = _vbo_walls_size/2;
+    // Un VBO
+    glGenBuffers(1, &_vbo_walls);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_walls);
+    // Pousse les points dans le VBO
+    glBufferData(GL_ARRAY_BUFFER, sizeof(wall_vtx), 
+		 wall_vtx, GL_STATIC_DRAW);
+
     // Delier les VBO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // TODO VBO avec les points des murs
-
-    // Charger les Shaders
+    
+    // Charger les Shaders LINE + TRIANGLES
     GLint link_ok = GL_FALSE;
     GLuint vs, fs;
     /** Vertex Shader */
@@ -105,18 +133,21 @@ public:
     glDeleteProgram(_program);
     // Et les vbo
     glDeleteBuffers(1, &_vbo_lines);
+    glDeleteBuffers(1, &_vbo_walls);
   };
   // ******************************************************************** render
-  void render () 
+  void render () const
   {
-    glUseProgram( _program );
     // Projection (to 2D screen)
     glm::mat4 projection = glm::ortho( -1.0f, 10.0f,
 				       -1.0f, 10.0f,
 				       -1.0f, 1.0f );
+
+    glUseProgram( _program );
     glUniformMatrix4fv(_uniform_mvp, 1, GL_FALSE,
      		       glm::value_ptr(projection));
-    
+
+    // LIGNES **************************************
     // Couleur des lignes : BLACK
     glUniform3f( _uniform_l_color, 0.f, 0.f, 0.f );
     // Dessiner la grille
@@ -133,6 +164,25 @@ public:
 			  );
     /* Push each element in buffer_vertices to the vertex shader */
     glDrawArrays(GL_LINES, 0, _vbo_lines_size);
+
+    // MURS
+    // Couleur des murs : RED
+    glUniform3f( _uniform_l_color, 1.f, 0.f, 0.f );
+    // Dessiner les murs
+    glBindBuffer( GL_ARRAY_BUFFER, _vbo_walls );
+    /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
+    glVertexAttribPointer(
+      _attribute_coord2d, // attribute
+      2,                 // number of elements per vertex, here (x,y)
+      GL_FLOAT,          // the type of each element
+      GL_FALSE,          // take our values as-is
+      0,                 // stride
+      0                  // offset of first element
+    			  );
+
+    /* Push each element in buffer_vertices to the vertex shader */
+    glDrawArrays(GL_TRIANGLES, 0, _vbo_walls_size);
+
     glDisableVertexAttribArray(_attribute_coord2d);
   };
   // ***************************************************************** attributs
@@ -146,7 +196,83 @@ private:
   /** Uniform var */
   GLint _uniform_l_color, _uniform_mvp;
   /** Vertex Buffer Object pour lines */
-  GLuint _vbo_lines;
-  int _vbo_lines_size;
+  GLuint _vbo_lines, _vbo_walls;
+  unsigned int _vbo_lines_size, _vbo_walls_size;
+  // ****************************************************************** add_wall
+  /**
+   * Mur vertical en 4 triangles
+   * @return nb de point ajoutés
+   */
+  unsigned int add_wall_vert( GLfloat x, GLfloat y, GLfloat* ptr )
+  {
+    // extrémité basse
+    *ptr++ = x;
+    *ptr++ = y;
+    *ptr++ = x + WALL_WIDTH/2.f;
+    *ptr++ = y + WALL_WIDTH/2.f;
+    *ptr++ = x - WALL_WIDTH/2.f;
+    *ptr++ = y + WALL_WIDTH/2.f;
+    // droite du mur
+    *ptr++ = x + WALL_WIDTH/2.f;
+    *ptr++ = y + WALL_WIDTH/2.f;
+    *ptr++ = x + WALL_WIDTH/2.f;
+    *ptr++ = y + 1.f - WALL_WIDTH/2.f;
+    *ptr++ = x - WALL_WIDTH/2.f;
+    *ptr++ = y + WALL_WIDTH/2.f;
+    // gauche du mur
+    *ptr++ = x - WALL_WIDTH/2.f;
+    *ptr++ = y + WALL_WIDTH/2.f;
+    *ptr++ = x + WALL_WIDTH/2.f;
+    *ptr++ = y + 1.f - WALL_WIDTH/2.f;
+    *ptr++ = x - WALL_WIDTH/2.f;
+    *ptr++ = y + 1.f - WALL_WIDTH/2.f;
+    // extrémité haute
+    *ptr++ = x + WALL_WIDTH/2.f;
+    *ptr++ = y + 1.f - WALL_WIDTH/2.f;
+    *ptr++ = x - WALL_WIDTH/2.f;
+    *ptr++ = y + 1.f - WALL_WIDTH/2.f;
+    *ptr++ = x;
+    *ptr++ = y + 1.f;
+
+    return 4*6;
+  };
+  /**
+   * Mur horizontal en 4 triangles
+   * @return nb de point ajoutés
+   */
+  unsigned int add_wall_hor( GLfloat x, GLfloat y, GLfloat* ptr )
+  {
+    // extrémité gauche
+    *ptr++ = x;
+    *ptr++ = y;
+    *ptr++ = x + WALL_WIDTH/2.f;
+    *ptr++ = y - WALL_WIDTH/2.f;
+    *ptr++ = x + WALL_WIDTH/2.f;
+    *ptr++ = y + WALL_WIDTH/2.f;
+    // bas du mur
+    *ptr++ = x + WALL_WIDTH/2.f;
+    *ptr++ = y - WALL_WIDTH/2.f;
+    *ptr++ = x + 1.f - WALL_WIDTH/2.f;
+    *ptr++ = y - WALL_WIDTH/2.f;
+    *ptr++ = x + WALL_WIDTH/2.f;
+    *ptr++ = y + WALL_WIDTH/2.f;
+    // haut du mur
+    *ptr++ = x + WALL_WIDTH/2.f;
+    *ptr++ = y + WALL_WIDTH/2.f;
+    *ptr++ = x + 1.f - WALL_WIDTH/2.f;
+    *ptr++ = y - WALL_WIDTH/2.f;
+    *ptr++ = x + 1.f - WALL_WIDTH/2.f;
+    *ptr++ = y + WALL_WIDTH/2.f;
+    // extrémité droite
+    *ptr++ = x + 1.f - WALL_WIDTH/2.f;
+    *ptr++ = y + WALL_WIDTH/2.f;
+    *ptr++ = x + 1.f - WALL_WIDTH/2.f;
+    *ptr++ = y - WALL_WIDTH/2.f;
+    *ptr++ = x + 1.f;
+    *ptr++ = y;
+    
+    return 4*6;
+  };
+
 };
 #endif // GL_WORLD_HPP

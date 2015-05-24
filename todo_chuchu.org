@@ -1,13 +1,16 @@
-* [3/3] Model
+* [3/4] Model
 ** DONE [2/2] leaving Cell
 *** DONE _arrow => prend dir de _arrow
 *** DONE si mur
 nouvelle direction avec rotation horaire tant que mur existe
 ** DONE enter cell with rocket
 ** DONE Toric world
+** TODO Construire monde et Cells à partir d'une description serialized
+En continuant ce qui est fait pour -l_walls
+
 * TODO [1/5] Graphic
 ** TODO Simple graphic view (case et triangle)
-*** TODO Mur épais => 2 triangles
+*** DONE Mur épais => 4 triangles
 *** TODO Chuchu => polyline avec effet pacman
 ** DONE Tutorial OpenGL -> animation
 ** TODO 3D Chuchu models

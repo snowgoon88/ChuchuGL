@@ -20,13 +20,13 @@ class Chuchu {
 public:
   // ****************************************************************** CREATION
   /** Creation avec une position et une vitesse */
-  Chuchu( TVec2 position = {0,0}, Direction* dir = &_dir_right, TSpd speed = 0.1 ) :
+  Chuchu( Vec2 position = {0,0}, Direction* dir = &_dir_right, Spd speed = 0.1 ) :
     _pos(position), _dir(dir), _spd(speed), _cell(NULL)
   {};
 
   // *********************************************************************** STR
   /** Dump avec string */
-  std::string str_dump()
+  std::string str_dump() const
   {
     std::stringstream dump;
     
@@ -46,8 +46,8 @@ public:
 
   // ****************************************************************** VARIABLE
   /** _pos */
-  TVec2& pos() {return _pos;};
-  void set_pos( const TPos& x, const TPos& y ) {_pos.x = x; _pos.y=y;};
+  const Vec2& pos() const {return _pos;};
+  void set_pos( const Pos& x, const Pos& y ) {_pos.x = x; _pos.y=y;};
   /** 
    * Quand on lui attribue une Cell, le Chuchu regarde s'il ENTER
    * ou EXIT cette CELL. 
@@ -86,11 +86,11 @@ public:
   };
 private:
   /** Position */
-  TVec2 _pos;
+  Vec2 _pos;
   /** Direction actuelle */
   Direction* _dir;
   /** Vitesse */
-  TSpd _spd;
+  Spd _spd;
   /** Cell sur laquelle se trouve le Chuchu */
   Cell* _cell;
 };
