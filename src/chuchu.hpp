@@ -84,6 +84,8 @@ public:
       return false;
     }
   };
+  /** dir */
+  const Direction& dir() const {return *_dir;};
 private:
   /** Position */
   Vec2 _pos;

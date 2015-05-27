@@ -67,7 +67,7 @@ public:
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // Depth
-    // glEnable( GL_DEPTH_TEST );
+    glEnable( GL_DEPTH_TEST );
 
     // TODO cbk quand la fenètre est redimensionnée ??
     while (!glfwWindowShouldClose(_window)) {
@@ -83,7 +83,7 @@ public:
 
       /* Clear the background as white */
       glClearColor(1.0, 1.0, 1.0, 1.0);
-      glClear(GL_COLOR_BUFFER_BIT); //|GL_DEPTH_BUFFER_BIT);
+      glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
       // TODO Display cbk
       _gl_world->render();

@@ -15,6 +15,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include <world.hpp>
+#include <gl_chuchu.hpp>
 
 // ******************************************************************** GLOBAL
 /** épaisseur d'un mur et nb de point pour dessiner un mur*/
@@ -52,7 +53,7 @@ public:
     glBufferData(GL_ARRAY_BUFFER, sizeof(line_vtx), 
 		 line_vtx, GL_STATIC_DRAW);
 
-    // VBO avec les points des murs
+        // VBO avec les points des murs
     GLfloat wall_vtx[(_model.walls().size())*WALL_SIZE];
     _vbo_walls_size = 0;
     for( auto& wall : _model.walls() ) {
@@ -136,7 +137,7 @@ public:
     glDeleteBuffers(1, &_vbo_walls);
   };
   // ******************************************************************** render
-  void render () const
+  void render ()
   {
     // Projection (to 2D screen)
     glm::mat4 projection = glm::ortho( -1.0f, 10.0f,
@@ -184,6 +185,9 @@ public:
     glDrawArrays(GL_TRIANGLES, 0, _vbo_walls_size);
 
     glDisableVertexAttribArray(_attribute_coord2d);
+
+    // Un Chuchu vers la droite en (2,2)
+    _chuchu_viewer.render( projection, Vec2({2,2}), _dir_right );
   };
   // ***************************************************************** attributs
 private:
@@ -198,6 +202,8 @@ private:
   /** Vertex Buffer Object pour lines */
   GLuint _vbo_lines, _vbo_walls;
   unsigned int _vbo_lines_size, _vbo_walls_size;
+  /** Sous-viewer */
+  GLChuchu _chuchu_viewer;
   // ****************************************************************** add_wall
   /**
    * Mur vertical en 4 triangles

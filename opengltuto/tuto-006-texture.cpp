@@ -338,14 +338,14 @@ public:
     GLfloat cube_texcoords[7*7* 8];
     for( unsigned int row = 0; row < 7; ++row) {
       for( unsigned int col = 0; col < 7; ++col) {
-	cube_texcoords[(col+row*3)*8+0] = col * 1.0f/7.f;
-	cube_texcoords[(col+row*3)*8+1] = (6-row) * 1.0f/7.f;
-	cube_texcoords[(col+row*3)*8+2] = (col+1) * 1.0f/7.f;
-	cube_texcoords[(col+row*3)*8+3] = (6-row) * 1.0f/7.f;
-	cube_texcoords[(col+row*3)*8+4] = (col+1) * 1.0f/7.f;
-	cube_texcoords[(col+row*3)*8+5] = (6-row+1) * 1.0f/7.f;
-	cube_texcoords[(col+row*3)*8+6] = col * 1.0f/7.f;
-	cube_texcoords[(col+row*3)*8+7] = (6-row+1) * 1.0f/7.f;
+	cube_texcoords[(col+row*7)*8+0] = col * 1.0f/7.f;
+	cube_texcoords[(col+row*7)*8+1] = (6-row) * 1.0f/7.f;
+	cube_texcoords[(col+row*7)*8+2] = (col+1) * 1.0f/7.f;
+	cube_texcoords[(col+row*7)*8+3] = (6-row) * 1.0f/7.f;
+	cube_texcoords[(col+row*7)*8+4] = (col+1) * 1.0f/7.f;
+	cube_texcoords[(col+row*7)*8+5] = (6-row+1) * 1.0f/7.f;
+	cube_texcoords[(col+row*7)*8+6] = col * 1.0f/7.f;
+	cube_texcoords[(col+row*7)*8+7] = (6-row+1) * 1.0f/7.f;
       }
     };
     glGenBuffers(1, &_vbo_cube_texcoords);
