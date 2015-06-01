@@ -19,13 +19,7 @@
 //******************************************************************************
 int main( int argc, char *argv[] )
 {
-  World world;
-  
-  // Open file
-  std::ifstream myfile( "../data/world_6x5.json" );
-  world.read_json( myfile );
-  myfile.close();
-
+  World world( "../data/world_6x5.json");
   std::cout << world.str_dump() << std::endl;
 
   return 0;

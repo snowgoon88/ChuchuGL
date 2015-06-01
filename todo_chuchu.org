@@ -1,11 +1,11 @@
-* [3/4] Model
+* [4/4] Model
 ** DONE [2/2] leaving Cell
 *** DONE _arrow => prend dir de _arrow
 *** DONE si mur
 nouvelle direction avec rotation horaire tant que mur existe
 ** DONE enter cell with rocket
 ** DONE Toric world
-** TODO Construire monde et Cells à partir d'une description serialized
+** DONE Construire monde et Cells à partir d'une description serialized
 En continuant ce qui est fait pour -l_walls
 
 * TODO [3/5] Graphic

@@ -12,8 +12,7 @@
 int main( int argc, char *argv[] )
 {
   std::cout << "__CREATION" << std::endl;
-  World world;
-  world.init3x4();
+  World world( "../data/world_3x4.json");
   std::cout << world.str_dump() << std::endl;
 
   std::cout << "__RUNNING" << "\n";

@@ -14,6 +14,7 @@
  */
 
 #include <sstream>                        // std::stringstream
+#include <fstream>                        // std::ifstream
 #include <vector>                         // std::vector
 #include <list>                           // std::list
 #include <memory>                         // std::unique_ptr
@@ -40,6 +41,12 @@ class World {
 public:
   // ****************************************************************** CREATION
   World() {};
+  World( std::string filename )
+  { 
+    std::ifstream myfile( filename );
+    read_json( myfile );
+    myfile.close();
+  };
   void read_json( std::istream& input_stream )
   {
     // Wrapper pour lire document
@@ -127,91 +134,20 @@ public:
       std::unique_ptr<Cell> rocket(new Rocket(*_l_cell[x+_nb_col*y]));
       _l_cell[x+_nb_col*y] = std::move(rocket);
     }
-  };
-  void init3x4()
-  {
-    std::cout << "World.init3x4()" << "\n";
-    _nb_row = 3;
-    _nb_col = 4;
-    _l_wall.push_back( {0, 0, 2} );
-    _l_wall.push_back( {0, 0, 3} );
-    _l_wall.push_back( {0, 1, 3} );
-    // Crée et ajoute les Cell avec murs autours
-    for( unsigned int row = 0; row < _nb_row; ++row) {
-      for( unsigned int col = 0; col < _nb_col; ++col) {
-	if( col == _nb_col-1 and row == _nb_row-1 ) {
-	  std::unique_ptr<Cell> rocket(new Rocket({(Pos)col,(Pos)row} ));
-	  rocket->add_wall( _dir_up );
-	  rocket->add_wall( _dir_right );
-	  _l_cell.push_back( std::move(rocket) );
-	}
-	else {
-	  std::unique_ptr<Cell> cell(new Cell({(Pos)col,(Pos)row} ));
-	  if( row == 0 ) cell->add_wall( _dir_down );
-	  if( row == _nb_row-1 ) cell->add_wall( _dir_up );
-	  if( col == 0 ) cell->add_wall( _dir_left );
-	  if( col == _nb_col-1 ) cell->add_wall( _dir_right );
-	  _l_cell.push_back( std::move(cell) );
-	}
-      }
-    } 
-    // Down arrow in cell(3,1)
-    _l_cell[3+_nb_col*1]->set_arrow( &_dir_down );
 
-    // Crée un ajoute les Chuchu
-    Chuchu chu( {3,0}, &_dir_right, 1.0 );
-    set_cell( chu );
-    _l_chuchu.push_back( chu );
-  };
-  void init2x5()
-  {
-    std::cout << "World.init2x5()" << "\n";
-    _nb_row = 2;
-    _nb_col = 5;
-    // Crée et ajoute les Cell avec murs autours
-    for( unsigned int row = 0; row < _nb_row; ++row) {
-      for( unsigned int col = 0; col < _nb_col; ++col) {
-	std::unique_ptr<Cell> cell(new Cell({(Pos)col,(Pos)row} ));
-	if( row == 0 ) cell->add_wall( _dir_down );
-	if( row == _nb_row-1 ) cell->add_wall( _dir_up );
-	if( col == 0 ) cell->add_wall( _dir_left );
-	if( col == _nb_col-1 ) cell->add_wall( _dir_right );
-	_l_cell.push_back( std::move(cell) );
-      }
-    } 
-    // Down arrow in cell(3,1)
-    _l_cell[3+_nb_col*1]->set_arrow( &_dir_down );
-
-    // Crée un ajoute les Chuchu
-    Chuchu chu1( {3,0}, &_dir_right, 1.0 );
-    set_cell( chu1 );
-    _l_chuchu.push_back( chu1 );
-    Chuchu chu2( {3,0}, &_dir_left, 1.0 );
-    set_cell( chu2 );
-    _l_chuchu.push_back( chu2 );
-  };    
-  void init1x5()
-  {
-    std::cout << "World.init1x5()" << "\n";
-    _nb_row = 1;
-    _nb_col = 5;
-    // Crée et ajoute les Cell
-    for( unsigned int row = 0; row < _nb_row; ++row) {
-      for( unsigned int col = 0; col < _nb_col; ++col) {
-	_l_cell.push_back( std::unique_ptr<Cell>(new Cell( {(Pos)col,(Pos)row} )) );
-      }
+    // Arrow
+    rapidjson::Value& arrows = doc["arrow"];
+    // Pour chaque arrow
+    for (rapidjson::SizeType i = 0; i < arrows.Size(); i++) {
+      //Un array de 3 var : x, y, dir
+      auto&  a = arrows[i];
+      int x = a[0].GetInt();
+      int y = a[1].GetInt();
+      unsigned int dir = a[2].GetUint();
+      // Ajoute les Arrow
+      _l_cell[x+_nb_col*y]->set_arrow( &_l_dir[dir]);
     }
-    // Right arrow in cell(0,0)
-    _l_cell[0]->set_arrow( &_dir_right );
-    // Left arrow in cell(2,0)
-    _l_cell[2]->set_arrow( &_dir_left );
-    
-    // Crée un ajoute les Chuchu
-    Chuchu chu( {0,0}, &_dir_right, 1.0 );
-    set_cell( chu );
-    _l_chuchu.push_back( chu );
   };
-
   // *********************************************************************** STR
   /** Dump avec string */
   std::string str_dump() const

@@ -57,12 +57,12 @@ public:
   // ********************************************************************** init
   void init()
   {
-    _world = std::unique_ptr<World>(new World());
+    _world = std::unique_ptr<World>(new World( "../data/world_6x5.json"));
     //_world->init3x4();
     // Open file
-    std::ifstream myfile( "../data/world_6x5.json" );
-    _world->read_json( myfile );
-    myfile.close();
+    // std::ifstream myfile( "../data/world_6x5.json" );
+    // _world->read_json( myfile );
+    // myfile.close();
     _gl_world = std::unique_ptr<GLWorld>(new GLWorld( *_world ));
   };
   // ******************************************************************** render
