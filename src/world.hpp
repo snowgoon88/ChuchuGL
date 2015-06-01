@@ -287,6 +287,7 @@ public:
   unsigned int nb_row() const {return _nb_col;};
   unsigned int nb_col() const {return _nb_col;};
   std::vector<Wall> walls() const {return _l_wall;};
+  std::list<Chuchu> chuchu() const {return _l_chuchu;};
 private:
   /** Taille du monde */
   unsigned int _nb_row, _nb_col;

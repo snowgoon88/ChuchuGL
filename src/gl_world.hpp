@@ -196,8 +196,12 @@ public:
 
     glDisableVertexAttribArray(_attribute_coord2d);
 
+    // Tous les chuchu
+    for( auto& chuchu: _model.chuchu()) {
+      _chuchu_viewer.render( projection, chuchu.pos(), chuchu.dir() );
+    }
     // Un Chuchu vers la droite en (2,2)
-    _chuchu_viewer.render( projection, Vec2({2,2}), _dir_right );
+    //_chuchu_viewer.render( projection, Vec2({2,2}), _dir_right );
   };
   // ***************************************************************** attributs
 private:
