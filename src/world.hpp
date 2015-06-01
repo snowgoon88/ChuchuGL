@@ -99,6 +99,34 @@ public:
 	_l_cell[x+_nb_col*y]->add_wall( _dir_right );
       }
     }
+
+    // Chuchu
+    rapidjson::Value& chuchu = doc["chuchu"];
+    // Pour chaque chuchu
+    for (rapidjson::SizeType i = 0; i < chuchu.Size(); i++) {
+      //Un array de 3 var : x, y, dir
+      auto&  c = chuchu[i];
+      int x = c[0].GetInt();
+      int y = c[1].GetInt();
+      unsigned int dir = c[2].GetUint();
+      // Crée un ajoute les Chuchu
+      Chuchu chu( {(Pos)x, (Pos)y}, &_l_dir[dir], 1.0 );
+      set_cell( chu );
+      _l_chuchu.push_back( chu );
+    }
+
+    // Rocket
+    rapidjson::Value& rockets = doc["rocket"];
+    // Pour chaque rocket
+    for (rapidjson::SizeType i = 0; i < rockets.Size(); i++) {
+      //Un array de 2 var : x, y
+      auto&  r = chuchu[i];
+      int x = r[0].GetInt();
+      int y = r[1].GetInt();
+      // Crée un ajoute les Rocket
+      std::unique_ptr<Cell> rocket(new Rocket(*_l_cell[x+_nb_col*y]));
+      _l_cell[x+_nb_col*y] = std::move(rocket);
+    }
   };
   void init3x4()
   {

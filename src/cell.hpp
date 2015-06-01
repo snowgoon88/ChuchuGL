@@ -26,7 +26,11 @@ public:
     _pos(position), _arrow(NULL), _wall{false, false, false, false},
     _type("CELL")
   {};
-
+  Cell( const Cell& cell ) :
+    _pos(cell.pos()), _arrow(cell._arrow),
+    _wall{cell._wall[0], cell._wall[1], cell._wall[2], cell._wall[3]},
+    _type("CELL")
+  {};
   // *********************************************************************** str
   /** Dump avec string */
   virtual std::string str_dump()
@@ -67,7 +71,7 @@ public:
     return next_dir;
   };
   // ***************************************************************** attributs
-  Vec2& pos() {return _pos;};
+  const Vec2& pos() const {return _pos;};
   bool set_arrow( Direction* dir) {_arrow = dir; return true;}
   void add_wall( const Direction& dir ) {_wall[dir.index] = true;};
 protected:
@@ -89,6 +93,8 @@ class Rocket : public Cell
 public:
   // ****************************************************************** creation
   Rocket( Vec2 position = {0,0} ) : Cell( position ), _count(0)
+  { _type = "ROCKET";};
+  Rocket( const Cell& cell ) : Cell(cell), _count(0)
   { _type = "ROCKET";};
   /** Dump avec string */
   virtual std::string str_dump()
