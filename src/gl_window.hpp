@@ -19,6 +19,8 @@
 // Viewer
 #include <gl_world.hpp>
 
+#include <fstream>
+
 // ***************************************************************************
 // ****************************************************************** GLWindow
 // ***************************************************************************
@@ -56,7 +58,11 @@ public:
   void init()
   {
     _world = std::unique_ptr<World>(new World());
-    _world->init3x4();
+    //_world->init3x4();
+    // Open file
+    std::ifstream myfile( "../data/world_6x5.json" );
+    _world->read_json( myfile );
+    myfile.close();
     _gl_world = std::unique_ptr<GLWorld>(new GLWorld( *_world ));
   };
   // ******************************************************************** render

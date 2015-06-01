@@ -57,7 +57,17 @@ public:
     GLfloat wall_vtx[(_model.walls().size())*WALL_SIZE];
     _vbo_walls_size = 0;
     for( auto& wall : _model.walls() ) {
-      if( wall.idd == 2 ) {
+      if( wall.idd == 0 ) {
+    	_vbo_walls_size += add_wall_hor( (GLfloat) wall.x - 0.5f,
+    					 (GLfloat) wall.y - 0.5f,
+    					 &(wall_vtx[_vbo_walls_size]) );
+      }
+      else if( wall.idd == 1 ) {
+    	_vbo_walls_size += add_wall_vert( (GLfloat) wall.x + 0.5f,
+					  (GLfloat) wall.y - 0.5f,
+					  &(wall_vtx[_vbo_walls_size]) );
+      }
+      else if( wall.idd == 2 ) {
     	_vbo_walls_size += add_wall_hor( (GLfloat) wall.x - 0.5f,
     					 (GLfloat) wall.y - 0.5f,
     					 &(wall_vtx[_vbo_walls_size]) );

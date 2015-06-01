@@ -21,6 +21,10 @@
 
 #include <global.hpp>
 
+#include <json_wrapper.hpp>               // Wrapper around rapidjson
+//#include "rapidjson/writer.h"           // rapidjson
+#include "rapidjson/document.h"           // rapidjson's DOM-style API
+
 #include <cell.hpp>
 #include <chuchu.hpp>
 
@@ -36,6 +40,66 @@ class World {
 public:
   // ****************************************************************** CREATION
   World() {};
+  void read_json( std::istream& input_stream )
+  {
+    // Wrapper pour lire document
+    JSON::IStreamWrapper is(input_stream);
+    // Parse into a document
+    rapidjson::Document doc;
+    doc.ParseStream( is );
+    
+    // Taille du monde
+    _nb_row = doc["nb_row"].GetUint();
+    _nb_col = doc["nb_col"].GetUint();
+    std::cout << "Monde de " << _nb_row << " x " << _nb_col << " cases." << std::endl;
+    _l_cell.clear();
+    for( unsigned int row = 0; row < _nb_row; ++row) {
+      for( unsigned int col = 0; col < _nb_col; ++col) {
+	std::unique_ptr<Cell> cell(new Cell({(Pos)col,(Pos)row} ));
+	_l_cell.push_back( std::move(cell) );
+      }
+    }
+    
+    // Les murs
+    _l_wall.clear();
+    rapidjson::Value& walls = doc["walls"];
+    // Pour chaque mur
+    for (rapidjson::SizeType i = 0; i < walls.Size(); i++) {
+      //Un array de 3 var : x, y, dir
+      auto&  w = walls[i];
+      int x = w[0].GetInt();
+      int y = w[1].GetInt();
+      unsigned int dir = w[2].GetUint();
+      std::cout << " Mur en (" << x << "; " << y << ")";
+      std::cout << " dir=" <<  _dir_str(dir) << std::endl;
+      _l_wall.push_back( {(Pos)x, (Pos)y, dir} );
+      if( dir == 2 ) { // down
+	_l_cell[x+_nb_col*y]->add_wall( _dir_down );
+	// case du dessous
+	y = y - 1;
+	if( y < 0 ) { 
+	  y = _nb_row-1;
+	  // doit aussi ajouter un mur dans _l_wall car case de bord.
+	  _l_wall.push_back( {(Pos)x, (Pos)y, _dir_up.index} );
+	  std::cout << "Ajout mur UP" << std::endl;
+	}
+	  
+	_l_cell[x+_nb_col*y]->add_wall( _dir_up );
+      }
+      else if( dir == 3 ) { // left
+	_l_cell[x+_nb_col*y]->add_wall( _dir_left );
+	// case de gauche
+	x = x - 1;
+	if( x < 0 ) {
+	  x = _nb_col-1;
+	  // doit aussi ajouter un mur dans _l_wall car case de bord
+	  _l_wall.push_back( {(Pos)x, (Pos)y, _dir_right.index} );
+	  std::cout << "Ajout mur RIGHT" << std::endl;
+	}
+	_l_cell[x+_nb_col*y]->add_wall( _dir_right );
+      }
+    }
+  };
   void init3x4()
   {
     std::cout << "World.init3x4()" << "\n";
