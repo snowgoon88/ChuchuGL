@@ -20,7 +20,7 @@ pkg_search_module(FTGL REQUIRED ftgl)
 #######################################
 
 # cflags added by the package
-SET(PROJECT_CFLAGS "-Wall -std=c++11 -Iinclude")
+SET(PROJECT_CFLAGS ${PROJECT_CFLAGS} "-Wall -std=c++11 -Iinclude")
 
 # cflags added by the pkg-config dependencies contains ';' as separator. This is a fix.
 string(REPLACE ";" " " GLEW_CFLAGS "${GLEW_CFLAGS}")
@@ -43,3 +43,11 @@ SET(TESTS_LIBS "")
 add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(opengltuto)
+
+###################################
+#  Make sure data and shaders available for build
+###################################
+execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/data
+                                                           ${CMAKE_BINARY_DIR}/data)
+execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/src/shaders
+                                                           ${CMAKE_BINARY_DIR}/src/shaders)

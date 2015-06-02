@@ -19,7 +19,7 @@
 //******************************************************************************
 int main( int argc, char *argv[] )
 {
-  World world( "../data/world_6x5.json");
+  World world( "data/world_6x5.json");
   std::cout << world.str_dump() << std::endl;
 
   return 0;
