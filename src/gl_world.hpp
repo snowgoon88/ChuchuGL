@@ -34,16 +34,16 @@ public:
     // VBO pour les lignes : 4 float par ligne
     GLfloat line_vtx[(_model.nb_row()+1+_model.nb_col()+1)*4];
     for( unsigned int row = 0; row < _model.nb_row()+1; ++row) {
-      line_vtx[row*4] = (float) -0.5f;
-      line_vtx[row*4+1] = (float) row - 0.5f;
-      line_vtx[row*4+2] = (float) _model.nb_col() - 0.5f;
-      line_vtx[row*4+3] = (float) row - 0.5f;
+      line_vtx[row*4] = (float) 0.f;
+      line_vtx[row*4+1] = (float) row;
+      line_vtx[row*4+2] = (float) _model.nb_col();
+      line_vtx[row*4+3] = (float) row;
     }
     for( unsigned int col = 0; col < _model.nb_col()+1; ++col) {
-      line_vtx[(_model.nb_row()+1)*4+col*4] = (float) col - 0.5f;
-      line_vtx[(_model.nb_row()+1)*4+col*4+1] = (float) - 0.5f;
-      line_vtx[(_model.nb_row()+1)*4+col*4+2] = (float) col - 0.5f;
-      line_vtx[(_model.nb_row()+1)*4+col*4+3] = (float) _model.nb_row() - 0.5f;
+      line_vtx[(_model.nb_row()+1)*4+col*4] = (float) col;
+      line_vtx[(_model.nb_row()+1)*4+col*4+1] = (float) 0.f;
+      line_vtx[(_model.nb_row()+1)*4+col*4+2] = (float) col;
+      line_vtx[(_model.nb_row()+1)*4+col*4+3] = (float) _model.nb_row();
       }
     _vbo_lines_size = 2*(_model.nb_row()+1 + _model.nb_col()+1);
     // Un VBO
@@ -58,23 +58,23 @@ public:
     _vbo_walls_size = 0;
     for( auto& wall : _model.walls() ) {
       if( wall.idd == 0 ) {
-    	_vbo_walls_size += add_wall_hor( (GLfloat) wall.x - 0.5f,
-    					 (GLfloat) wall.y - 0.5f,
+    	_vbo_walls_size += add_wall_hor( (GLfloat) wall.x,
+    					 (GLfloat) wall.y,
     					 &(wall_vtx[_vbo_walls_size]) );
       }
       else if( wall.idd == 1 ) {
-    	_vbo_walls_size += add_wall_vert( (GLfloat) wall.x + 0.5f,
-					  (GLfloat) wall.y - 0.5f,
+    	_vbo_walls_size += add_wall_vert( (GLfloat) wall.x + 1.0f,
+					  (GLfloat) wall.y,
 					  &(wall_vtx[_vbo_walls_size]) );
       }
       else if( wall.idd == 2 ) {
-    	_vbo_walls_size += add_wall_hor( (GLfloat) wall.x - 0.5f,
-    					 (GLfloat) wall.y - 0.5f,
+    	_vbo_walls_size += add_wall_hor( (GLfloat) wall.x,
+    					 (GLfloat) wall.y,
     					 &(wall_vtx[_vbo_walls_size]) );
       }
       else if ( wall.idd == 3 ) {
-    	_vbo_walls_size += add_wall_vert( (GLfloat) wall.x - 0.5f,
-    					  (GLfloat) wall.y - 0.5f,
+    	_vbo_walls_size += add_wall_vert( (GLfloat) wall.x,
+    					  (GLfloat) wall.y,
     					  &(wall_vtx[_vbo_walls_size]) );
       } 
     }

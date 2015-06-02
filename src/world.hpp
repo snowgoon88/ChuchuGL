@@ -117,7 +117,8 @@ public:
       int y = c[1].GetInt();
       unsigned int dir = c[2].GetUint();
       // Crée un ajoute les Chuchu
-      Chuchu chu( {(Pos)x, (Pos)y}, &_l_dir[dir], 1.0 );
+      std::cout << "add CHUCHU at (" << x << "; " << y << ")" << std::endl;
+      Chuchu chu( {(Pos)x+0.5, (Pos)y+0.5}, &_l_dir[dir], 1.0 );
       set_cell( chu );
       _l_chuchu.push_back( chu );
     }
@@ -148,7 +149,7 @@ public:
       _l_cell[x+_nb_col*y]->set_arrow( &_l_dir[dir]);
     }
   };
-  // *********************************************************************** STR
+  // ********************************************************************* str
   /** Dump avec string */
   std::string str_dump() const
   {
@@ -164,16 +165,26 @@ public:
 
     return dump.str();
   };
+  /** Display avec string */
+  std::string str_display() const
+  {
+    std::stringstream str;
+    
+    for( auto& chu : _l_chuchu ) {
+      str << "  " << chu.str_dump() << std::endl;
+    }
 
+    return str.str();
+  };
   // ******************************************************************** UPDATE
-  void update()
+  void update( double delta_t = 0.050 )
   {
     // Calcule la nouvelle position de chaque Chuchu,
     // puis lui attribue sa Cell, ce qui permet de savoir
     // par où il va sortir.
     for( auto it = _l_chuchu.begin(); it != _l_chuchu.end(); ++it ) {      
       // MAJ coordonnées Chuchu
-      (*it).update( 0.3 );
+      (*it).update( delta_t );
       // MAJ Cell du Chuchu
       if( set_cell( *it ) == false ) {
 	std::cout << "argllll CHUCHU dies"<< std::endl;;
@@ -191,17 +202,17 @@ private:
   bool set_cell( Chuchu& chu ) const
   {
     // Un monde torique
-    if( chu.pos().x > _nb_col+1 ) {
-      chu.set_pos( chu.pos().x - (_nb_col+1), chu.pos().y );
+    if( chu.pos().x > _nb_col ) {
+      chu.set_pos( chu.pos().x - (_nb_col), chu.pos().y );
     }
     else if( chu.pos().x < 0 ) {
-      chu.set_pos( chu.pos().x + (_nb_col+1), chu.pos().y );
+      chu.set_pos( chu.pos().x + (_nb_col), chu.pos().y );
     }
-    if( chu.pos().y > _nb_row+1 ) {
-      chu.set_pos( chu.pos().x, chu.pos().y - (_nb_row+1) );
+    if( chu.pos().y > _nb_row ) {
+      chu.set_pos( chu.pos().x, chu.pos().y - (_nb_row) );
     }
     else if( chu.pos().y < 0 ) {
-      chu.set_pos( chu.pos().x,  chu.pos().y+ (_nb_row+1) );
+      chu.set_pos( chu.pos().x,  chu.pos().y+ (_nb_row) );
     }
     // La position du Chuchu devient des coordonnées entière, et 
     // donc l'index de la Cell dans _l_cell

@@ -5,8 +5,10 @@
 
 /** 
  * Une Cell avec
- * - flèche : _arrow = NULL ou &Direction
- * - murs : TODO ---> tableau de 4 boolean ??
+ * - _type : string qui donne le type de case (CELL, ROCKET, SOURCE)
+ * - _pos : position en bas à gauche de la case.
+ * - _arrow = NULL ou &Direction : une flèche
+ * - _wall : tableau de 4 boolean (présence/absence d'un mur)
  */
 
 #include <sstream>                        // std::stringstream
@@ -20,7 +22,7 @@ class Chuchu;
 class Cell
 {
 public:
-  // ****************************************************************** creation
+  // **************************************************************** creation
   /** Avec position */
   Cell( Vec2 position = {0,0} ) :
     _pos(position), _arrow(NULL), _wall{false, false, false, false},
@@ -31,7 +33,7 @@ public:
     _wall{cell._wall[0], cell._wall[1], cell._wall[2], cell._wall[3]},
     _type("CELL")
   {};
-  // *********************************************************************** str
+  // ********************************************************************* str
   /** Dump avec string */
   virtual std::string str_dump()
   {
@@ -49,10 +51,10 @@ public:
 
     return dump.str();
   };
-  // ********************************************************************* enter
+  // ******************************************************************* enter
   /** Return false si chuchu doit être détruit */
   virtual bool entered_by( const Chuchu& chu ) {return true;};
-  // ******************************************************************* leaving
+  // ***************************************************************** leaving
   /** Calcule la direction que l'on a en sortant de la Cell
    * quand on avait la direction dir.
    */
@@ -70,7 +72,7 @@ public:
     }
     return next_dir;
   };
-  // ***************************************************************** attributs
+  // *************************************************************** attributs
   const Vec2& pos() const {return _pos;};
   bool set_arrow( Direction* dir) {_arrow = dir; return true;}
   void add_wall( const Direction& dir ) {_wall[dir.index] = true;};
@@ -91,7 +93,7 @@ protected:
 class Rocket : public Cell
 {
 public:
-  // ****************************************************************** creation
+  // **************************************************************** creation
   Rocket( Vec2 position = {0,0} ) : Cell( position ), _count(0)
   { _type = "ROCKET";};
   Rocket( const Cell& cell ) : Cell(cell), _count(0)
@@ -105,12 +107,12 @@ public:
 
     return dump.str();
   }
-  // ********************************************************************* enter
+  // ******************************************************************* enter
   /** Return false si chuchu doit être détruit */
   virtual bool entered_by( const Chuchu& chu )
   { _count += 1; return false;};
   
-  // ***************************************************************** attributs
+  // *************************************************************** attributs
   bool set_arrow( Direction* dir) {return false;}
 private:
   unsigned int _count;

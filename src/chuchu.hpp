@@ -4,8 +4,12 @@
 #define CHUCHU_CPP
 
 /** 
- * Un Chuchu qui avance dans des Cell,
+ * Un Chuchu qui avance dans des Cell.
  * en sortant d'une Cell, obtient sa nouvelle Direction.
+ *
+ * _pos : position sur le World => toujours positif. Un chuchu dont la 
+ *        _pos.x et _pos.y sont entre 0 et 1 est dans la case (0.0).
+ * 
  */
 
 #include <sstream>                        // std::stringstream
@@ -59,8 +63,8 @@ public:
   {
     // Produit scalaire avec la cellule pour savoir si entre ou sort
     if( cell ) {
-      double pscal = (_pos.x - cell->pos().x - 0.5) * _dir->vec.x +
-	(_pos.y - cell->pos().y - 0.5) * _dir->vec.y;
+      double pscal = (_pos.x - (cell->pos().x+0.5)) * _dir->vec.x +
+	(_pos.y - (cell->pos().y+0.5)) * _dir->vec.y;
       if( pscal > 0.0 ) { // EXIT
 	std::cout << "pscal=" << pscal << " : EXIT cell " << cell->str_dump() << std::endl;
 	// Et donc une nouvelle Direction
