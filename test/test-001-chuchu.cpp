@@ -24,7 +24,7 @@ int main( int argc, char *argv[] )
   Cell other(cell);
   std::cout << other.str_dump() << std::endl;
 
-  Rocket rocket(cell);
-  std::cout << rocket.str_dump() << std::endl;
-  return 0;
+  // Rocket rocket(cell);
+  // std::cout << rocket.str_dump() << std::endl;
+  // return 0;
 }

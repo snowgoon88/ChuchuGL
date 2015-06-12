@@ -1,6 +1,9 @@
 /* -*- coding: utf-8 -*- */
 
-#pragma once
+#ifndef GLOBAL_HPP
+#define GLOBAL_HPP
+
+#include <string>
 
 /** 
  * Quelques types et variables utiles partout
@@ -35,3 +38,4 @@ static std::string _dir_str( unsigned int index )
 {
   return _l_dir[index].str;
 }
+#endif // GLOBAL_HPP

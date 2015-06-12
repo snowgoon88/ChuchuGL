@@ -36,7 +36,7 @@ SET(PROJECT_ALL_CFLAGS  "${PROJECT_CFLAGS}" )
 
 ## Set of libraries for tests
 SET(TESTS_LIBS "")
-
+SET(CHUCHU_LIB "")
 ###################################
 #  Subdirectories
 ###################################

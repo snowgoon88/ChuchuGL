@@ -1,4 +1,4 @@
-* [4/4] Model
+* [4/5] Model
 ** DONE [2/2] leaving Cell
 *** DONE _arrow => prend dir de _arrow
 *** DONE si mur
@@ -8,6 +8,7 @@ nouvelle direction avec rotation horaire tant que mur existe
 ** DONE Construire monde et Cells à partir d'une description serialized
 En continuant ce qui est fait pour -l_walls
 
+** TODO Source avec période réfractaire
 * TODO [3/5] Graphic
 ** DONE [3/5] Simple graphic view (case et triangle)
 *** DONE Mur épais => 4 triangles
@@ -22,4 +23,10 @@ En continuant ce qui est fait pour -l_walls
 ** DONE 3D Chuchu models => 1 texture par direction 
 ** TODO Animation texture + coord
 ** TODO Refactor as utils class/template/other
-
+* Input
+** TODO Joystick controler avec GLFW
+** TODO Lien pour savoir où on a cliqué avec le pad.
+** GL Unproject
+http://en.wikibooks.org/wiki/OpenGL_Programming/Object_selection
+* Son
+** Essayer FMOD pour faire un son quand la souris entre dans une fusée

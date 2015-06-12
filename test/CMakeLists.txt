@@ -15,7 +15,7 @@ file(
 foreach(f ${usage_test})
     get_filename_component(fileName ${f} NAME_WE) 
     add_executable (${fileName} ${f})
-    target_link_libraries (${fileName} ${TEST_LIBS})
+    target_link_libraries (${fileName} ${TEST_LIBS} CHUCHU_LIB )
     set_target_properties(${fileName} PROPERTIES LINKER_LANGUAGE CXX)
     set_target_properties(${fileName} PROPERTIES COMPILE_FLAGS "${PROJECT_ALL_CFLAGS} ${SHARE_PATH_CFLAGS}")
 endforeach(f)

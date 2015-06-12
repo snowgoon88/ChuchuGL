@@ -13,7 +13,8 @@
 
 #include <sstream>                        // std::stringstream
 
-#include <global.hpp>
+#include "global.hpp"
+
 class Chuchu;
 
 // ***************************************************************************
@@ -24,33 +25,11 @@ class Cell
 public:
   // **************************************************************** creation
   /** Avec position */
-  Cell( Vec2 position = {0,0} ) :
-    _pos(position), _arrow(NULL), _wall{false, false, false, false},
-    _type("CELL")
-  {};
-  Cell( const Cell& cell ) :
-    _pos(cell.pos()), _arrow(cell._arrow),
-    _wall{cell._wall[0], cell._wall[1], cell._wall[2], cell._wall[3]},
-    _type("CELL")
-  {};
+  Cell( Vec2 position = {0,0} );
+  Cell( const Cell& cell );
   // ********************************************************************* str
   /** Dump avec string */
-  virtual std::string str_dump()
-  {
-    std::stringstream dump;
-    
-    dump << _type;
-    dump << " at (" << _pos.x << "; " << _pos.y << ")";
-    if( _arrow ) dump << " ARROW to " << _arrow->str;
-    dump << " MUR en ";
-    for( unsigned int i = 0; i < _dir_size; ++i) {
-      if (_wall[i]) {
-	dump << _dir_str(i);
-      }
-    }
-
-    return dump.str();
-  };
+  virtual std::string str_dump() const;
   // ******************************************************************* enter
   /** Return false si chuchu doit être détruit */
   virtual bool entered_by( const Chuchu& chu ) {return true;};
@@ -58,20 +37,7 @@ public:
   /** Calcule la direction que l'on a en sortant de la Cell
    * quand on avait la direction dir.
    */
-  Direction* dir_arrive_from( Direction* dir )
-  {
-    // Par défaut on va tout droit
-    Direction* next_dir = dir;
-    // Mais _arrow est prioritaire
-    if(_arrow) {
-      next_dir = _arrow;
-    }
-    // Ensuite, on regarde s'il y a des murs
-    while( _wall[next_dir->index] ) {
-      next_dir = _dir_rotate( next_dir );
-    }
-    return next_dir;
-  };
+  Direction* dir_arrive_from( Direction* dir ) const;
   // *************************************************************** attributs
   const Vec2& pos() const {return _pos;};
   bool set_arrow( Direction* dir) {_arrow = dir; return true;}
@@ -96,8 +62,9 @@ public:
   // **************************************************************** creation
   Rocket( Vec2 position = {0,0} ) : Cell( position ), _count(0)
   { _type = "ROCKET";};
-  Rocket( const Cell& cell ) : Cell(cell), _count(0)
+  Rocket( const Rocket& rocket ) : Cell(rocket), _count(0)
   { _type = "ROCKET";};
+  // ********************************************************************* str
   /** Dump avec string */
   virtual std::string str_dump()
   {
@@ -116,5 +83,43 @@ public:
   bool set_arrow( Direction* dir) {return false;}
 private:
   unsigned int _count;
+};
+
+// ***************************************************************************
+// ******************************************************************** Source
+// ***************************************************************************
+class Source : public Cell
+{
+public:
+  // **************************************************************** creation
+  Source( Vec2 position = {0,0}, Direction* dir = &_dir_up) :
+    Cell( position ), _dir(dir),
+    _refract(1), _duration(0)
+  { _type = "SOURCE"; };
+  Source( const Source& source ) : 
+    Cell(source), _dir(source._dir),
+    _refract(1), _duration(0)
+  { _type = "SOURCE"; };
+  // ********************************************************************* str
+  /** Dump avec string */
+  virtual std::string str_dump()
+  {
+    std::stringstream dump;
+    
+    dump << Cell::str_dump() << " ref= " << _refract;
+
+    return dump.str();
+  };
+  // ****************************************************************** update
+  /** Return nullptr or a new Chuchu */
+  Chuchu* update( double delta_t );
+  // *************************************************************** attributs
+private:
+  /** Direction des Chuchu sortants */
+  Direction* _dir;
+  /** Periode refractaire */
+  double _refract;
+  /** _temps depuis le dernier Chuchu créé */
+  double _duration;
 };
 #endif // CELL_CPP
