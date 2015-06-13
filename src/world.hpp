@@ -34,6 +34,10 @@ typedef struct {
   Pos x, y;
   unsigned int idd; // index direction
 } Wall;
+typedef std::shared_ptr<Cell>    CellPtr;
+typedef std::shared_ptr<Rocket>  RocketPtr;
+typedef std::vector<CellPtr>     CCellPtr;
+typedef std::list<RocketPtr>     CRocketPtr;
 // ***************************************************************************
 // ********************************************************************* WORLD
 // ***************************************************************************
@@ -62,7 +66,7 @@ public:
     _l_cell.clear();
     for( unsigned int row = 0; row < _nb_row; ++row) {
       for( unsigned int col = 0; col < _nb_col; ++col) {
-	std::unique_ptr<Cell> cell(new Cell({(Pos)col,(Pos)row} ));
+	CellPtr cell(new Cell({(Pos)col,(Pos)row} ));
 	_l_cell.push_back( std::move(cell) );
       }
     }
@@ -132,8 +136,9 @@ public:
       int x = r[0].GetInt();
       int y = r[1].GetInt();
       // Crée un ajoute les Rocket
-      std::unique_ptr<Cell> rocket(new Rocket(*_l_cell[x+_nb_col*y]));
-      _l_cell[x+_nb_col*y] = std::move(rocket);
+      RocketPtr rocket(new Rocket(*_l_cell[x+_nb_col*y]));
+      _l_rocket.push_back( rocket );
+      _l_cell[x+_nb_col*y] = rocket;
     }
 
     // Arrow
@@ -233,14 +238,17 @@ public:
   unsigned int nb_col() const {return _nb_col;};
   std::vector<Wall> walls() const {return _l_wall;};
   const std::list<std::unique_ptr<Chuchu>>& chuchu() const {return _l_chuchu;};
+  const CRocketPtr& rocket() const {return _l_rocket;};
 private:
   /** Taille du monde */
   unsigned int _nb_row, _nb_col;
   /** Toutes les cases */
-  std::vector<std::unique_ptr<Cell>> _l_cell;
+  CCellPtr _l_cell;
   /** Les murs */
   std::vector<Wall> _l_wall;
-  /** Et les Chuchu */
+  /** Les Chuchu */
   std::list<std::unique_ptr<Chuchu>> _l_chuchu;
+  /** Les Rockets */
+  CRocketPtr _l_rocket;
 };
 #endif // WORLD_CPP
