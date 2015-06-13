@@ -28,7 +28,7 @@
 class GLWorld
 {
 public:
-  // ****************************************************************** creation
+  // **************************************************************** creation
   GLWorld( World& world ) : _model(world)
   {
     // VBO pour les lignes : 4 float par ligne
@@ -137,7 +137,7 @@ public:
     }
     
   };
-  // *************************************************************** destruction
+  // ************************************************************* destruction
   virtual ~GLWorld()
   {
     // Détruit le programme GLSL
@@ -146,7 +146,7 @@ public:
     glDeleteBuffers(1, &_vbo_lines);
     glDeleteBuffers(1, &_vbo_walls);
   };
-  // ******************************************************************** render
+  // ****************************************************************** render
   void render ()
   {
     // Projection (to 2D screen)
@@ -198,12 +198,12 @@ public:
 
     // Tous les chuchu
     for( auto& chuchu: _model.chuchu()) {
-      _chuchu_viewer.render( projection, chuchu.pos(), chuchu.dir() );
+      _chuchu_viewer.render( projection, chuchu->pos(), chuchu->dir() );
     }
     // Un Chuchu vers la droite en (2,2)
     //_chuchu_viewer.render( projection, Vec2({2,2}), _dir_right );
   };
-  // ***************************************************************** attributs
+  // *************************************************************** attributs
 private:
   /** Model : World */
   World& _model;
@@ -218,7 +218,7 @@ private:
   unsigned int _vbo_lines_size, _vbo_walls_size;
   /** Sous-viewer */
   GLChuchu _chuchu_viewer;
-  // ****************************************************************** add_wall
+  // **************************************************************** add_wall
   /**
    * Mur vertical en 4 triangles
    * @return nb de point ajoutés

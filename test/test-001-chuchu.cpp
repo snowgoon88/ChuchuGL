@@ -24,7 +24,8 @@ int main( int argc, char *argv[] )
   Cell other(cell);
   std::cout << other.str_dump() << std::endl;
 
-  // Rocket rocket(cell);
-  // std::cout << rocket.str_dump() << std::endl;
-  // return 0;
+  // On en a besoin dans la création du monde : Rocket à partir de Cell
+  Rocket rocket(cell);
+  std::cout << rocket.str_dump() << std::endl;
+  return 0;
 }

@@ -39,7 +39,7 @@ typedef struct {
 // ***************************************************************************
 class World {
 public:
-  // ****************************************************************** CREATION
+  // **************************************************************** creation
   World() {};
   World( std::string filename )
   { 
@@ -120,7 +120,7 @@ public:
       std::cout << "add CHUCHU at (" << x << "; " << y << ")" << std::endl;
       std::unique_ptr<Chuchu> chu(new Chuchu({(Pos)x+0.5, (Pos)y+0.5}, &_l_dir[dir], 1.0 ));
       set_cell( *chu );
-      _l_chuchu->push_back( std::move(chu) );
+      _l_chuchu.push_back( std::move(chu) );
     }
 
     // Rocket
@@ -176,26 +176,24 @@ public:
 
     return str.str();
   };
-  // ******************************************************************** UPDATE
+  // ****************************************************************** update
   void update( double delta_t = 0.050 )
   {
     // Calcule la nouvelle position de chaque Chuchu,
     // puis lui attribue sa Cell, ce qui permet de savoir
     // par où il va sortir.
-    for( auto it = _l_chuchu->begin(); it != _l_chuchu->end(); ++it ) {      
+    for( auto it = _l_chuchu.begin(); it != _l_chuchu.end(); ++it ) {      
       // MAJ coordonnées Chuchu
       (*it)->update( delta_t );
       // MAJ Cell du Chuchu
       if( set_cell( **it ) == false ) {
-	std::cout << "argllll CHUCHU dies"<< std::endl;;
-	it = _l_chuchu->erase( it ); // Chuchu meurt et 'it' maj
+	std::cout << "argllll CHUCHU dies"<< std::endl;
+	it = _l_chuchu.erase( it ); // Chuchu meurt et 'it' maj
 	std::cout << "....... CHUCHU is dead";
-	std::cout << " only " << _l_chuchu->size() << " left" << std::endl;
+	std::cout << " only " << _l_chuchu.size() << " left" << std::endl;
       }
     }
   };
-
-    
 private:
   // ***************************************************************** LINK CELL
   /** @return true si le chuchu est toujours vivant */
@@ -234,7 +232,7 @@ public:
   unsigned int nb_row() const {return _nb_col;};
   unsigned int nb_col() const {return _nb_col;};
   std::vector<Wall> walls() const {return _l_wall;};
-  std::list<std::unique_ptr<Chuchu>> chuchu() const {return _l_chuchu;};
+  const std::list<std::unique_ptr<Chuchu>>& chuchu() const {return _l_chuchu;};
 private:
   /** Taille du monde */
   unsigned int _nb_row, _nb_col;

@@ -62,7 +62,7 @@ public:
   // **************************************************************** creation
   Rocket( Vec2 position = {0,0} ) : Cell( position ), _count(0)
   { _type = "ROCKET";};
-  Rocket( const Rocket& rocket ) : Cell(rocket), _count(0)
+  Rocket( const Cell& cell ) : Cell(cell), _count(0)
   { _type = "ROCKET";};
   // ********************************************************************* str
   /** Dump avec string */
@@ -96,8 +96,8 @@ public:
     Cell( position ), _dir(dir),
     _refract(1), _duration(0)
   { _type = "SOURCE"; };
-  Source( const Source& source ) : 
-    Cell(source), _dir(source._dir),
+  Source( const Cell& cell, Direction* dir = &_dir_up) : 
+    Cell(cell), _dir(dir),
     _refract(1), _duration(0)
   { _type = "SOURCE"; };
   // ********************************************************************* str
