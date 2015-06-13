@@ -6,7 +6,7 @@
 /** 
  * Viewer OpenGL : le monde comme une grille.
  */
-#include <gl_utils.hpp>                   // GLUtils
+#include "gl_utils.hpp"                   // GLUtils
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -14,8 +14,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include <world.hpp>
-#include <gl_chuchu.hpp>
+#include "world.hpp"
+#include "gl_chuchu.hpp"
+#include "gl_cell.hpp"
 
 // ******************************************************************** GLOBAL
 /** épaisseur d'un mur et nb de point pour dessiner un mur*/
@@ -195,7 +196,11 @@ public:
     glDrawArrays(GL_TRIANGLES, 0, _vbo_walls_size);
 
     glDisableVertexAttribArray(_attribute_coord2d);
-
+    // Les Rockets
+    // TODO changer orientation en fonction de la position dans la grille
+    for( auto& rocket : _model.rocket()) {
+      _rocket_viewer.render( projection, rocket->pos(), 0 );
+    }
     // Tous les chuchu
     for( auto& chuchu: _model.chuchu()) {
       _chuchu_viewer.render( projection, chuchu->pos(), chuchu->dir() );
@@ -218,6 +223,7 @@ private:
   unsigned int _vbo_lines_size, _vbo_walls_size;
   /** Sous-viewer */
   GLChuchu _chuchu_viewer;
+  GLRocket _rocket_viewer;
   // **************************************************************** add_wall
   /**
    * Mur vertical en 4 triangles
