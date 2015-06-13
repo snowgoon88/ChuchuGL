@@ -23,10 +23,18 @@ En continuant ce qui est fait pour -l_walls
 ** DONE 3D Chuchu models => 1 texture par direction 
 ** TODO Animation texture + coord
 ** TODO Refactor as utils class/template/other
+** Image de la flèche du joueur
+** Image du curseur
+** Image des flèches au sol
+
 * Input
 ** TODO Joystick controler avec GLFW
 ** TODO Lien pour savoir où on a cliqué avec le pad.
 ** GL Unproject
 http://en.wikibooks.org/wiki/OpenGL_Programming/Object_selection
-* Son
+* TODO Son
 ** Essayer FMOD pour faire un son quand la souris entre dans une fusée
+** TODO [0/3] PortAudio
+*** TODO music = 10-single-player-theme pour les PUZZLE
+*** TODO music = 02-multiplayer-theme pour JEU
+*** TODO effect = enter_rocket.mp3
