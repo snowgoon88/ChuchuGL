@@ -36,8 +36,11 @@ typedef struct {
 } Wall;
 typedef std::shared_ptr<Cell>    CellPtr;
 typedef std::shared_ptr<Rocket>  RocketPtr;
+typedef std::shared_ptr<Source>  SourcePtr;
 typedef std::vector<CellPtr>     CCellPtr;
 typedef std::list<RocketPtr>     CRocketPtr;
+typedef std::list<SourcePtr>     CSourcePtr;
+
 // ***************************************************************************
 // ********************************************************************* WORLD
 // ***************************************************************************
@@ -132,13 +135,28 @@ public:
     // Pour chaque rocket
     for (rapidjson::SizeType i = 0; i < rockets.Size(); i++) {
       //Un array de 2 var : x, y
-      auto&  r = chuchu[i];
+      auto&  r = rockets[i];
       int x = r[0].GetInt();
       int y = r[1].GetInt();
       // Crée un ajoute les Rocket
       RocketPtr rocket(new Rocket(*_l_cell[x+_nb_col*y]));
       _l_rocket.push_back( rocket );
       _l_cell[x+_nb_col*y] = rocket;
+    }
+    // Source
+    rapidjson::Value& sources = doc["source"];
+    // Pour chaque source
+    for (rapidjson::SizeType i = 0; i < sources.Size(); i++) {
+      //Un array de 3 var : x, y, dir
+      auto&  s = sources[i];
+      int x = s[0].GetInt();
+      int y = s[1].GetInt();
+      unsigned int dir = s[2].GetUint();
+      std::cout << "Crée SOURCE en " << x <<"; "<<y<<"; d="<<dir << std::endl;
+      // Crée et ajoute les Sources
+      SourcePtr source(new Source(*_l_cell[x+_nb_col*y], &_l_dir[dir]));
+      _l_source.push_back( source );
+      _l_cell[x+_nb_col*y] = source;
     }
 
     // Arrow
@@ -184,6 +202,13 @@ public:
   // ****************************************************************** update
   void update( double delta_t = 0.050 )
   {
+    // Fait le tour des sources pour créer les Chuchu
+    for( auto& source: _l_source) {
+      std::unique_ptr<Chuchu> chu = source->update( delta_t );
+      if( chu ) {
+	_l_chuchu.push_back( std::move(chu) );
+      }
+    }
     // Calcule la nouvelle position de chaque Chuchu,
     // puis lui attribue sa Cell, ce qui permet de savoir
     // par où il va sortir.
@@ -215,7 +240,7 @@ private:
       chu.set_pos( chu.pos().x, chu.pos().y - (_nb_row) );
     }
     else if( chu.pos().y < 0 ) {
-      chu.set_pos( chu.pos().x,  chu.pos().y+ (_nb_row) );
+      chu.set_pos( chu.pos().x, chu.pos().y + (_nb_row) );
     }
     // La position du Chuchu devient des coordonnées entière, et 
     // donc l'index de la Cell dans _l_cell
@@ -234,7 +259,7 @@ private:
   
   // ****************************************************************** VARIABLE
 public:
-  unsigned int nb_row() const {return _nb_col;};
+  unsigned int nb_row() const {return _nb_row;};
   unsigned int nb_col() const {return _nb_col;};
   std::vector<Wall> walls() const {return _l_wall;};
   const std::list<std::unique_ptr<Chuchu>>& chuchu() const {return _l_chuchu;};
@@ -250,5 +275,7 @@ private:
   std::list<std::unique_ptr<Chuchu>> _l_chuchu;
   /** Les Rockets */
   CRocketPtr _l_rocket;
+  /** Les Sources */
+  CSourcePtr _l_source;
 };
 #endif // WORLD_CPP

@@ -60,7 +60,7 @@ public:
     for( auto& wall : _model.walls() ) {
       if( wall.idd == 0 ) {
     	_vbo_walls_size += add_wall_hor( (GLfloat) wall.x,
-    					 (GLfloat) wall.y,
+    					 (GLfloat) wall.y + 1.0f,
     					 &(wall_vtx[_vbo_walls_size]) );
       }
       else if( wall.idd == 1 ) {

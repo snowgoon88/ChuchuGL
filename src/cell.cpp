@@ -55,13 +55,13 @@ Direction* Cell::dir_arrive_from( Direction* dir ) const
 };
 // ************************************************************ Source::update
 /** Return nullptr or a new Chuchu */
-Chuchu* Source::update( double delta_t )
+std::unique_ptr<Chuchu> Source::update( double delta_t )
 {
   _duration += delta_t;
   if( _duration > _refract ) {
     _duration = _duration - _refract;
     // Création d'un Chuchu
-    return new Chuchu( _pos, _dir );
+    return std::unique_ptr<Chuchu>(new Chuchu( {_pos.x+0.5, _pos.y+0.5}, _dir, 1.0));
   }
   else {
     return nullptr;

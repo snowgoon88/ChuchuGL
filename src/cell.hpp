@@ -12,6 +12,7 @@
  */
 
 #include <sstream>                        // std::stringstream
+#include <memory>                         // std::unique_ptr
 
 #include "global.hpp"
 
@@ -80,7 +81,7 @@ public:
   { _count += 1; return false;};
   
   // *************************************************************** attributs
-  bool set_arrow( Direction* dir) {return false;}
+  bool set_arrow( Direction* dir) {return false;};
 private:
   unsigned int _count;
 };
@@ -112,7 +113,7 @@ public:
   };
   // ****************************************************************** update
   /** Return nullptr or a new Chuchu */
-  Chuchu* update( double delta_t );
+  std::unique_ptr<Chuchu> update( double delta_t );
   // *************************************************************** attributs
 private:
   /** Direction des Chuchu sortants */

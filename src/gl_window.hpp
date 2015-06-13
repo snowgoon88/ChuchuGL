@@ -62,6 +62,7 @@ public:
   void init()
   {
     _world = std::unique_ptr<World>(new World( "data/world_6x5.json"));
+    std::cout << _world->str_dump() << std::endl;
     //_world->init3x4();
     // Open file
     // std::ifstream myfile( "../data/world_6x5.json" );
@@ -77,7 +78,7 @@ public:
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // Depth
-    glEnable( GL_DEPTH_TEST );
+    //glEnable( GL_DEPTH_TEST ); => empeche transparence
 
     // TODO cbk quand la fenètre est redimensionnée ??
 
