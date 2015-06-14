@@ -97,11 +97,14 @@ public:
     // Give info for the current bitsrream (-1)
     vorbis_info *ogg_info = ov_info( &ogg_file, -1);
     std::stringstream str;
-    str << "__OGG INFO__" << std::endl;
+    
+    str << "__OGG INFO__ : nb streams : " << ov_streams( &ogg_file ) << std::endl;
     str << "  version " << ogg_info->version << std::endl;
     str << "  " << ogg_info->channels << " channel(s) avec bitrate = " << ogg_info->rate << std::endl;;
     str << "  birates (l/n/u) " << ogg_info->bitrate_lower << "/" << ogg_info->bitrate_nominal << "/" << ogg_info->bitrate_upper << std::endl;
     str << "  taille " << ov_pcm_total( &ogg_file,-1) << " samples" << std::endl;
+    str << "  compressed " << ov_raw_total( &ogg_file, -1) << std::endl;
+    str << "  time " << ov_time_total( &ogg_file, -1) << std::endl;
     // Les commentaires
     char **ogg_cmt = ov_comment( &ogg_file, -1)->user_comments;
     while( *ogg_cmt ) {
