@@ -13,6 +13,8 @@
 
 #include <sstream>                        // std::stringstream
 #include <iostream>                       // std::cout
+#include <chrono>                         // std::chrono
+#include <thread>                         // std::thread
 // ***************************************************************************
 // ***************************************************************** SNDPlayer
 // ***************************************************************************
@@ -20,7 +22,8 @@ class SNDPlayer
 {
 public:
   // **************************************************************** creation
-  SNDPlayer() 
+  SNDPlayer() :
+    _ogg_buffer(nullptr)
   {
     // Initialise PortAudio
     PaError err = Pa_Initialize();
@@ -58,6 +61,100 @@ public:
     if( err != paNoError ) {
       std::cerr << "SNDPlayer() pb avec terminaison de PortAudio." << std::endl;
       std::cerr << "            " << Pa_GetErrorText( err );
+    };
+    if( _ogg_buffer ) delete _ogg_buffer;
+  };
+  // *************************************************************** play_file
+  void play()
+  {
+    // Frequence de 44100 Hz
+    // On essaie de passer SAMPLE_PER_FRAME=4410 samples toutes les 100ms
+    const double SAMPLE_RATE = 44100;
+    unsigned long SAMPLE_PER_FRAME = 4410;
+
+    PaStream *pa_stream;
+    PaError pa_err;
+    /* Open an audio I/O stream. */
+    pa_err = Pa_OpenDefaultStream( &pa_stream,
+				   0, /* nb channel input */
+				   1, /* nb channel output */
+				   paInt16, /* 16 bit integer format */
+				   SAMPLE_RATE,
+				   SAMPLE_PER_FRAME,
+				   /* frames per buffer, i.e. the number
+				      of sample frames that PortAudio will
+				      request from the callback. Many apps
+				      may want to use
+				      paFramesPerBufferUnspecified, which
+				      tells PortAudio to pick the best,
+				      possibly changing, buffer size.*/
+				   NULL, /* blocking mode */
+				   NULL ); /*This is a pointer that will be passed to
+					     your callback*/
+    if( pa_err != paNoError ) {
+      std::cerr << "SNDPlayer.play() ouverture de stream." << std::endl;
+      std::cerr << "            " << Pa_GetErrorText( pa_err );
+    };
+
+    // Start Stream
+    pa_err = Pa_StartStream( pa_stream );
+    if( pa_err != paNoError ) {
+      std::cerr << "SNDPlayer.play() start stream." << std::endl;
+      std::cerr << "            " << Pa_GetErrorText( pa_err );
+    };
+
+    // Play
+    bool play_end = false;
+    unsigned long ogg_idx = 0;
+    unsigned long frame_size = SAMPLE_PER_FRAME;
+    std::cout << "__START PLAY of " << _ogg_pcm_length << " PCM sample" << std::endl;
+    while( not play_end ) {
+      // clock
+      auto start_proc = std::chrono::steady_clock::now();
+      // Combien de place il reste
+      unsigned long pa_available = Pa_GetStreamWriteAvailable( pa_stream);
+      
+      // nourrit le pa_stream
+      frame_size = SAMPLE_PER_FRAME;
+      if( frame_size > pa_available ) {
+	frame_size = pa_available;
+      }
+      if( ogg_idx + 2*frame_size >= _ogg_pcm_length ) {
+	frame_size = (_ogg_pcm_length - ogg_idx)/2;
+	play_end = true;
+      }
+      std::cout << "* avail=" << pa_available << " frame_size="<< frame_size << " idx=" << ogg_idx << std::endl;
+      pa_err = Pa_WriteStream( pa_stream, 
+			       &(_ogg_buffer[ogg_idx]), frame_size);
+      if( pa_err != paNoError ) {
+	std::cerr << "SNDPlayer.play() write stream idx="<< ogg_idx << std::endl;
+	std::cerr << "            " << Pa_GetErrorText( pa_err );
+      };
+      ogg_idx += 2 * frame_size;
+      
+      // clock
+      auto end_proc = std::chrono::steady_clock::now();
+      // wait period 
+      std::chrono::duration<double> elapsed_seconds = end_proc - start_proc;
+      std::cout << "  * idx=" << ogg_idx << " with " << frame_size << " samples  in " <<  elapsed_seconds.count() <<" s" << std::endl;
+      std::this_thread::sleep_for(std::chrono::milliseconds(70)
+				  - elapsed_seconds );
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    /* -- Now we stop the stream -- */
+    std::cout << "__STOP__" << std::endl;
+    pa_err = Pa_StopStream( pa_stream );
+    if( pa_err != paNoError ) {
+      std::cerr << "SNDPlayer.play() stop stream" << std::endl;
+      std::cerr << "            " << Pa_GetErrorText( pa_err );
+    };
+    //std::this_thread::sleep_for(std::chrono::seconds(2));
+    /* -- don't forget to cleanup! -- */
+    std::cout << "__CLOSE__" << std::endl;
+    pa_err = Pa_CloseStream( pa_stream );
+    if( pa_err != paNoError ) {
+      std::cerr << "SNDPlayer.play() close stream "<< std::endl;
+      std::cerr << "            " << Pa_GetErrorText( pa_err );
     };
   };
   // ************************************************************** read_files
@@ -117,15 +214,24 @@ public:
 
     // Decode le fichier
     // Buffer pour la sortie de la taille du truc
-    char ogg_buffer[4096];
+    // HACK : ajoute 1s de 0 à la fin du fichier !!!
+    _ogg_pcm_length = ov_pcm_total( &ogg_file,-1) + 44100;
+    _ogg_buffer = new char[2*_ogg_pcm_length];
+    for( unsigned int i = 0; i < 2*_ogg_pcm_length; ++i) {
+      _ogg_buffer[i] = 0;
+    }
+
+    char* ogg_buffer_ptr = _ogg_buffer;
     bool ogg_end = false;
     int current_section;
+    long size_total = 0;
     while( not ogg_end ) {
-      long ret = ov_read( &ogg_file, ogg_buffer, sizeof(ogg_buffer),
+      long ret = ov_read( &ogg_file, ogg_buffer_ptr, 4096,
 			  0 /*little_endian*/, 2 /* 16bit samples*/,
 			  1 /*signed*/,
 			  &current_section );
-      std::cout << "ov_read => " << ret << " in section=" << current_section << std::endl;
+      size_total += ret;
+      //std::cout << "ov_read => " << ret << " in section=" << current_section << " size= " << size_total << std::endl;
       if( ret < 0 ) { //error
 	switch( ret) {
 	case OV_HOLE:
@@ -144,11 +250,19 @@ public:
       else if( ret == 0 ) {
 	ogg_end = true;
       }
+      else {
+	ogg_buffer_ptr += ret;
+      }
     }
 
     // fin
     ov_clear( &ogg_file );
   };
+  // *************************************************************** attributs
+private:
+  /** Buffer pour ogg décodé */
+  char* _ogg_buffer;
+  ogg_int64_t _ogg_pcm_length;
 };
 
 #endif // SND_PLAYER_HPP

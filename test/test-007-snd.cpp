@@ -16,6 +16,10 @@ int main( int argc, char *argv[] )
   std::cout << "__CREATION SNDPlayer__" << std::endl;
 
   player.read_ogg( "data/31304__erdie__imp04.ogg" );
+
+  std::cout << "__PLAY__" << std::endl;
+  player.play();
+  std::cout << "__END__" << std::endl;
   return 0;
 }
 

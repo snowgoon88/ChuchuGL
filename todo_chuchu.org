@@ -35,7 +35,8 @@ En continuant ce qui est fait pour -l_walls
 http://en.wikibooks.org/wiki/OpenGL_Programming/Object_selection
 * TODO Son
 ** Essayer FMOD pour faire un son quand la souris entre dans une fusée
-** TODO [0/3] PortAudio
+** TODO [1/4] PortAudio
 *** TODO music = 10-single-player-theme pour les PUZZLE
 *** TODO music = 02-multiplayer-theme pour JEU
 *** TODO effect = enter_rocket.mp3
+*** DONE play son 31xxx ds data
