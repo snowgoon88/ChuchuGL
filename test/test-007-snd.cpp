@@ -6,20 +6,24 @@
  */
 
 #include "snd_player.hpp"
+#include "snd_piece.hpp"
 #include <iostream>                       // std::cout
 
 // ********************************************************************** main
 int main( int argc, char *argv[] )
 {
-  SNDPlayer player;
+  SND::Player player;
   
   std::cout << "__CREATION SNDPlayer__" << std::endl;
 
-  player.read_ogg( "data/31304__erdie__imp04.ogg" );
+  SND::Piece sound( "data/31304__erdie__imp04.ogg", true );
+  SND::Piece music( "../ressources/15-sonic-team-presents.ogg", true );
 
   std::cout << "__PLAY__" << std::endl;
-  player.play();
+  player.play( music );
+  player.play( sound );
   std::cout << "__END__" << std::endl;
+  
   return 0;
 }
 
