@@ -115,6 +115,37 @@ public:
     
     std::cout << str.str() << std::endl;
 
+    // Decode le fichier
+    // Buffer pour la sortie de la taille du truc
+    char ogg_buffer[4096];
+    bool ogg_end = false;
+    int current_section;
+    while( not ogg_end ) {
+      long ret = ov_read( &ogg_file, ogg_buffer, sizeof(ogg_buffer),
+			  0 /*little_endian*/, 2 /* 16bit samples*/,
+			  1 /*signed*/,
+			  &current_section );
+      std::cout << "ov_read => " << ret << " in section=" << current_section << std::endl;
+      if( ret < 0 ) { //error
+	switch( ret) {
+	case OV_HOLE:
+	  std::cerr << "SNDPlayer.readogg() Interruption in data";
+	  std::cerr << std::endl;
+	break;
+	case OV_EBADLINK:
+	  std::cerr << "SNDPlayer.readogg() Invalid stream section !";
+	  std::cerr << std::endl;
+	break;
+	default:
+	  std::cerr << "SNDPlayer.readogg() Unknown error";
+	  std::cerr << std::endl;
+	}
+      }
+      else if( ret == 0 ) {
+	ogg_end = true;
+      }
+    }
+
     // fin
     ov_clear( &ogg_file );
   };
