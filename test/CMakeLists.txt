@@ -1,7 +1,7 @@
 # Make sure the compiler can find include files from our library.
 include_directories (${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include)
 # Define the libs used to compile the tests
-set(TEST_LIBS "-lSOIL ${GLEW_LDFLAGS} ${GLFW_LDFLAGS} ${PA_LDFLAGS}")
+set(TEST_LIBS "-lSOIL ${GLEW_LDFLAGS} ${GLFW_LDFLAGS} ${PA_LDFLAGS} ${VORBIS_LDFLAGS}")
 
 # Define our examples to compile in variable ${usage_test}
 file(

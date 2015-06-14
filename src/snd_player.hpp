@@ -8,6 +8,8 @@
  */
 
 #include <portaudio.h>
+#include "vorbis/codec.h"
+#include "vorbis/vorbisfile.h"
 
 #include <sstream>                        // std::stringstream
 #include <iostream>                       // std::cout
@@ -57,6 +59,61 @@ public:
       std::cerr << "SNDPlayer() pb avec terminaison de PortAudio." << std::endl;
       std::cerr << "            " << Pa_GetErrorText( err );
     };
+  };
+  // ************************************************************** read_files
+  void read_ogg( std::string filename )
+  {
+    // structure avec les infos sur le Fichier Ogg
+    OggVorbis_File ogg_file;
+    // Ouvre le fichier Ogg
+    int err = ov_fopen( filename.c_str(), &ogg_file );
+    if( err < 0 ) { // fail
+      switch( err ) {
+      case OV_EREAD:
+	std::cerr << "SNDPlayer.readogg() Read from medira returned error";
+	std::cerr << std::endl;
+	break;
+      case OV_ENOTVORBIS:
+	std::cerr << "SNDPlayer.readogg() Bitstream does not contain any Vorbis data";
+	std::cerr << std::endl;
+	break;
+      case OV_EVERSION:
+	std::cerr << "SNDPlayer.readogg() Vorbis version mismatch";
+	std::cerr << std::endl;
+	break;
+      case OV_EBADHEADER:
+	std::cerr << "SNDPlayer.readogg() Invalid Vorbis bitstream header.";
+	std::cerr << std::endl;
+	break;
+      case OV_EFAULT:
+	std::cerr << "SNDPlayer.readogg() Internal logic fault; indicates a bug or heap/stack corruptio";
+	std::cerr << std::endl;
+	break;
+      default:
+      	std::cerr << "SNDPlayer.readogg() Unknown error";
+	std::cerr << std::endl;
+      }
+    }
+    // Give info for the current bitsrream (-1)
+    vorbis_info *ogg_info = ov_info( &ogg_file, -1);
+    std::stringstream str;
+    str << "__OGG INFO__" << std::endl;
+    str << "  version " << ogg_info->version << std::endl;
+    str << "  " << ogg_info->channels << " channel(s) avec bitrate = " << ogg_info->rate << std::endl;;
+    str << "  birates (l/n/u) " << ogg_info->bitrate_lower << "/" << ogg_info->bitrate_nominal << "/" << ogg_info->bitrate_upper << std::endl;
+    str << "  taille " << ov_pcm_total( &ogg_file,-1) << " samples" << std::endl;
+    // Les commentaires
+    char **ogg_cmt = ov_comment( &ogg_file, -1)->user_comments;
+    while( *ogg_cmt ) {
+      str << "  * " << *ogg_cmt << std::endl;
+      ++ogg_cmt;
+    }
+    str << "  Vendor : " << ov_comment( &ogg_file, -1)->vendor << std::endl;
+    
+    std::cout << str.str() << std::endl;
+
+    // fin
+    ov_clear( &ogg_file );
   };
 };
 
