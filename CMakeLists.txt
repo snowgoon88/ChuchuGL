@@ -14,6 +14,7 @@ pkg_search_module(GLEW REQUIRED glew)
 #message( STATUS "GLEW_LIBS ${GLEW_LIBS}")
 pkg_search_module(GLFW REQUIRED glfw3)
 pkg_search_module(FTGL REQUIRED ftgl)
+pkg_search_module(PA REQUIRED portaudio-2.0)
 
 #######################################
 # Setting the compilation flags
@@ -25,10 +26,12 @@ SET(PROJECT_CFLAGS ${PROJECT_CFLAGS} "-Wall -std=c++11 -Iinclude")
 # cflags added by the pkg-config dependencies contains ';' as separator. This is a fix.
 string(REPLACE ";" " " GLEW_CFLAGS "${GLEW_CFLAGS}")
 string(REPLACE ";" " " GLFW_CFLAGS "${GLFW_CFLAGS}")
+string(REPLACE ";" " " PA_CFLAGS "${PA_CFLAGS}")
 
 # ldflasgs added by the pkg-config dependencies contains ';' as separator. This is a fix.
 string(REPLACE ";" " " GLEW_LDFLAGS "${GLEW_LDFLAGS}")
 string(REPLACE ";" " " GLFW_LDFLAGS "${GLFW_LDFLAGS}")
+string(REPLACE ";" " " PA_LDFLAGS "${PA_LDFLAGS}")
 
 # Gathering of all flags
 # (e.g. for compiling examples)
