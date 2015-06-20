@@ -1,12 +1,15 @@
 /* -*- coding: utf-8 -*- */
 
-#ifndef GL_CELL_HPP
-#define GL_CELL_HPP
+#ifndef GL_ARROW_HPP
+#define GL_ARROW_HPP
 
 /** 
- * Viewer OpenGL des differentes Cell : texture.
+ * Viewer d'une arrow,
+ * change de taille en fonction de l'index d'animation
+ * TODO traînée de même couleur, fading...
  */
-#include "gl_utils.hpp"
+
+#include <gl_utils.hpp>
 
 #include <SOIL/SOIL.h>               // Load images
 
@@ -16,21 +19,23 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "cell.hpp"
+// ******************************************************************** GLOBAL
+#define ANIM_LENGTH 30
 
 // ***************************************************************************
-// ****************************************************************** GLRocket
+// ******************************************************************* GLArrow
 // ***************************************************************************
-class GLRocket
+class GLArrow
 {
 public:
-  // ****************************************************************** creation
-  GLRocket()
+  // ******************************************************* GLArrow::creation
+  GLArrow()
   {
     // VBO pour un carré : 2 x triangle de 3 vertex
+    // Le haut/gauche du carré est en 0.0 
     GLfloat carre_vtx[] = {
-      -1.0, -1.0,      1.0, -1.0,     1.0, 1.0,
-      1.0, 1.0,      -1.0, 1.0,     -1.0, -1.0 
+      0.0, -2.0,      2.0, -2.0,     2.0, 0.0,
+      2.0, 0.0,       0.0, 0.0,      0.0, -2.0 
     };
     _vbo_carre_size = 2 * 3; // 2 triangles de 3 pts;
     // Un VBO 
@@ -41,48 +46,48 @@ public:
 		 carre_vtx, GL_STATIC_DRAW);
     // Delier les VBO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    
+
     // Les coordonnées des différents sprites dans la texture
-    // 1 x 4 sprites
+    // 1 x 1 sprites
     unsigned int nb_row = 1;
     unsigned int nb_col = 4;
-    GLfloat rocket_texcoords[ nb_row*nb_col * 2*6 ];
+    GLfloat arrow_texcoords[ nb_row*nb_col * 2*6 ];
     for( unsigned int row = 0; row < nb_row; ++row) {
       for( unsigned int col = 0; col < nb_col; ++col) {
 	// Premier triangle
-	rocket_texcoords[(col+row*nb_col)*12+0] = col * 1.0f/ (float) nb_col;
-	rocket_texcoords[(col+row*nb_col)*12+1] = (nb_row-1-row) * 1.0f/(float) nb_row;
-	rocket_texcoords[(col+row*nb_col)*12+2] = (col+1) * 1.0f/ (float) nb_col;
-	rocket_texcoords[(col+row*nb_col)*12+3] = (nb_row-1-row) * 1.0f/(float) nb_row;
-	rocket_texcoords[(col+row*nb_col)*12+4] = (col+1) * 1.0f/ (float) nb_col;
-	rocket_texcoords[(col+row*nb_col)*12+5] = (nb_row-1-row+1) * 1.0f/(float) nb_row;
+	arrow_texcoords[(col+row*nb_col)*12+0] = col * 1.0f/ (float) nb_col;
+	arrow_texcoords[(col+row*nb_col)*12+1] = (nb_row-1-row) * 1.0f/(float) nb_row;
+	arrow_texcoords[(col+row*nb_col)*12+2] = (col+1) * 1.0f/ (float) nb_col;
+	arrow_texcoords[(col+row*nb_col)*12+3] = (nb_row-1-row) * 1.0f/(float) nb_row;
+	arrow_texcoords[(col+row*nb_col)*12+4] = (col+1) * 1.0f/ (float) nb_col;
+	arrow_texcoords[(col+row*nb_col)*12+5] = (nb_row-1-row+1) * 1.0f/(float) nb_row;
 	// Deuxième triangle
-	rocket_texcoords[(col+row*nb_col)*12+6] = (col+1) * 1.0f/ (float) nb_col;
-	rocket_texcoords[(col+row*nb_col)*12+7] = (nb_row-1-row+1) * 1.0f/(float) nb_row;
-	rocket_texcoords[(col+row*nb_col)*12+8] = col * 1.0f/ (float) nb_col;
-	rocket_texcoords[(col+row*nb_col)*12+9] = (nb_row-1-row+1) * 1.0f/(float) nb_row;
-	rocket_texcoords[(col+row*nb_col)*12+10] = col * 1.0f/ (float) nb_col;
-	rocket_texcoords[(col+row*nb_col)*12+11] = (nb_row-1-row) * 1.0f/(float) nb_row;
+	arrow_texcoords[(col+row*nb_col)*12+6] = (col+1) * 1.0f/ (float) nb_col;
+	arrow_texcoords[(col+row*nb_col)*12+7] = (nb_row-1-row+1) * 1.0f/(float) nb_row;
+	arrow_texcoords[(col+row*nb_col)*12+8] = col * 1.0f/ (float) nb_col;
+	arrow_texcoords[(col+row*nb_col)*12+9] = (nb_row-1-row+1) * 1.0f/(float) nb_row;
+	arrow_texcoords[(col+row*nb_col)*12+10] = col * 1.0f/ (float) nb_col;
+	arrow_texcoords[(col+row*nb_col)*12+11] = (nb_row-1-row) * 1.0f/(float) nb_row;
       }
     };
-    glGenBuffers(1, &_vbo_rocket_texcoords);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_rocket_texcoords);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(rocket_texcoords),
-		 rocket_texcoords, GL_STATIC_DRAW);
+    glGenBuffers(1, &_vbo_arrow_texcoords);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_arrow_texcoords);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(arrow_texcoords),
+		 arrow_texcoords, GL_STATIC_DRAW);
+
 
     // Charger la texture
     glActiveTexture(GL_TEXTURE0);
     _texture_id = SOIL_load_OGL_texture
       (
-       "../Images/tex_rocket.png",               // pathfile
+       "../Images/tex_arrow.png",           // pathfile
        SOIL_LOAD_AUTO,                           // 
        SOIL_CREATE_NEW_ID,                       //
        SOIL_FLAG_INVERT_Y                        // Corrige les Y upside/down
        );
     if(_texture_id == 0)
-      std::cerr << "SOIL loading error: '" << SOIL_last_result() << "' (" << "../Images/tex_rocket.png" << ")" << std::endl;
+      std::cerr << "SOIL loading error: '" << SOIL_last_result() << "' (" << "../Images/tex_arrow.png" << ")" << std::endl;
 
-    
     // Charger les Shaders CARRE + TEXTURE
     GLint link_ok = GL_FALSE;
     GLuint vs, fs;
@@ -128,34 +133,43 @@ public:
       std::cerr <<  "Pb pour lier l'uniform " << uniform_name << std::endl;
       exit( EXIT_FAILURE );
     }
+
   };
-  // *************************************************************** destruction
-  virtual ~GLRocket()
+  // ***************************************************** GLArrow::destruction
+  virtual ~GLArrow()
   {
     // Détruit le programme GLSL
     glDeleteProgram(_program);
     // Et les vbo
     glDeleteBuffers( 1, &_vbo_carre_vtx);
-    glDeleteBuffers( 1, &_vbo_rocket_texcoords);
-    glDeleteTextures( 1, &_texture_id);  
+    glDeleteBuffers( 1, &_vbo_arrow_texcoords);
+    glDeleteTextures( 1, &_texture_id);
   };
-  // *********************************************************************render
-  void render( glm::mat4& proj, const Vec2& pos, const unsigned int sprite_index)
+  // ********************************************************* GLArrow::render
+  /** 'anim_idx' indique l'index de l'animation 
+   * on s'en sert pour scaler la flèche.
+   */
+  void render( glm::mat4& proj, const Vec2& pos, unsigned int anim_idx )
   {
     // Calculer la Translation
     // Model : translation
     glm::mat4 trans = glm::translate(glm::mat4(1.0f),
-				     glm::vec3( pos.x+0.5,
-						pos.y+0.5,
-						0.1));
+				     glm::vec3( pos.x,
+						pos.y,
+						0.2));
+    // Suivant anim, on scale entre 0.4 et 0.6
+    
+    double anim_scale = 0.4;
+    if( anim_idx < ANIM_LENGTH/2 ) anim_scale += anim_idx * 0.01;
+    else anim_scale += (ANIM_LENGTH - anim_idx) * 0.01;
     glm::mat4 scal = glm::scale( glm::mat4(1.0f),
-				 glm::vec3( 0.4, 0.4, 0.4));
+				 glm::vec3( anim_scale, anim_scale, anim_scale));
     // Et finalement
     glm::mat4 mvp = proj * trans * scal;
     
     // Draw
     glUseProgram(_program);
-    // Carre avec Texture
+    // Carre avec Chuchu
     glBindBuffer( GL_ARRAY_BUFFER, _vbo_carre_vtx );
     glEnableVertexAttribArray(_attribute_coord2d);
     /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
@@ -172,10 +186,10 @@ public:
     glBindTexture(GL_TEXTURE_2D, _texture_id);
     _uniform_mytexture = glGetUniformLocation(_program, "mytexture");
     glUniform1i(_uniform_mytexture, /*GL_TEXTURE*/0);
-    // index de la texture 
-    int idtexture = (int) sprite_index;
+    // index de la texture dépend de la direction du Chuchu
+    int idtexture = 0; // bleu (int) dir.index;
     glEnableVertexAttribArray(_attribute_texcoord);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_rocket_texcoords);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_arrow_texcoords);
     glVertexAttribPointer(
        _attribute_texcoord, // attribute
        2,                  // number of elements per vertex, here (x,y)
@@ -195,7 +209,7 @@ public:
 
     glDisableVertexAttribArray(_attribute_coord2d);
   };
-  // ***************************************************************** attributs
+  // ******************************************************** GLArrow::attributs
 private:
   /** Program GLSL */
   GLuint _program;
@@ -205,10 +219,8 @@ private:
   /** uniform var */
   GLint _uniform_mvp, _uniform_mytexture;
   /** Vertex Buffer Objects */
-  GLuint _vbo_carre_vtx, _vbo_rocket_texcoords;
+  GLuint _vbo_carre_vtx, _vbo_arrow_texcoords;
   unsigned int _vbo_carre_size;
 };
 
-
-
-#endif // GL_CELL_HPP
+#endif // GL_ARROW_HPP

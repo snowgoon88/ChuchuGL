@@ -1,4 +1,4 @@
-* [4/5] Model
+* [5/5] Model
 ** DONE [2/2] leaving Cell
 *** DONE _arrow => prend dir de _arrow
 *** DONE si mur
@@ -8,9 +8,10 @@ nouvelle direction avec rotation horaire tant que mur existe
 ** DONE Construire monde et Cells à partir d'une description serialized
 En continuant ce qui est fait pour -l_walls
 
-** TODO Source avec période réfractaire
-* TODO [3/6] Graphic
-** TODO Attention, transparence pas très bien gérée (bord blanc autoure des rockets)
+** DONE Source avec période réfractaire
+* TODO [4/6] Graphic
+** DONE Attention, transparence pas très bien gérée (bord blanc autoure des rockets)
+Enlevé DEPT_TEST je crois
 ** DONE [3/5] Simple graphic view (case et triangle)
 *** DONE Mur épais => 4 triangles
 *** DONE Chuchu => texture

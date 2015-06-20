@@ -106,7 +106,7 @@ public:
       exit( EXIT_FAILURE );
     }
 
-    // TODO Lier les variables des Shaders
+    // Lier les variables des Shaders
     // coord 2D
     const char* attribute_name = "coord2d";
     _attribute_coord2d= glGetAttribLocation(_program, attribute_name);

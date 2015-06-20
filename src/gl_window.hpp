@@ -23,6 +23,9 @@
 #include <chrono>                      // std::chrono
 #include <thread>                      // std::thread
 
+// ******************************************************************** GLOBAL
+#define ANIM_LENGTH 30
+
 // ***************************************************************************
 // ****************************************************************** GLWindow
 // ***************************************************************************
@@ -33,7 +36,8 @@ public:
   /** Création avec titre et taille de fenetre.*/
   GLWindow(const std::string& title = "GLFW Window", int width=800, int height=600) :
     _screen_width(width), _screen_height(height),
-    _gl_world(nullptr), _world(nullptr), _is_running(false)
+    _gl_world(nullptr), _world(nullptr), _is_running(false),
+    _anim_running(false)
   {
     std::cout << "Window creation" << std::endl;
 
@@ -82,7 +86,8 @@ public:
 
     // TODO cbk quand la fenètre est redimensionnée ??
 
-    
+    // L'index d'animation va varier entre 0 et ANIM_LENGTH
+    unsigned int anim_idx = 0;
     while (!glfwWindowShouldClose(_window)) {
       // clock
       auto start_proc = std::chrono::steady_clock::now();
@@ -105,10 +110,13 @@ public:
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
       // Display cbk
-      _gl_world->render();
+      _gl_world->render( anim_idx );
+      anim_idx += 1;
+      anim_idx = anim_idx % ANIM_LENGTH;
 
       glfwSwapBuffers(_window);
       glfwPollEvents();
+
 
       // clock
       auto end_proc = std::chrono::steady_clock::now();
@@ -147,6 +155,10 @@ private:
       // toggle _is_running
       _is_running = !_is_running;
     }
+    else if( key == GLFW_KEY_S) {
+      // step anim
+      _anim_running = true;
+    }
     else if( key == GLFW_KEY_D) {
       // display les chuchu
       std::cout << _world->str_display() << std::endl;
@@ -164,6 +176,7 @@ private:
   std::unique_ptr<World>   _world;
   // ************************************************************** simulation
   bool _is_running;
+  bool _anim_running;
 };
 
 #endif // GL_WINDOW_HPP
