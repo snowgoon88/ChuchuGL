@@ -17,8 +17,6 @@
 #include "world.hpp"
 #include "gl_chuchu.hpp"
 #include "gl_cell.hpp"
-#include "gl_arrow.hpp"
-
 // ******************************************************************** GLOBAL
 /** épaisseur d'un mur et nb de point pour dessiner un mur*/
 #define WALL_WIDTH 0.1f
@@ -149,13 +147,8 @@ public:
     glDeleteBuffers(1, &_vbo_walls);
   };
   // ****************************************************************** render
-  void render( unsigned int anim_idx = 0 )
+  void render( glm::mat4& projection, unsigned int anim_idx = 0 )
   {
-    // Projection (to 2D screen)
-    glm::mat4 projection = glm::ortho( -1.0f, 10.0f,
-				       -1.0f, 10.0f,
-				       -1.0f, 1.0f );
-
     glUseProgram( _program );
     glUniformMatrix4fv(_uniform_mvp, 1, GL_FALSE,
      		       glm::value_ptr(projection));
@@ -206,8 +199,6 @@ public:
     for( auto& chuchu: _model.chuchu()) {
       _chuchu_viewer.render( projection, chuchu->pos(), chuchu->dir() );
     }
-    // Les curseur des joueurs
-    _arrow_viewer.render( projection, Vec2({2, 3.3}), anim_idx );
     // Un Chuchu vers la droite en (2,2)
     //_chuchu_viewer.render( projection, Vec2({2,2}), _dir_right );
   };
@@ -227,7 +218,6 @@ private:
   /** Sous-viewer */
   GLChuchu _chuchu_viewer;
   GLRocket _rocket_viewer;
-  GLArrow  _arrow_viewer;
   // **************************************************************** add_wall
   /**
    * Mur vertical en 4 triangles

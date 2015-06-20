@@ -38,4 +38,22 @@ static std::string _dir_str( unsigned int index )
 {
   return _l_dir[index].str;
 }
+// ******************************************************************** MColor
+typedef struct {
+  unsigned int index;
+  std::string str;
+} MColor;
+
+static MColor _col_blue = { 0, "B" };
+static MColor _col_yellow = { 0, "J" };
+static MColor _col_red = { 0, "R" };
+static MColor _col_green = { 0, "V" };
+
+static const unsigned int _col_size = 4;
+static MColor _l_col[_col_size] = {_col_blue, _col_yellow, _col_red, _col_green};
+static std::string _col_str( unsigned int index )
+{
+  return _l_col[index].str;
+}
+
 #endif // GLOBAL_HPP

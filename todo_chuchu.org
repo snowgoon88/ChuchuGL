@@ -9,7 +9,7 @@ nouvelle direction avec rotation horaire tant que mur existe
 En continuant ce qui est fait pour -l_walls
 
 ** DONE Source avec période réfractaire
-* TODO [4/6] Graphic
+* TODO [5/7] Graphic
 ** DONE Attention, transparence pas très bien gérée (bord blanc autoure des rockets)
 Enlevé DEPT_TEST je crois
 ** DONE [3/5] Simple graphic view (case et triangle)
@@ -26,7 +26,7 @@ Enlevé DEPT_TEST je crois
 ** TODO Animation texture + coord
 ** TODO Refactor as utils class/template/other
 ** Image de la flèche du joueur
-** Image du curseur
+** DONE Image du curseur
 ** Image des flèches au sol
 
 * Input

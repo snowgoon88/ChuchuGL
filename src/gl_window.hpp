@@ -14,10 +14,18 @@
 
 #include <GLFW/glfw3.h>
 
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
+
 // Model
 #include <world.hpp>
+#include <player.hpp>
 // Viewer
 #include <gl_world.hpp>
+#include "gl_arrow.hpp"
 
 #include <fstream>
 #include <chrono>                      // std::chrono
@@ -36,6 +44,7 @@ public:
   /** Création avec titre et taille de fenetre.*/
   GLWindow(const std::string& title = "GLFW Window", int width=800, int height=600) :
     _screen_width(width), _screen_height(height),
+    _player(nullptr),
     _gl_world(nullptr), _world(nullptr), _is_running(false),
     _anim_running(false)
   {
@@ -65,14 +74,19 @@ public:
   // ********************************************************************** init
   void init()
   {
+    // World
     _world = std::unique_ptr<World>(new World( "data/world_6x5.json"));
     std::cout << _world->str_dump() << std::endl;
+    // Joueurs
+    _player = std::unique_ptr<Player>(new Player( _col_blue ));
     //_world->init3x4();
     // Open file
     // std::ifstream myfile( "../data/world_6x5.json" );
     // _world->read_json( myfile );
     // myfile.close();
+    _arrow_viewer = std::unique_ptr<GLArrow>(new GLArrow());
     _gl_world = std::unique_ptr<GLWorld>(new GLWorld( *_world ));
+    
   };
   // ******************************************************************** render
   void render ()
@@ -91,6 +105,8 @@ public:
     while (!glfwWindowShouldClose(_window)) {
       // clock
       auto start_proc = std::chrono::steady_clock::now();
+      
+      // joystick input
       // world update
       if( _is_running ) {
 	_world->update( 0.020 );
@@ -109,8 +125,17 @@ public:
       glClearColor(1.0, 1.0, 1.0, 1.0);
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
+      // Projection (to 2D screen)
+      glm::mat4 projection = glm::ortho( -1.0f, 10.0f,
+					 -1.0f, 10.0f,
+					 -1.0f, 1.0f );
+
       // Display cbk
-      _gl_world->render( anim_idx );
+      _gl_world->render( projection, anim_idx );
+
+      // Les curseur des joueurs
+      _arrow_viewer->render( projection, _player->cursor_pos(), anim_idx );
+
       anim_idx += 1;
       anim_idx = anim_idx % ANIM_LENGTH;
 
@@ -171,6 +196,9 @@ private:
   {
     std::cerr <<  description << std::endl;
   }
+  // ***************************************************************** players
+  std::unique_ptr<Player> _player;
+  std::unique_ptr<GLArrow>  _arrow_viewer;
   // ******************************************************************* world
   std::unique_ptr<GLWorld> _gl_world;
   std::unique_ptr<World>   _world;
