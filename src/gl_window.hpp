@@ -33,7 +33,7 @@
 
 // ******************************************************************** GLOBAL
 #define ANIM_LENGTH 30
-
+#define JOY_INDEX GLFW_JOYSTICK_1
 // ***************************************************************************
 // ****************************************************************** GLWindow
 // ***************************************************************************
@@ -44,9 +44,10 @@ public:
   /** Création avec titre et taille de fenetre.*/
   GLWindow(const std::string& title = "GLFW Window", int width=800, int height=600) :
     _screen_width(width), _screen_height(height),
-    _player(nullptr),
+  _player(nullptr),
     _gl_world(nullptr), _world(nullptr), _is_running(false),
-    _anim_running(false)
+    _anim_running(false),
+    _fg_joy_ready(false)
   {
     std::cout << "Window creation" << std::endl;
 
@@ -88,6 +89,24 @@ public:
     _gl_world = std::unique_ptr<GLWorld>(new GLWorld( *_world ));
     
   };
+  void check_joystick()
+  {
+    // joystick
+    int count; // nb_of buttons or axes
+    //const unsigned char* state;
+    const float* axes;
+    
+    while( not _fg_joy_ready ) {
+      if( glfwJoystickPresent( JOY_INDEX )) {
+	std::cout << "joystick " << JOY_INDEX << " detected" << std::endl;
+	axes = glfwGetJoystickAxes( JOY_INDEX, &count );
+	std::cout << "axes[5]="<<axes[5];
+	std::cout << " axes[6]="<<axes[6] << std::endl;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      glfwPollEvents();
+    }
+  };
   // ******************************************************************** render
   void render ()
   {
@@ -100,6 +119,11 @@ public:
 
     // TODO cbk quand la fenètre est redimensionnée ??
 
+    // joystick
+    int count; // nb_of buttons or axes
+    //const unsigned char* state;
+    const float* axes;
+
     // L'index d'animation va varier entre 0 et ANIM_LENGTH
     unsigned int anim_idx = 0;
     while (!glfwWindowShouldClose(_window)) {
@@ -107,6 +131,13 @@ public:
       auto start_proc = std::chrono::steady_clock::now();
       
       // joystick input
+      // direction
+      axes = glfwGetJoystickAxes( JOY_INDEX, &count );
+      if( axes[5] < -0.2 ) _player->move_cursor( _dir_left, 0.020 );
+      if( axes[5] > 0.2 ) _player->move_cursor( _dir_right, 0.020 );
+      if( axes[6] > -0.2 ) _player->move_cursor( _dir_down, 0.020 );
+      if( axes[6] < 0.2 ) _player->move_cursor( _dir_up, 0.020 );
+      
       // world update
       if( _is_running ) {
 	_world->update( 0.020 );
@@ -187,7 +218,10 @@ private:
     else if( key == GLFW_KEY_D) {
       // display les chuchu
       std::cout << _world->str_display() << std::endl;
-    } 
+    }
+    else if( key == GLFW_KEY_J) {
+      _fg_joy_ready = true;
+    }
   };
   /**
    * Callback pour gérer les messages d'erreur de GLFW
@@ -205,6 +239,7 @@ private:
   // ************************************************************** simulation
   bool _is_running;
   bool _anim_running;
+  bool _fg_joy_ready;
 };
 
 #endif // GL_WINDOW_HPP

@@ -14,6 +14,9 @@ int main( int argc, char *argv[] )
   std::cout << "__WINDOW" << std::endl;
   GLWindow app;
 
+  std::cout << "__CHECK_JOYSTICK" << std::endl;
+  app.check_joystick();
+
   std::cout << "__CREATION" << std::endl;
   app.init();
 
