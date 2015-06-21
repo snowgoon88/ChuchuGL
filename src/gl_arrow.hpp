@@ -48,8 +48,8 @@ public:
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // Les coordonnées des différents sprites dans la texture
-    // 1 x 1 sprites
-    unsigned int nb_row = 1;
+    // 3 x 4 sprites (de 64x64)
+    unsigned int nb_row = 3;
     unsigned int nb_col = 4;
     GLfloat arrow_texcoords[ nb_row*nb_col * 2*6 ];
     for( unsigned int row = 0; row < nb_row; ++row) {
