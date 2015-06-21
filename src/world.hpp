@@ -115,6 +115,7 @@ public:
     }
 
     // Chuchu
+    _l_chuchu.clear();
     rapidjson::Value& chuchu = doc["chuchu"];
     // Pour chaque chuchu
     for (rapidjson::SizeType i = 0; i < chuchu.Size(); i++) {
@@ -131,6 +132,7 @@ public:
     }
 
     // Rocket
+    _l_rocket.clear();
     rapidjson::Value& rockets = doc["rocket"];
     // Pour chaque rocket
     for (rapidjson::SizeType i = 0; i < rockets.Size(); i++) {
@@ -144,6 +146,7 @@ public:
       _l_cell[x+_nb_col*y] = rocket;
     }
     // Source
+    _l_source.clear();
     rapidjson::Value& sources = doc["source"];
     // Pour chaque source
     for (rapidjson::SizeType i = 0; i < sources.Size(); i++) {
@@ -160,6 +163,7 @@ public:
     }
 
     // Arrow
+    _l_arrow.clear();
     rapidjson::Value& arrows = doc["arrow"];
     // Pour chaque arrow
     for (rapidjson::SizeType i = 0; i < arrows.Size(); i++) {
@@ -170,6 +174,8 @@ public:
       unsigned int dir = a[2].GetUint();
       // Ajoute les Arrow
       _l_cell[x+_nb_col*y]->set_arrow( &_l_dir[dir]);
+      _l_arrow.push_back( _l_cell[x+_nb_col*y] );
+      // TODO add/remove arrow ?
     }
   };
   // ********************************************************************* str
@@ -279,6 +285,7 @@ public:
   std::vector<Wall> walls() const {return _l_wall;};
   const std::list<std::unique_ptr<Chuchu>>& chuchu() const {return _l_chuchu;};
   const CRocketPtr& rocket() const {return _l_rocket;};
+  const CCellPtr& arrow() const {return _l_arrow;};
 private:
   /** Taille du monde */
   unsigned int _nb_row, _nb_col;
@@ -292,5 +299,7 @@ private:
   CRocketPtr _l_rocket;
   /** Les Sources */
   CSourcePtr _l_source;
+  /** Les Arrow */
+  CCellPtr _l_arrow;
 };
 #endif // WORLD_CPP

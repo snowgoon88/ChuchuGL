@@ -37,10 +37,10 @@ public:
   GLArrow()
   {
     // VBO pour un carré : 2 x triangle de 3 vertex
-    // Le haut/gauche du carré est en 0.0 
+    // Le centre du carré est en 0.0 
     GLfloat carre_vtx[] = {
-      0.0, -2.0,      2.0, -2.0,     2.0, 0.0,
-      2.0, 0.0,       0.0, 0.0,      0.0, -2.0 
+      -1.0, -1.0,      1.0, -1.0,     1.0, 1.0,
+      1.0, 1.0,       -1.0, 1.0,      -1.0, -1.0 
     };
     _vbo_carre_size = 2 * 3; // 2 triangles de 3 pts;
     // Un VBO 
@@ -160,8 +160,8 @@ public:
     // Calculer la Translation
     // Model : translation
     glm::mat4 trans = glm::translate(glm::mat4(1.0f),
-				     glm::vec3( pos.x,
-						pos.y,
+				     glm::vec3( pos.x + 0.5,
+						pos.y - 0.5,
 						0.2));
     // Suivant anim, on scale entre 0.4 et 0.6
     
@@ -216,15 +216,77 @@ public:
 
     glDisableVertexAttribArray(_attribute_coord2d);
   };
+  // ************************************************** GLArrow::render_arrow
+  void render_arrow( glm::mat4& proj, const Vec2& pos, const Direction& dir, 
+		     unsigned int color_idx )
+  {
+    // Calculer la Translation
+    // Model : translation
+    glm::mat4 trans = glm::translate(glm::mat4(1.0f),
+				     glm::vec3( pos.x + 0.5,
+						pos.y + 0.5,
+						0.2));
+    glm::mat4 rot = glm::rotate( glm::mat4(1.0f),
+				 (float) -M_PI/2 * dir.index,
+				 glm::vec3( 0.f, 0.f, 1.0f));
+    glm::mat4 scal = glm::scale( glm::mat4(1.0f),
+				 glm::vec3( 0.5f, 0.5f, 1.0f));
+    // Et finalement
+    glm::mat4 mvp = proj * trans * rot * scal;
+    
+    // Draw
+    glUseProgram(_program);
+    // Carre avec Chuchu
+    glBindBuffer( GL_ARRAY_BUFFER, _vbo_carre_vtx );
+    glEnableVertexAttribArray(_attribute_coord2d);
+    /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
+    glVertexAttribPointer(
+      _attribute_coord2d, // attribute
+      2,                 // number of elements per vertex, here (x,y)
+      GL_FLOAT,          // the type of each element
+      GL_FALSE,          // take our values as-is
+      0,                 // stride
+      0                  // offset of first element
+			  );
+    // Texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _texture_id);
+    _uniform_mytexture = glGetUniformLocation(_program, "mytexture");
+    glUniform1i(_uniform_mytexture, /*GL_TEXTURE*/0);
+    // index de la texture dépend du type (cursor/arrow/cross)
+    // et de la couleur du joueur
+    int idtexture = IDX_ARROW*NB_SPRITE_COL + color_idx; // cursor + color
+    glEnableVertexAttribArray(_attribute_texcoord);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_arrow_texcoords);
+    glVertexAttribPointer(
+       _attribute_texcoord, // attribute
+       2,                  // number of elements per vertex, here (x,y)
+       GL_FLOAT,           // the type of each element
+       GL_FALSE,           // take our values as-is
+       0,                  // no extra data between each position
+       (GLvoid*) (idtexture * 12 * sizeof(GLfloat)) // offset of first element (as Ptr!!)
+			  );
+
+    // Transform
+    glUniformMatrix4fv(_uniform_mvp, 1, GL_FALSE,
+     		       glm::value_ptr(mvp));
+ 
+    /* Push each element in buffer_vertices to the vertex shader
+     * according to index */
+    glDrawArrays(GL_TRIANGLES, 0, _vbo_carre_size );
+
+    glDisableVertexAttribArray(_attribute_coord2d);
+  };
+
   // ************************************************** GLArrow::render_cross
   void render_cross( glm::mat4& proj, const Vec2& pos )  
   {
     // Calculer la Translation
     // Model : translation
     glm::mat4 trans = glm::translate(glm::mat4(1.0f),
-				     glm::vec3( pos.x,
-						pos.y + 1.0,
-						0.2));
+				     glm::vec3( pos.x + 0.5,
+						pos.y + 0.5,
+						0.0));
     glm::mat4 scal = glm::scale( glm::mat4(1.0f),
 				 glm::vec3( 0.5, 0.5, 1.0));
     // Et finalement

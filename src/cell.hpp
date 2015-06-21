@@ -43,6 +43,7 @@ public:
   const Vec2& pos() const {return _pos;};
   bool set_arrow( Direction* dir) {_arrow = dir; return true;}
   void add_wall( const Direction& dir ) {_wall[dir.index] = true;};
+  Direction& arrow_dir() const {return *_arrow;};
 protected:
   /** Position */
   Vec2 _pos;
