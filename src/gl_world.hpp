@@ -196,13 +196,6 @@ public:
     for( auto& rocket : _model.rocket()) {
       _rocket_viewer.render( projection, rocket->pos(), 0 );
     }
-    // Les Arrow
-    // TODO : couleur en fonction de joueurs !!
-    // TODO : partager _arrow_viewer ??
-    for( auto& arrow_cell: _model.arrow()) {
-      _arrow_viewer.render_arrow( projection, arrow_cell->pos(),
-				  arrow_cell->arrow_dir(), _col_blue.index );
-    }
     // Tous les chuchu
     for( auto& chuchu: _model.chuchu()) {
       _chuchu_viewer.render( projection, chuchu->pos(), chuchu->dir() );
@@ -226,7 +219,6 @@ private:
   /** Sous-viewer */
   GLChuchu _chuchu_viewer;
   GLRocket _rocket_viewer;
-  GLArrow  _arrow_viewer;
   // **************************************************************** add_wall
   /**
    * Mur vertical en 4 triangles

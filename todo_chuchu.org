@@ -2,39 +2,30 @@
 ** DONE [2/2] leaving Cell
 *** DONE _arrow => prend dir de _arrow
 *** DONE si mur
-nouvelle direction avec rotation horaire tant que mur existe
+    nouvelle direction avec rotation horaire tant que mur existe
 ** DONE enter cell with rocket
 ** DONE Toric world
 ** DONE Construire monde et Cells à partir d'une description serialized
 En continuant ce qui est fait pour -l_walls
 
 ** DONE Source avec période réfractaire
-* TODO [6/8] Graphic
+** TODO Décalage Chuchu
+Quand on ajoute un flèche, certains Chuchu déjà engagés dans la sortie ne prennent plus le trajet qui va de centre de case en centre de case.
+*** TODO flag : dir_set ?
+
+* TODO [7/10] Graphic
 ** DONE Attention, transparence pas très bien gérée (bord blanc autoure des rockets)
 Enlevé DEPT_TEST je crois
-** DONE [3/5] Simple graphic view (case et triangle)
-*** DONE Mur épais => 4 triangles
-*** DONE Chuchu => texture
-*** DONE Dessiner PLUSIEURS Chuchu
-=> Refactor Chuchu.render() avec liste de Chuchu
-=> Refactor Chuchu.render() avec une partie init_render(), et une autre pour redner chaque Chuchu()
-
-*** TODO Dessiner les arrow
-*** TODO Dessiner les rockets
-** DONE Tutorial OpenGL -> animation
 ** DONE 3D Chuchu models => 1 texture par direction 
 ** TODO Animation texture + coord
 ** TODO Refactor as utils class/template/other
-** DONE Image de la Croix du joueur
-** DONE Image du curseur
-** Image des flèches au sol
-   
-** Qui est au dessus de qui ? (transparence)
+** TODO Qui est au dessus de qui ? (transparence)
+
 * Input
-** TODO Joystick controler avec GLFW
-** TODO Lien pour savoir où on a cliqué avec le pad.
+** DONE Joystick controler avec GLFW
+** TODO Lien pour savoir où on a cliqué avec souris.
 ** GL Unproject
-http://en.wikibooks.org/wiki/OpenGL_Programming/Object_selection
+   http://en.wikibooks.org/wiki/OpenGL_Programming/Object_selection
 * TODO Son
 ** DONE play son 31xxx ds data
 ** TODO Mix

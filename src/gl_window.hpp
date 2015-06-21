@@ -123,7 +123,7 @@ public:
 
     // joystick
     int count; // nb_of buttons or axes
-    //const unsigned char* state;
+    const unsigned char* state;
     const float* axes;
 
     // L'index d'animation va varier entre 0 et ANIM_LENGTH
@@ -133,6 +133,12 @@ public:
       auto start_proc = std::chrono::steady_clock::now();
       
       // joystick input
+      // bouton : Pose flèches
+      state = glfwGetJoystickButtons( JOY_INDEX, &count);
+      if( state[3] == GLFW_PRESS ) _player->put_arrow( _dir_up );
+      if( state[1] == GLFW_PRESS ) _player->put_arrow( _dir_right );
+      if( state[0] == GLFW_PRESS ) _player->put_arrow( _dir_down );
+      if( state[2] == GLFW_PRESS ) _player->put_arrow( _dir_left );
       // direction
       axes = glfwGetJoystickAxes( JOY_INDEX, &count );
       if( axes[5] < -0.2 ) _player->move_cursor( _dir_left, 0.020 );
@@ -165,6 +171,15 @@ public:
 
       // Display cbk
       _gl_world->render( projection, anim_idx );
+
+      // Les Arrow
+      // TODO : couleur en fonction de joueurs !!
+      // TODO : partager _arrow_viewer ??
+      for( auto& arrow_cell: _player->arrow()) {
+	_arrow_viewer->render_arrow( projection, arrow_cell->pos(),
+				     arrow_cell->arrow_dir(),
+				     _player->color().index );
+      }
 
       // Les curseur des joueurs
       _arrow_viewer->render_cursor( projection, _player->cursor_pos(),

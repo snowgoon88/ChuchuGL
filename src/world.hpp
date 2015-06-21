@@ -163,20 +163,20 @@ public:
     }
 
     // Arrow
-    _l_arrow.clear();
-    rapidjson::Value& arrows = doc["arrow"];
-    // Pour chaque arrow
-    for (rapidjson::SizeType i = 0; i < arrows.Size(); i++) {
-      //Un array de 3 var : x, y, dir
-      auto&  a = arrows[i];
-      int x = a[0].GetInt();
-      int y = a[1].GetInt();
-      unsigned int dir = a[2].GetUint();
-      // Ajoute les Arrow
-      _l_cell[x+_nb_col*y]->set_arrow( &_l_dir[dir]);
-      _l_arrow.push_back( _l_cell[x+_nb_col*y] );
-      // TODO add/remove arrow ?
-    }
+    // _l_arrow.clear();
+    // rapidjson::Value& arrows = doc["arrow"];
+    // // Pour chaque arrow
+    // for (rapidjson::SizeType i = 0; i < arrows.Size(); i++) {
+    //   //Un array de 3 var : x, y, dir
+    //   auto&  a = arrows[i];
+    //   int x = a[0].GetInt();
+    //   int y = a[1].GetInt();
+    //   unsigned int dir = a[2].GetUint();
+    //   // Ajoute les Arrow
+    //   _l_cell[x+_nb_col*y]->set_arrow( &_l_dir[dir]);
+    //   _l_arrow.push_back( _l_cell[x+_nb_col*y] );
+    //   // TODO add/remove arrow ?
+    // }
   };
   // ********************************************************************* str
   /** Dump avec string */

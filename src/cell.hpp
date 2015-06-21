@@ -41,7 +41,19 @@ public:
   Direction* dir_arrive_from( Direction* dir ) const;
   // ********************************************************** Cell:attributs
   const Vec2& pos() const {return _pos;};
-  bool set_arrow( Direction* dir) {_arrow = dir; return true;}
+  /** Ajouter nullptr pour effacer arrow */
+  bool set_arrow( Direction* dir)
+  {
+    // tjs ok si nullptr
+    if( dir == nullptr ) {
+      _arrow = dir;
+      return true;
+    }
+    // Sinon, déjà une Arrow -> false
+    if( _arrow ) return false;
+    // ok, on ajoute une nouvelle flèche
+    _arrow = dir; return true;
+  }
   void add_wall( const Direction& dir ) {_wall[dir.index] = true;};
   Direction& arrow_dir() const {return *_arrow;};
 protected:
@@ -116,6 +128,7 @@ public:
   /** Return nullptr or a new Chuchu */
   std::unique_ptr<Chuchu> update( double delta_t );
   // *************************************************************** attributs
+  bool set_arrow( Direction* dir) {return false;};
 private:
   /** Direction des Chuchu sortants */
   Direction* _dir;
