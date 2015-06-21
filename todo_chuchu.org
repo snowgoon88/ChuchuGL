@@ -9,7 +9,7 @@ nouvelle direction avec rotation horaire tant que mur existe
 En continuant ce qui est fait pour -l_walls
 
 ** DONE Source avec période réfractaire
-* TODO [5/7] Graphic
+* TODO [6/8] Graphic
 ** DONE Attention, transparence pas très bien gérée (bord blanc autoure des rockets)
 Enlevé DEPT_TEST je crois
 ** DONE [3/5] Simple graphic view (case et triangle)
@@ -25,10 +25,11 @@ Enlevé DEPT_TEST je crois
 ** DONE 3D Chuchu models => 1 texture par direction 
 ** TODO Animation texture + coord
 ** TODO Refactor as utils class/template/other
-** Image de la flèche du joueur
+** DONE Image de la Croix du joueur
 ** DONE Image du curseur
 ** Image des flèches au sol
-
+   
+** Qui est au dessus de qui ? (transparence)
 * Input
 ** TODO Joystick controler avec GLFW
 ** TODO Lien pour savoir où on a cliqué avec le pad.

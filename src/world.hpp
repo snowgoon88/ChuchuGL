@@ -224,6 +224,21 @@ public:
       }
     }
   };
+  // ************************************************************* World::cell
+  /** La Cell à la position donnée ou nullptr */
+  CellPtr cell( const Vec2& pos ) 
+  {
+    // Si pas dans le World => nullptr
+    if( pos.x < 0 or pos.x > _nb_col ) return nullptr;
+    if( pos.y < 0 or pos.y > _nb_row ) return nullptr;
+
+    // La position est transformée en coordonnées entière, et 
+    // donc l'index de la Cell dans _l_cell
+    unsigned int idx = (unsigned int) floor(pos.x);
+    unsigned int idy = (unsigned int) floor(pos.y);
+
+    return _l_cell[idx+_nb_col*idy];
+  };
 private:
   // ***************************************************************** LINK CELL
   /** @return true si le chuchu est toujours vivant */

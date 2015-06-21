@@ -34,6 +34,8 @@
 // ******************************************************************** GLOBAL
 #define ANIM_LENGTH 30
 #define JOY_INDEX GLFW_JOYSTICK_1
+
+typedef std::shared_ptr<World>   WorldPtr;
 // ***************************************************************************
 // ****************************************************************** GLWindow
 // ***************************************************************************
@@ -76,10 +78,10 @@ public:
   void init()
   {
     // World
-    _world = std::unique_ptr<World>(new World( "data/world_6x5.json"));
+    _world = WorldPtr(new World( "data/world_6x5.json"));
     std::cout << _world->str_dump() << std::endl;
     // Joueurs
-    _player = std::unique_ptr<Player>(new Player( _col_blue ));
+    _player = std::unique_ptr<Player>(new Player( _world, _col_blue ));
     //_world->init3x4();
     // Open file
     // std::ifstream myfile( "../data/world_6x5.json" );
@@ -152,8 +154,8 @@ public:
       glOrtho(-1.0f, 10.0f, -1.0f, 10.0f, 1.f, -1.f);
       
 
-      /* Clear the background as white */
-      glClearColor(1.0, 1.0, 1.0, 1.0);
+      /* Clear the background as yellow #ffde94 */
+      glClearColor(1.0, 1.0, 0.58, 1.0);
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
       // Projection (to 2D screen)
@@ -165,7 +167,10 @@ public:
       _gl_world->render( projection, anim_idx );
 
       // Les curseur des joueurs
-      _arrow_viewer->render( projection, _player->cursor_pos(), anim_idx );
+      _arrow_viewer->render_cursor( projection, _player->cursor_pos(),
+				    _player->color().index, anim_idx );
+      // Les cross des joueurs
+      _arrow_viewer->render_cross( projection, _player->cross_pos() );
 
       anim_idx += 1;
       anim_idx = anim_idx % ANIM_LENGTH;
@@ -235,7 +240,7 @@ private:
   std::unique_ptr<GLArrow>  _arrow_viewer;
   // ******************************************************************* world
   std::unique_ptr<GLWorld> _gl_world;
-  std::unique_ptr<World>   _world;
+  WorldPtr   _world;
   // ************************************************************** simulation
   bool _is_running;
   bool _anim_running;

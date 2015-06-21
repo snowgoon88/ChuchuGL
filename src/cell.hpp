@@ -24,22 +24,22 @@ class Chuchu;
 class Cell
 {
 public:
-  // **************************************************************** creation
+  // ********************************************************** Cell::creation
   /** Avec position */
   Cell( Vec2 position = {0,0} );
   Cell( const Cell& cell );
-  // ********************************************************************* str
+  // *************************************************************** Cell::str
   /** Dump avec string */
   virtual std::string str_dump() const;
-  // ******************************************************************* enter
+  // ************************************************************* Cell::enter
   /** Return false si chuchu doit être détruit */
   virtual bool entered_by( const Chuchu& chu ) {return true;};
-  // ***************************************************************** leaving
+  // *********************************************************** Cell::leaving
   /** Calcule la direction que l'on a en sortant de la Cell
    * quand on avait la direction dir.
    */
   Direction* dir_arrive_from( Direction* dir ) const;
-  // *************************************************************** attributs
+  // ********************************************************** Cell:attributs
   const Vec2& pos() const {return _pos;};
   bool set_arrow( Direction* dir) {_arrow = dir; return true;}
   void add_wall( const Direction& dir ) {_wall[dir.index] = true;};

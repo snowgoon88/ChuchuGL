@@ -21,6 +21,11 @@
 
 // ******************************************************************** GLOBAL
 #define ANIM_LENGTH 30
+#define IDX_CURSOR 0
+#define IDX_ARROW  1
+#define IDX_CROSS  2
+#define NB_SPRITE_ROW (IDX_CROSS+1)
+#define NB_SPRITE_COL _col_size
 
 // ***************************************************************************
 // ******************************************************************* GLArrow
@@ -49,8 +54,8 @@ public:
 
     // Les coordonnées des différents sprites dans la texture
     // 3 x 4 sprites (de 64x64)
-    unsigned int nb_row = 3;
-    unsigned int nb_col = 4;
+    unsigned int nb_row = NB_SPRITE_ROW;
+    unsigned int nb_col = NB_SPRITE_COL;
     GLfloat arrow_texcoords[ nb_row*nb_col * 2*6 ];
     for( unsigned int row = 0; row < nb_row; ++row) {
       for( unsigned int col = 0; col < nb_col; ++col) {
@@ -145,11 +150,12 @@ public:
     glDeleteBuffers( 1, &_vbo_arrow_texcoords);
     glDeleteTextures( 1, &_texture_id);
   };
-  // ********************************************************* GLArrow::render
+  // ************************************************** GLArrow::render_cursor
   /** 'anim_idx' indique l'index de l'animation 
    * on s'en sert pour scaler la flèche.
    */
-  void render( glm::mat4& proj, const Vec2& pos, unsigned int anim_idx )
+  void render_cursor( glm::mat4& proj, const Vec2& pos, 
+		      unsigned int color_idx, unsigned int anim_idx )
   {
     // Calculer la Translation
     // Model : translation
@@ -163,7 +169,7 @@ public:
     if( anim_idx < ANIM_LENGTH/2 ) anim_scale += anim_idx * 0.01;
     else anim_scale += (ANIM_LENGTH - anim_idx) * 0.01;
     glm::mat4 scal = glm::scale( glm::mat4(1.0f),
-				 glm::vec3( anim_scale, anim_scale, anim_scale));
+				 glm::vec3( anim_scale, anim_scale, 1.0));
     // Et finalement
     glm::mat4 mvp = proj * trans * scal;
     
@@ -186,8 +192,9 @@ public:
     glBindTexture(GL_TEXTURE_2D, _texture_id);
     _uniform_mytexture = glGetUniformLocation(_program, "mytexture");
     glUniform1i(_uniform_mytexture, /*GL_TEXTURE*/0);
-    // index de la texture dépend de la direction du Chuchu
-    int idtexture = 0; // bleu (int) dir.index;
+    // index de la texture dépend du type (cursor/arrow/cross)
+    // et de la couleur du joueur
+    int idtexture = IDX_CURSOR*NB_SPRITE_COL + color_idx; // cursor + color
     glEnableVertexAttribArray(_attribute_texcoord);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_arrow_texcoords);
     glVertexAttribPointer(
@@ -209,6 +216,64 @@ public:
 
     glDisableVertexAttribArray(_attribute_coord2d);
   };
+  // ************************************************** GLArrow::render_cross
+  void render_cross( glm::mat4& proj, const Vec2& pos )  
+  {
+    // Calculer la Translation
+    // Model : translation
+    glm::mat4 trans = glm::translate(glm::mat4(1.0f),
+				     glm::vec3( pos.x,
+						pos.y + 1.0,
+						0.2));
+    glm::mat4 scal = glm::scale( glm::mat4(1.0f),
+				 glm::vec3( 0.5, 0.5, 1.0));
+    // Et finalement
+    glm::mat4 mvp = proj * trans * scal;
+    
+    // Draw
+    glUseProgram(_program);
+    // Carre avec Chuchu
+    glBindBuffer( GL_ARRAY_BUFFER, _vbo_carre_vtx );
+    glEnableVertexAttribArray(_attribute_coord2d);
+    /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
+    glVertexAttribPointer(
+      _attribute_coord2d, // attribute
+      2,                 // number of elements per vertex, here (x,y)
+      GL_FLOAT,          // the type of each element
+      GL_FALSE,          // take our values as-is
+      0,                 // stride
+      0                  // offset of first element
+			  );
+    // Texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _texture_id);
+    _uniform_mytexture = glGetUniformLocation(_program, "mytexture");
+    glUniform1i(_uniform_mytexture, /*GL_TEXTURE*/0);
+    // index de la texture dépend du type (cursor/arrow/cross)
+    // et de la couleur du joueur
+    int idtexture = IDX_CROSS*NB_SPRITE_COL; // cross
+    glEnableVertexAttribArray(_attribute_texcoord);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_arrow_texcoords);
+    glVertexAttribPointer(
+       _attribute_texcoord, // attribute
+       2,                  // number of elements per vertex, here (x,y)
+       GL_FLOAT,           // the type of each element
+       GL_FALSE,           // take our values as-is
+       0,                  // no extra data between each position
+       (GLvoid*) (idtexture * 12 * sizeof(GLfloat)) // offset of first element (as Ptr!!)
+			  );
+
+    // Transform
+    glUniformMatrix4fv(_uniform_mvp, 1, GL_FALSE,
+     		       glm::value_ptr(mvp));
+ 
+    /* Push each element in buffer_vertices to the vertex shader
+     * according to index */
+    glDrawArrays(GL_TRIANGLES, 0, _vbo_carre_size );
+
+    glDisableVertexAttribArray(_attribute_coord2d);
+  };
+
   // ******************************************************** GLArrow::attributs
 private:
   /** Program GLSL */
