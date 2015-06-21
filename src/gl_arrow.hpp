@@ -162,7 +162,7 @@ public:
     glm::mat4 trans = glm::translate(glm::mat4(1.0f),
 				     glm::vec3( pos.x + 0.5,
 						pos.y - 0.5,
-						0.2));
+						0.0));
     // Suivant anim, on scale entre 0.4 et 0.6
     
     double anim_scale = 0.4;

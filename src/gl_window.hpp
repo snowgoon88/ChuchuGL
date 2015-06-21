@@ -169,9 +169,6 @@ public:
 					 -1.0f, 10.0f,
 					 -1.0f, 1.0f );
 
-      // Display cbk
-      _gl_world->render( projection, anim_idx );
-
       // Les Arrow
       // TODO : couleur en fonction de joueurs !!
       // TODO : partager _arrow_viewer ??
@@ -180,12 +177,15 @@ public:
 				     arrow_cell->arrow_dir(),
 				     _player->color().index );
       }
+      // Les cross des joueurs
+      _arrow_viewer->render_cross( projection, _player->cross_pos() );
+      
+      // Display cbk
+      _gl_world->render( projection, anim_idx );
 
       // Les curseur des joueurs
       _arrow_viewer->render_cursor( projection, _player->cursor_pos(),
 				    _player->color().index, anim_idx );
-      // Les cross des joueurs
-      _arrow_viewer->render_cross( projection, _player->cross_pos() );
 
       anim_idx += 1;
       anim_idx = anim_idx % ANIM_LENGTH;

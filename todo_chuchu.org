@@ -13,13 +13,14 @@ En continuant ce qui est fait pour -l_walls
 Quand on ajoute un flèche, certains Chuchu déjà engagés dans la sortie ne prennent plus le trajet qui va de centre de case en centre de case.
 *** TODO flag : dir_set ?
 
-* TODO [7/10] Graphic
+* TODO [3/5] Graphic
 ** DONE Attention, transparence pas très bien gérée (bord blanc autoure des rockets)
 Enlevé DEPT_TEST je crois
 ** DONE 3D Chuchu models => 1 texture par direction 
 ** TODO Animation texture + coord
 ** TODO Refactor as utils class/template/other
-** TODO Qui est au dessus de qui ? (transparence)
+** DONE Qui est au dessus de qui ? (transparence)
+Dernier tracé => en haut, Z compte pas
 
 * Input
 ** DONE Joystick controler avec GLFW
