@@ -1,7 +1,12 @@
 # Make sure the compiler can find include files from our library.
-include_directories (${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include)
+include_directories (${CMAKE_SOURCE_DIR}/src 
+  ${CMAKE_SOURCE_DIR}/include 
+  ${EIGEN3_INCLUDE_DIR}
+  ${OPENGL_INCLUDE_DIR}
+  ${FTGL_INCLUDE_DIRS}
+  ${GLFW_INCLUDE_DIRS})
 # Define the libs used to compile the tests
-set(TEST_LIBS "-lSOIL ${GLEW_LDFLAGS} ${GLFW_LDFLAGS} ${PA_LDFLAGS} ${VORBIS_LDFLAGS}")
+set(TEST_LIBS "-lSOIL ${GLEW_LDFLAGS} ${GLFW_LDFLAGS} ${PA_LDFLAGS} ${VORBIS_LDFLAGS} ${FTGL_LDFLAGS}")
 
 # Define our examples to compile in variable ${usage_test}
 file(

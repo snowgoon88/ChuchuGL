@@ -29,6 +29,7 @@ string(REPLACE ";" " " GLEW_CFLAGS "${GLEW_CFLAGS}")
 string(REPLACE ";" " " GLFW_CFLAGS "${GLFW_CFLAGS}")
 string(REPLACE ";" " " PA_CFLAGS "${PA_CFLAGS}")
 string(REPLACE ";" " " VORBIS_CFLAGS "${VORBIS_CFLAGS}")
+string(REPLACE ";" " " FTGL_CFLAGS "${FTGL_CFLAGS}")
 
 # ldflasgs added by the pkg-config dependencies contains ';' as separator. This is a fix.
 string(REPLACE ";" " " GLEW_LDFLAGS "${GLEW_LDFLAGS}")

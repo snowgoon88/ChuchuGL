@@ -26,6 +26,7 @@
 // Viewer
 #include <gl_world.hpp>
 #include "gl_arrow.hpp"
+#include "gl_text.hpp"
 
 #include <fstream>
 #include <chrono>                      // std::chrono
@@ -49,7 +50,8 @@ public:
   _player(nullptr),
     _gl_world(nullptr), _world(nullptr), _is_running(false),
     _anim_running(false),
-    _fg_joy_ready(false)
+    _fg_joy_ready(false),
+    _frame_time_min(1000.0), _frame_time_max(0.0), _frame_time_avg(0.0) 
   {
     std::cout << "Window creation" << std::endl;
 
@@ -67,6 +69,8 @@ public:
     glfwSetWindowUserPointer( _window, this);
     glfwMakeContextCurrent(_window);
     glfwSetKeyCallback(_window, key_callback);
+
+    _gl_text.set_fontsize( 14 );
   };
   // *************************************************************** destruction
   virtual ~GLWindow()
@@ -116,6 +120,7 @@ public:
     // Enable alpha
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    _gl_text.set_glstate();
     // Depth
     //glEnable( GL_DEPTH_TEST ); => empeche transparence
 
@@ -125,6 +130,16 @@ public:
     int count; // nb_of buttons or axes
     const unsigned char* state;
     const float* axes;
+
+    // FPS
+    auto frame_time = std::chrono::steady_clock::now();
+    //auto frame_time_fps1s = frame_time;
+    //auto frame_time_fps5s = frame_time;
+    std::stringstream fps_ss;
+    fps_ss << "FPS m/avg/M : ";
+    fps_ss << _frame_time_min.count() << "/";
+    fps_ss << _frame_time_avg.count() << "/";
+    fps_ss << _frame_time_max.count();
 
     // L'index d'animation va varier entre 0 et ANIM_LENGTH
     unsigned int anim_idx = 0;
@@ -141,10 +156,14 @@ public:
       if( state[2] == GLFW_PRESS ) _player->put_arrow( _dir_left );
       // direction
       axes = glfwGetJoystickAxes( JOY_INDEX, &count );
-      if( axes[5] < -0.2 ) _player->move_cursor( _dir_left, 0.020 );
-      if( axes[5] > 0.2 ) _player->move_cursor( _dir_right, 0.020 );
-      if( axes[6] > -0.2 ) _player->move_cursor( _dir_down, 0.020 );
-      if( axes[6] < 0.2 ) _player->move_cursor( _dir_up, 0.020 );
+      if( axes[5] < -0.2 or axes[0] < -0.2) 
+	_player->move_cursor( _dir_left, 0.020 );
+      if( axes[5] > 0.2 or axes[0] > 0.2)
+	_player->move_cursor( _dir_right, 0.020 );
+      if( axes[6] > 0.2 or axes[1] > 0.2)
+	_player->move_cursor( _dir_down, 0.020 );
+      if( axes[6] < -0.2 or axes[1] < -0.2)
+	_player->move_cursor( _dir_up, 0.020 );
       
       // world update
       if( _is_running ) {
@@ -157,25 +176,38 @@ public:
       //float ratio = _screen_width / (float) _screen_height;
       
       glViewport(0, 0, _screen_width, _screen_height);
-      glOrtho(-1.0f, 10.0f, -1.0f, 10.0f, 1.f, -1.f);
-      
-
       /* Clear the background as yellow #ffde94 */
       glClearColor(1.0, 1.0, 0.58, 1.0);
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+      // do_ortho() - Needed by _gl_text
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+
+      glOrtho(-1.0f, 10.0f, -1.0f, 10.0f, 1.f, -1.f);
+      
+      // Needed by _gl_text
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+      
 
       // Projection (to 2D screen)
       glm::mat4 projection = glm::ortho( -1.0f, 10.0f,
 					 -1.0f, 10.0f,
 					 -1.0f, 1.0f );
+      // Prépare GLText
+      _gl_text.set_scale( (10.f + 1.f)/(float)_screen_width,
+      (10.f + 1.f)/(float)_screen_height );
+      glColor3f( 0.f, 0.f, 0.f );
+      _gl_text.render( fps_ss.str(), 0.f, 9.f );
 
       // Les Arrow
       // TODO : couleur en fonction de joueurs !!
       // TODO : partager _arrow_viewer ??
       for( auto& arrow_cell: _player->arrow()) {
-	_arrow_viewer->render_arrow( projection, arrow_cell->pos(),
-				     arrow_cell->arrow_dir(),
-				     _player->color().index );
+      	_arrow_viewer->render_arrow( projection, arrow_cell->pos(),
+      				     arrow_cell->arrow_dir(),
+      				     _player->color().index );
       }
       // Les cross des joueurs
       _arrow_viewer->render_cross( projection, _player->cross_pos() );
@@ -185,10 +217,13 @@ public:
 
       // Les curseur des joueurs
       _arrow_viewer->render_cursor( projection, _player->cursor_pos(),
-				    _player->color().index, anim_idx );
+      				    _player->color().index, anim_idx );
 
       anim_idx += 1;
       anim_idx = anim_idx % ANIM_LENGTH;
+
+      // Remove any programm so that glText can "work"
+      glUseProgram(0);
 
       glfwSwapBuffers(_window);
       glfwPollEvents();
@@ -201,6 +236,18 @@ public:
       std::this_thread::sleep_for(std::chrono::milliseconds(20)
 				  - elapsed_seconds );
       //std::cout << "TIME = " <<  elapsed_seconds.count() << std::endl;
+      //FPS update
+      std::chrono::duration<double> frame_delta_time = end_proc - frame_time;
+      if( _frame_time_min > frame_delta_time ) _frame_time_min = frame_delta_time;
+      if( _frame_time_max < frame_delta_time ) _frame_time_max = frame_delta_time;
+      _frame_time_avg = 0.9 * _frame_time_avg + 0.1 * frame_delta_time;
+      frame_time = end_proc;
+      
+      fps_ss.str("");
+      fps_ss << "FPS m/avg/M : ";
+      fps_ss << _frame_time_min.count() << "/";
+      fps_ss << _frame_time_avg.count() << "/";
+      fps_ss << _frame_time_max.count();
     }
   }
   // ***************************************************************** attributs
@@ -260,6 +307,12 @@ private:
   bool _is_running;
   bool _anim_running;
   bool _fg_joy_ready;
+  // ********************************************************************* fps
+  std::chrono::duration<double, std::milli> _frame_time_min;
+  std::chrono::duration<double, std::milli> _frame_time_max;
+  std::chrono::duration<double, std::milli> _frame_time_avg;
+  GLText _gl_text;
+
 };
 
 #endif // GL_WINDOW_HPP
