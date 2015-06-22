@@ -45,7 +45,7 @@ class GLWindow
 public:
   // ****************************************************************** creation
   /** Création avec titre et taille de fenetre.*/
-  GLWindow(const std::string& title = "GLFW Window", int width=800, int height=600) :
+  GLWindow(const std::string& title = "GLFW Window", int width=800, int height=600, bool fullsize=false) :
     _screen_width(width), _screen_height(height),
   _player(nullptr),
     _gl_world(nullptr), _world(nullptr), _is_running(false),
@@ -60,7 +60,14 @@ public:
     if (!glfwInit())
         exit(EXIT_FAILURE);
     
-    _window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
+    if( fullsize ) {
+      _window = glfwCreateWindow(width, height, title.c_str(),
+				 glfwGetPrimaryMonitor(), NULL);
+    }
+    else {
+      _window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
+    }
+
     if (!_window) {
       glfwTerminate();
       exit(EXIT_FAILURE);
