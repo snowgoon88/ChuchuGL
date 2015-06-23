@@ -54,6 +54,8 @@ private:
   Spd _spd;
   /** Cell sur laquelle se trouve le Chuchu */
   Cell* _cell;
+  /** Est-ce que le Chuchu a été maj en sortant de sa Cell */
+  bool _is_exiting;
 };
 // ***************************************************************************
 #endif // CHUCHU_CPP

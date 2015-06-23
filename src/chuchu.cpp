@@ -9,7 +9,7 @@
 
 // ****************************************************************** creation
 Chuchu::Chuchu( Vec2 position, Direction* dir, Spd speed) :
-  _pos(position), _dir(dir), _spd(speed), _cell(NULL)
+  _pos(position), _dir(dir), _spd(speed), _cell(NULL), _is_exiting(false)
 {}
 // *********************************************************************** str
 /** Dump avec string */
@@ -20,6 +20,7 @@ std::string Chuchu::str_dump() const
   dump << "CHUCHU";
   dump << " at (" << _pos.x << "; " << _pos.y << ")";
   dump << " going to " << _dir->str << " with spd=" << _spd;
+  dump << " _is_exiting=" << _is_exiting;
   
   return dump.str();
 }
@@ -46,8 +47,10 @@ bool Chuchu::set_cell( Cell* cell )
       (_pos.y - (cell->pos().y+0.5)) * _dir->vec.y;
     if( pscal > 0.0 ) { // EXIT
       std::cout << "pscal=" << pscal << " : EXIT cell " << cell->str_dump() << std::endl;
-      // Et donc une nouvelle Direction
-      _dir = cell->dir_arrive_from( _dir );
+      // Et donc une nouvelle Direction s'il ne l'a pas déjà eu
+      if( not _is_exiting ) 
+	_dir = cell->dir_arrive_from( _dir );
+      _is_exiting = true;
       return true; // toujours vivant
     }
     else if( pscal < 0.0 ) { // ENTER
@@ -60,11 +63,10 @@ bool Chuchu::set_cell( Cell* cell )
   // de changer de Cell
   if( _cell != cell ) {
     _cell = cell;
+    _is_exiting = false;
     return true;
   }
-  else {
-    _cell = cell;
-    return false;
-  }
+  
+  return false;
 }
 // ***************************************************************************
