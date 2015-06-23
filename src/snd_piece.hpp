@@ -137,6 +137,34 @@ public:
   {
     if( _ogg_buffer ) delete _ogg_buffer;
   };
+  // *************************************************************** operation
+  /** Sera joué en sens inverse */
+  void inverse()
+  {
+    float swap;
+    for( unsigned int i = 0; i < size()/2; ++i) {
+      swap = _ogg_buffer[i];
+      _ogg_buffer[i] = _ogg_buffer[size()-1-i];
+      _ogg_buffer[size()-1-i] = swap;
+    }
+  };
+  /** Valeur opposée */
+  void opposed()
+  {
+    for( unsigned int i = 0; i < size(); ++i) {
+      _ogg_buffer[i] = - _ogg_buffer[i];
+    }
+  }
+  /** Complémentaire en en valeur absolue */
+  void comp()
+  {
+    for( unsigned int i = 0; i < size(); ++i) {
+      if( _ogg_buffer[i] > 0)
+	_ogg_buffer[i] = 1.f - _ogg_buffer[i];
+      else
+	_ogg_buffer[i] = -1.f - _ogg_buffer[i];
+    }
+  }
   // *************************************************************** attributs
   const unsigned int size() const { return _ogg_pcm_length;};
   const float* data() const { return _ogg_buffer; };
