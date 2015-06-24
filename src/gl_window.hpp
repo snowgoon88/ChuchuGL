@@ -27,6 +27,8 @@
 #include <gl_world.hpp>
 #include "gl_arrow.hpp"
 #include "gl_text.hpp"
+// Contoler
+#include <gl_controler.hpp>
 
 #include <fstream>
 #include <chrono>                      // std::chrono
@@ -36,7 +38,9 @@
 #define ANIM_LENGTH 30
 #define JOY_INDEX GLFW_JOYSTICK_1
 
-typedef std::shared_ptr<World>   WorldPtr;
+typedef std::shared_ptr<World>        WorldPtr;
+typedef std::shared_ptr<Player>       PlayerPtr;
+typedef std::shared_ptr<GLControler>  GLControlerPtr;
 // ***************************************************************************
 // ****************************************************************** GLWindow
 // ***************************************************************************
@@ -47,7 +51,7 @@ public:
   /** Création avec titre et taille de fenetre.*/
   GLWindow(const std::string& title = "GLFW Window", int width=800, int height=600, bool fullsize=false) :
     _screen_width(width), _screen_height(height),
-  _player(nullptr),
+    _player(nullptr), _controler(nullptr),
     _gl_world(nullptr), _world(nullptr), _is_running(false),
     _anim_running(false),
     _fg_joy_ready(false),
@@ -92,7 +96,7 @@ public:
     _world = WorldPtr(new World( "data/world_6x5.json"));
     std::cout << _world->str_dump() << std::endl;
     // Joueurs
-    _player = std::unique_ptr<Player>(new Player( _world, _col_blue ));
+    _player = std::shared_ptr<Player>(new Player( _world, _col_blue ));
     //_world->init3x4();
     // Open file
     // std::ifstream myfile( "../data/world_6x5.json" );
@@ -102,22 +106,22 @@ public:
     _gl_world = std::unique_ptr<GLWorld>(new GLWorld( *_world ));
     
   };
-  void check_joystick()
+  void set_controler( GLControler::Type type )
   {
-    // joystick
-    int count; // nb_of buttons or axes
-    //const unsigned char* state;
-    const float* axes;
+    _controler = std::shared_ptr<GLControler>(new GLControler( _player, type ));
     
-    while( not _fg_joy_ready ) {
-      if( glfwJoystickPresent( JOY_INDEX )) {
-	std::cout << "joystick " << JOY_INDEX << " detected" << std::endl;
-	axes = glfwGetJoystickAxes( JOY_INDEX, &count );
-	std::cout << "axes[5]="<<axes[5];
-	std::cout << " axes[6]="<<axes[6] << std::endl;
+    switch( type ) {
+    case GLControler::Type::KEYBOARD:
+      // nothing to wait
+      break;
+    case GLControler::Type::XPAD:
+      // Wait for joystick ready
+      while( not _fg_joy_ready ) {
+	glfwJoystickPresent( GLFW_JOYSTICK_1 );
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	glfwPollEvents();
       }
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      glfwPollEvents();
+      break;
     }
   };
   // ******************************************************************** render
@@ -134,9 +138,9 @@ public:
     // TODO cbk quand la fenètre est redimensionnée ??
 
     // joystick
-    int count; // nb_of buttons or axes
-    const unsigned char* state;
-    const float* axes;
+    // int count; // nb_of buttons or axes
+    // const unsigned char* state;
+    // const float* axes;
 
     // FPS
     auto frame_time = std::chrono::steady_clock::now();
@@ -153,24 +157,28 @@ public:
     while (!glfwWindowShouldClose(_window)) {
       // clock
       auto start_proc = std::chrono::steady_clock::now();
-      
-      // joystick input
-      // bouton : Pose flèches
-      state = glfwGetJoystickButtons( JOY_INDEX, &count);
-      if( state[3] == GLFW_PRESS ) _player->put_arrow( _dir_up );
-      if( state[1] == GLFW_PRESS ) _player->put_arrow( _dir_right );
-      if( state[0] == GLFW_PRESS ) _player->put_arrow( _dir_down );
-      if( state[2] == GLFW_PRESS ) _player->put_arrow( _dir_left );
-      // direction
-      axes = glfwGetJoystickAxes( JOY_INDEX, &count );
-      if( axes[5] < -0.2 or axes[0] < -0.2) 
-	_player->move_cursor( _dir_left, 0.020 );
-      if( axes[5] > 0.2 or axes[0] > 0.2)
-	_player->move_cursor( _dir_right, 0.020 );
-      if( axes[6] > 0.2 or axes[1] > 0.2)
-	_player->move_cursor( _dir_down, 0.020 );
-      if( axes[6] < -0.2 or axes[1] < -0.2)
-	_player->move_cursor( _dir_up, 0.020 );
+
+
+      // TODO window pourrait être donné à la construction
+      // du controler
+      _controler->act( _window );
+      // // joystick input
+      // // bouton : Pose flèches
+      // state = glfwGetJoystickButtons( JOY_INDEX, &count);
+      // if( state[3] == GLFW_PRESS ) _player->put_arrow( _dir_up );
+      // if( state[1] == GLFW_PRESS ) _player->put_arrow( _dir_right );
+      // if( state[0] == GLFW_PRESS ) _player->put_arrow( _dir_down );
+      // if( state[2] == GLFW_PRESS ) _player->put_arrow( _dir_left );
+      // // direction
+      // axes = glfwGetJoystickAxes( JOY_INDEX, &count );
+      // if( axes[5] < -0.2 or axes[0] < -0.2) 
+      // 	_player->move_cursor( _dir_left, 0.020 );
+      // if( axes[5] > 0.2 or axes[0] > 0.2)
+      // 	_player->move_cursor( _dir_right, 0.020 );
+      // if( axes[6] > 0.2 or axes[1] > 0.2)
+      // 	_player->move_cursor( _dir_down, 0.020 );
+      // if( axes[6] < -0.2 or axes[1] < -0.2)
+      // 	_player->move_cursor( _dir_up, 0.020 );
       
       // world update
       if( _is_running ) {
@@ -305,7 +313,8 @@ private:
     std::cerr <<  description << std::endl;
   }
   // ***************************************************************** players
-  std::unique_ptr<Player> _player;
+  PlayerPtr _player;
+  GLControlerPtr _controler;
   std::unique_ptr<GLArrow>  _arrow_viewer;
   // ******************************************************************* world
   std::unique_ptr<GLWorld> _gl_world;

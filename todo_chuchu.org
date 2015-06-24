@@ -35,8 +35,11 @@ Dernier tracé => en haut, Z compte pas
 
 ** TODO 3D+Tex de Source
 ** TODO Tex des damiers
-* Input
+* [1/3] Input
 ** DONE Joystick controler avec GLFW
+** TODO <<<BUG>>> pose flèche hors zone ???
+Maintenant qu'on a un GL_Controler, la pose de flèche alors que le 
+cursor est hors zone => SegFault
 ** TODO Lien pour savoir où on a cliqué avec souris.
 ** GL Unproject
    http://en.wikibooks.org/wiki/OpenGL_Programming/Object_selection
