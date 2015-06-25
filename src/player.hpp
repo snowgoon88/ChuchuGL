@@ -55,10 +55,10 @@ public:
       _cross_pos = cell->pos();
     }
   };
-  /** Pose Arrow au cursor */
+  /** Pose Arrow à la cross */
   void put_arrow( Direction& dir )
   {
-    put_arrow( dir, cursor_pos() );
+    put_arrow( dir, cross_pos() );
   }
   /** Pose Arrow à un endroit */
   void put_arrow( Direction& dir, const Vec2& pos )
