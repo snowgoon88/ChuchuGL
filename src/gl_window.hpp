@@ -106,23 +106,29 @@ public:
     _gl_world = std::unique_ptr<GLWorld>(new GLWorld( *_world ));
     
   };
-  void set_controler( GLControler::Type type )
-  {
-    _controler = std::shared_ptr<GLControler>(new GLControler( _player, type ));
+  // void set_controler( GLControler::Type type )
+  // {
+  //   _controler = std::shared_ptr<GLControler>(new GLControler( _player, type ));
     
-    switch( type ) {
-    case GLControler::Type::KEYBOARD:
-      // nothing to wait
-      break;
-    case GLControler::Type::XPAD:
-      // Wait for joystick ready
-      while( not _fg_joy_ready ) {
-	glfwJoystickPresent( GLFW_JOYSTICK_1 );
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	glfwPollEvents();
-      }
-      break;
-    }
+  //   switch( type ) {
+  //   case GLControler::Type::KEYBOARD:
+  //     // nothing to wait
+  //     break;
+  //   case GLControler::Type::XPAD:
+  //     // Wait for joystick ready
+  //     while( not _fg_joy_ready ) {
+  // 	glfwJoystickPresent( GLFW_JOYSTICK_1 );
+  // 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // 	glfwPollEvents();
+  //     }
+  //     break;
+  //   }
+  // };
+  // ************************************************* GLWindow::set_controler
+  void set_controler()
+  {
+    GLControler controler(_window, _world);
+    controler.render();
   };
   // ******************************************************************** render
   void render ()

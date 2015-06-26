@@ -96,6 +96,11 @@ public:
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
   };
+  // ****************************************************** GLText::properties
+  float line_height () const
+  { 
+    return _font->LineHeight() * _scale_y; 
+  };
   // ******************************************************* GLText::attributs
 private:
   /** Des Fontes pour écrire */

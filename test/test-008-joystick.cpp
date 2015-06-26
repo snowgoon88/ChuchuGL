@@ -29,6 +29,9 @@ int main( int argc, char *argv[] )
   if (!glfwInit())
     exit(EXIT_FAILURE);
   
+  std::string msg;
+  std::cin >> msg;
+
   int count; // nb_of buttons or axes
   const unsigned char* state;
   const float* axes;
