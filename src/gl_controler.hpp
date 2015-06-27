@@ -46,7 +46,12 @@ public:
 
   typedef std::pair<int, const Direction&> BtnDir;
   // Direction pour les axes positif, l'autre est opposé
-  typedef std::tuple<int, const Direction&, const Direction&> AxeDir;
+  typedef struct {
+    int idx_axe;
+    const Direction& dir_pos;
+    const Direction& dir_neg;
+  } AxeDir;
+  //typedef std::tuple<int, const Direction&, const Direction&> AxeDir;
   typedef struct {
     std::list<BtnDir>  map_arrow;
     std::list<AxeDir>  map_move;
@@ -124,9 +129,11 @@ public:
 	}
 	// Direction
 	for( auto& btndir: _map_key.map_move) {
-	  std::cout << "  test move to " << btndir.second.str << std::endl;
-	  if( glfwGetKey(window, btndir.first) == GLFW_PRESS ) 
+	  std::cout << "  test move to " << btndir.second.str <<" with key=" << btndir.first << std::endl;
+	  if( glfwGetKey(window, btndir.first) == GLFW_PRESS ) { 
+	    std::cout << "  ---> moving" << std::endl;
 	    assoc.player->move_cursor( btndir.second, 0.020);
+	  }
 	}
       break;
       case Type::XPAD:
@@ -137,16 +144,27 @@ public:
 	// bouton : Pose flèches
 	state = glfwGetJoystickButtons( assoc.idx_joy, &count);
 	for( auto& btndir: assoc.map->map_arrow) {
-	  if( state[btndir.first] ) 
+	  std::cout << "  test arrow " << btndir.second.str << " with btn=" << btndir.first << std::endl;
+	  if( state[btndir.first] == GLFW_PRESS ) {
+	    std::cout << "  ---> put" << std::endl;
 	    assoc.player->put_arrow( btndir.second);
+	  }
 	}
 	// direction
-	axes = glfwGetJoystickAxes( JOY_INDEX, &count );
+	axes = glfwGetJoystickAxes( assoc.idx_joy, &count );
 	for( auto& axedir: assoc.map->map_move) {
-	  if( axes[std::get<0>(axedir)] > 0.2 )
-	    assoc.player->move_cursor( std::get<1>(axedir), 0.020 );
-	  else if( axes[std::get<0>(axedir)] < -0.2 )
-	    assoc.player->move_cursor( std::get<2>(axedir), 0.020 );
+	  std::cout << "  test move with axe="<< axedir.idx_axe << std::endl;
+	  std::cout << "to "<< axedir.dir_pos.str << std::endl;
+	  std::cout << "/" << axedir.dir_neg.str << std::endl;
+
+	  if( axes[axedir.idx_axe] > 0.2 ) {
+	    std::cout << "  --->moving "<< axedir.dir_pos.str << std::endl;
+	    assoc.player->move_cursor( axedir.dir_pos, 0.020 );
+	  }
+	  else if( axes[axedir.idx_axe] < -0.2 ) {
+	    std::cout << "  --->moving "<< axedir.dir_neg.str << std::endl;
+	    assoc.player->move_cursor( axedir.dir_neg, 0.020 );
+	  }
 	}
 	break;
       }
@@ -267,6 +285,7 @@ public:
     }
   };
   // ************************************************** GLControler::attributs
+  const std::vector<Association>& assoc() const { return _l_assoc; };
 private:
   /** Ref vers World */
   WorldPtr _world;
@@ -292,10 +311,10 @@ private:
   std::map<std::string,MapPad> _map_pad = {
     {"ACRUX HAMA X-Style Pad", 
      {{{3,_dir_up},{1,_dir_right},{0,_dir_down},{2,_dir_left}},
-      {std::make_tuple(5,_dir_right,_dir_left),
-       std::make_tuple(0,_dir_right,_dir_left),
-       std::make_tuple(6,_dir_down,_dir_up),
-       std::make_tuple(1,_dir_down,_dir_up)}}}
+      {{5,_dir_right,_dir_left},
+       {0,_dir_right,_dir_left},
+       {6,_dir_down,_dir_up},
+       {1,_dir_down,_dir_up}}}}
   };
      
   // *************************************************** GLControler::callback
@@ -385,6 +404,7 @@ private:
       // Finalise association
       for( auto& assoc: _l_assoc) {
 	if( assoc.choice == Type::XPAD ) {
+	  std::cout << "Associate " << _l_joy[assoc.idx_joy].name << " to player " << assoc.player->color().str << std::endl;
 	  assoc.map = &(_map_pad[_l_joy[assoc.idx_joy].name]);
 	}
       }
