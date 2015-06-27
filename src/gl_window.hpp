@@ -125,10 +125,18 @@ public:
   //   }
   // };
   // ************************************************* GLWindow::set_controler
-  void set_controler()
+  void set_controler( unsigned int nb_joueur_start )
   {
     _controler = std::make_shared<GLControler>(_window, _world);
-    _controler->render();
+    if( nb_joueur_start == 0) {
+      _controler->render();
+    }
+    else {
+      std::string keyboard;
+      _controler->init_default( nb_joueur_start );
+      std::cout << "** INIT CONTROLER OK --> attend clavier" << std::endl;
+      std::cin >> keyboard;
+    }
     // Redonne les contrôles à la classe actuelle 
     // 'this' est associé à cette _window (pour les callback)
     glfwSetWindowUserPointer( _window, this);
@@ -289,7 +297,7 @@ private:
    */
   static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {
-    // ESC => Quit
+    // ESC => Quit"ACRUX HAMA X-Style Pad"
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GL_TRUE);
     // sinon callback de la classe
@@ -301,7 +309,7 @@ private:
   // ********************************************************* public_callback
   void on_key_pressed( int key ) 
   {
-    //std::cout << "on_key_presssed = " << key << std::endl;
+    std::cout << "GLWindow::key_pressed key=" << key << std::endl;
     if( key == GLFW_KEY_R) {
       // toggle _is_running
       _is_running = !_is_running;

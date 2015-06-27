@@ -18,15 +18,12 @@
 #include <sstream>            // std::stringstream
 #include <string>             // std::string
 #include <map>                // std::map
-#include <tuple>              // std::tuple
 #include <utility>            // std::pair, std::get
 
 // Model
-//#include <world.hpp>
+#include <world.hpp>
 #include <player.hpp>
 // Viewer
-//#include <gl_world.hpp>
-//#include "gl_arrow.hpp"
 #include "gl_text.hpp"
 
 // ******************************************************************** GLOBAL
@@ -51,7 +48,6 @@ public:
     const Direction& dir_pos;
     const Direction& dir_neg;
   } AxeDir;
-  //typedef std::tuple<int, const Direction&, const Direction&> AxeDir;
   typedef struct {
     std::list<BtnDir>  map_arrow;
     std::list<AxeDir>  map_move;
@@ -87,11 +83,30 @@ public:
     }
     _nb_joy = 0;
 
+    // Basculer de GLFrame en GLFrame
     // 'this' est associé à cette _window (pour les callback)
     glfwSetWindowUserPointer( _window, this);
     glfwSetKeyCallback(_window, key_callback);
-
   };
+  // *********************************************** GLControler::init_default
+  /** 
+   * un joueur : clavier.
+   * deux joueur : clavier, joystick"ACRUX HAMA X-Style Pad".
+   */
+  void init_default(unsigned int nb_joueur)
+  {
+    _l_assoc.clear();
+    if( nb_joueur == 1 ) {
+      _l_assoc.push_back( {PlayerPtr(new Player(_world, _l_col[_l_assoc.size()])),
+	      Type::KEYBOARD, 0, nullptr}  );
+    }
+    else if( nb_joueur == 2 ) {
+      _l_assoc.push_back( {PlayerPtr(new Player(_world, _l_col[_l_assoc.size()])),
+	      Type::KEYBOARD, 0, nullptr}  );
+      _l_assoc.push_back( {PlayerPtr(new Player(_world, _l_col[_l_assoc.size()])),
+	    Type::XPAD, 1, &(_map_pad["ACRUX HAMA X-Style Pad"]) }  );
+    }
+  }
   // ***************************************************** GLControler::detect
   /** Detecte les Joystick présents */
   void detect()
@@ -115,13 +130,15 @@ public:
   /** En fonction de Input, déclenche les actions */
   void act( GLFWwindow *window )
   {
-    std::cout << "** START act" << std::endl;
     // Tous les joueurs enregistrés
     for( auto& assoc: _l_assoc ) {
-      std::cout << "  Player " << assoc.player->color().str << std::endl;
+      // std::cout << "ACT Player " << assoc.player->color().str << std::endl;
       switch(assoc.choice) {
+      case Type::NOTHING:
+	std::cout << "  NOTHING" << std::endl;
+	break;
       case Type::KEYBOARD:
-	std::cout << "  KEYBOARD" << std::endl;
+	// std::cout << "  KEYBOARD" << std::endl;
 	// Pose de flèches
 	for( auto& btndir: _map_key.map_arrow) {
 	  if( glfwGetKey(window, btndir.first) == GLFW_PRESS ) 
@@ -129,47 +146,38 @@ public:
 	}
 	// Direction
 	for( auto& btndir: _map_key.map_move) {
-	  std::cout << "  test move to " << btndir.second.str <<" with key=" << btndir.first << std::endl;
+	  // std::cout << "  test key=" << btndir.first << " for " << btndir.second.str << std::endl;
 	  if( glfwGetKey(window, btndir.first) == GLFW_PRESS ) { 
-	    std::cout << "  ---> moving" << std::endl;
 	    assoc.player->move_cursor( btndir.second, 0.020);
 	  }
 	}
       break;
       case Type::XPAD:
-	std::cout << "  XPAD" << std::endl;
+	// std::cout << "  XPAD" << std::endl;
 	int count; // nb_of buttons or axes
 	const unsigned char* state;
 	const float* axes;
 	// bouton : Pose flèches
 	state = glfwGetJoystickButtons( assoc.idx_joy, &count);
 	for( auto& btndir: assoc.map->map_arrow) {
-	  std::cout << "  test arrow " << btndir.second.str << " with btn=" << btndir.first << std::endl;
+	  // std::cout << "  test btn=" << btndir.first << " for " << btndir.second.str << std::endl;
 	  if( state[btndir.first] == GLFW_PRESS ) {
-	    std::cout << "  ---> put" << std::endl;
 	    assoc.player->put_arrow( btndir.second);
 	  }
 	}
 	// direction
 	axes = glfwGetJoystickAxes( assoc.idx_joy, &count );
 	for( auto& axedir: assoc.map->map_move) {
-	  std::cout << "  test move with axe="<< axedir.idx_axe << std::endl;
-	  std::cout << "to "<< axedir.dir_pos.str << std::endl;
-	  std::cout << "/" << axedir.dir_neg.str << std::endl;
-
 	  if( axes[axedir.idx_axe] > 0.2 ) {
-	    std::cout << "  --->moving "<< axedir.dir_pos.str << std::endl;
 	    assoc.player->move_cursor( axedir.dir_pos, 0.020 );
 	  }
 	  else if( axes[axedir.idx_axe] < -0.2 ) {
-	    std::cout << "  --->moving "<< axedir.dir_neg.str << std::endl;
 	    assoc.player->move_cursor( axedir.dir_neg, 0.020 );
 	  }
 	}
 	break;
       }
     }
-    std::cout << "** STOP act" << std::endl;
   };
   // ******************************************************* GLControler::text
   void render_text( float topx, float topy )
@@ -295,10 +303,6 @@ private:
   /** Liste des Joystick présent */
   Joystick _l_joy[GLFW_JOYSTICK_LAST - GLFW_JOYSTICK_1 + 1];
   unsigned int _nb_joy;
-  // /** Le Player qui agit */
-  // PlayerPtr _player;
-  // /** Le type de Contoler */
-  // Type _type;
   /** Choix fait ? */
   bool _ready;
   /** Un mapping pour le clavier */
@@ -316,7 +320,6 @@ private:
        {6,_dir_down,_dir_up},
        {1,_dir_down,_dir_up}}}}
   };
-     
   // *************************************************** GLControler::callback
   static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {
@@ -332,6 +335,7 @@ private:
   // ******************************************** GLControler::public_callback
   void on_key_pressed( int key ) 
   {
+    std::cout << "GLControler::key_pressed key=" << key << std::endl;
     // Ajout de Joueur
     if( key == GLFW_KEY_Q) {
       if( _l_assoc.size() < NB_MAX_PLAYER ) {
@@ -417,6 +421,5 @@ private:
   int _screen_width=800, _screen_height=600;
   GLText _gl_text;
 };
-
 
 #endif // GL_CONTROLER_HPP

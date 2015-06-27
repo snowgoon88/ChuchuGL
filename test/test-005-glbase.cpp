@@ -19,9 +19,9 @@ int main( int argc, char *argv[] )
   app.init();
 
   std::cout << "__SET_CONTROLER" << std::endl;
-  // app.set_controler( GLControler::Type::KEYBOARD );
-  // app.set_controler( GLControler::Type::XPAD );
-  app.set_controler();
+  // app.set_controler( 0 );
+  app.set_controler( 1 );
+  // app.set_controler( 2 );
 
   app.render();
 
