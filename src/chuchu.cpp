@@ -8,7 +8,7 @@
 
 
 // ****************************************************************** creation
-Chuchu::Chuchu( Vec2 position, Direction* dir, Spd speed) :
+Chuchu::Chuchu( Vec2 position, const Direction* dir, Spd speed) :
   _pos(position), _dir(dir), _spd(speed), _cell(NULL), _is_exiting(false)
 {}
 // *********************************************************************** str

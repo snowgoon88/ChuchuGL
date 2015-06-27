@@ -39,10 +39,10 @@ std::string Cell::str_dump() const
 /** Calcule la direction que l'on a en sortant de la Cell
  * quand on avait la direction dir.
  */
-Direction* Cell::dir_arrive_from( Direction* dir ) const
+const Direction* Cell::dir_arrive_from( const Direction* dir ) const
 {
   // Par défaut on va tout droit
-  Direction* next_dir = dir;
+  const Direction* next_dir = dir;
   // Mais _arrow est prioritaire
   if(_arrow) {
     next_dir = _arrow;

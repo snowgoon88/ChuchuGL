@@ -38,11 +38,11 @@ public:
   /** Calcule la direction que l'on a en sortant de la Cell
    * quand on avait la direction dir.
    */
-  Direction* dir_arrive_from( Direction* dir ) const;
+  const Direction* dir_arrive_from( const Direction* dir ) const;
   // ********************************************************** Cell:attributs
   const Vec2& pos() const {return _pos;};
   /** Ajouter nullptr pour effacer arrow */
-  bool set_arrow( Direction* dir)
+  bool set_arrow( const Direction* dir)
   {
     // tjs ok si nullptr
     if( dir == nullptr ) {
@@ -55,12 +55,12 @@ public:
     _arrow = dir; return true;
   }
   void add_wall( const Direction& dir ) {_wall[dir.index] = true;};
-  Direction& arrow_dir() const {return *_arrow;};
+  const Direction& arrow_dir() const {return *_arrow;};
 protected:
   /** Position */
   Vec2 _pos;
   /** Arrow : NULL ou ref vers Direction */
-  Direction* _arrow;
+  const Direction* _arrow;
   /** Murs */
   bool _wall[_dir_size];
   /** Type de case */
@@ -94,7 +94,7 @@ public:
   { _count += 1; return false;};
   
   // *************************************************************** attributs
-  bool set_arrow( Direction* dir) {return false;};
+  bool set_arrow( const Direction* dir) {return false;};
 private:
   unsigned int _count;
 };
@@ -128,7 +128,7 @@ public:
   /** Return nullptr or a new Chuchu */
   std::unique_ptr<Chuchu> update( double delta_t );
   // *************************************************************** attributs
-  bool set_arrow( Direction* dir) {return false;};
+  bool set_arrow( const Direction* dir) {return false;};
 private:
   /** Direction des Chuchu sortants */
   Direction* _dir;

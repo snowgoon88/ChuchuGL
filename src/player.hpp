@@ -56,12 +56,12 @@ public:
     }
   };
   /** Pose Arrow à la cross */
-  void put_arrow( Direction& dir )
+  void put_arrow( const Direction& dir )
   {
     put_arrow( dir, cross_pos() );
   }
   /** Pose Arrow à un endroit */
-  void put_arrow( Direction& dir, const Vec2& pos )
+  void put_arrow( const Direction& dir, const Vec2& pos )
   {
     CellPtr place = _world->cell( pos );
     if( place->set_arrow( &dir )) {

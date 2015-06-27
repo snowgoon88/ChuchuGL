@@ -127,8 +127,12 @@ public:
   // ************************************************* GLWindow::set_controler
   void set_controler()
   {
-    GLControler controler(_window, _world);
-    controler.render();
+    _controler = std::make_shared<GLControler>(_window, _world);
+    _controler->render();
+    // Redonne les contrôles à la classe actuelle 
+    // 'this' est associé à cette _window (pour les callback)
+    glfwSetWindowUserPointer( _window, this);
+    glfwSetKeyCallback(_window, key_callback);
   };
   // ******************************************************************** render
   void render ()

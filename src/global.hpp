@@ -30,7 +30,7 @@ static Direction _dir_left = { 3, {-1, 0}, "L"};
 static const unsigned int _dir_size = 4;
 static Direction _l_dir[_dir_size] = {_dir_up, _dir_right, _dir_down, _dir_left};
 
-static Direction* _dir_rotate( Direction* dir )
+static const Direction* _dir_rotate( const Direction* dir )
 {
   return &(_l_dir[ (dir->index+1) % _dir_size ]);
 }

@@ -24,7 +24,9 @@ class Chuchu {
 public:
   // **************************************************************** creation
   /** Creation avec une position et une vitesse */
-  Chuchu( Vec2 position = {0,0}, Direction* dir = &_dir_right, Spd speed = 0.1 );
+  Chuchu( Vec2 position = {0,0}, 
+	  const Direction* dir = &_dir_right, 
+	  Spd speed = 0.1 );
   // ********************************************************************* str
   /** Dump avec string */
   std::string str_dump() const;
@@ -49,7 +51,7 @@ private:
   /** Position */
   Vec2 _pos;
   /** Direction actuelle */
-  Direction* _dir;
+  const Direction* _dir;
   /** Vitesse */
   Spd _spd;
   /** Cell sur laquelle se trouve le Chuchu */
