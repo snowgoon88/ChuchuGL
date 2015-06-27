@@ -45,9 +45,9 @@ typedef struct {
 } MColor;
 
 static MColor _col_blue = { 0, "B" };
-static MColor _col_yellow = { 0, "J" };
-static MColor _col_red = { 0, "R" };
-static MColor _col_green = { 0, "V" };
+static MColor _col_yellow = { 1, "J" };
+static MColor _col_red = { 2, "R" };
+static MColor _col_green = { 3, "V" };
 
 static const unsigned int _col_size = 4;
 static MColor _l_col[_col_size] = {_col_blue, _col_yellow, _col_red, _col_green};
