@@ -17,6 +17,7 @@ pkg_search_module(FTGL REQUIRED ftgl)
 pkg_search_module(PA REQUIRED portaudio-2.0)
 pkg_search_module(VORBIS REQUIRED vorbisfile)
 
+FIND_PACKAGE( Boost COMPONENTS program_options REQUIRED )
 #######################################
 # Setting the compilation flags
 #######################################

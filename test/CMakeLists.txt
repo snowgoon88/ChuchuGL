@@ -4,9 +4,11 @@ include_directories (${CMAKE_SOURCE_DIR}/src
   ${EIGEN3_INCLUDE_DIR}
   ${OPENGL_INCLUDE_DIR}
   ${FTGL_INCLUDE_DIRS}
-  ${GLFW_INCLUDE_DIRS})
+  ${GLFW_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIR})
+
 # Define the libs used to compile the tests
-set(TEST_LIBS "-lSOIL ${GLEW_LDFLAGS} ${GLFW_LDFLAGS} ${PA_LDFLAGS} ${VORBIS_LDFLAGS} ${FTGL_LDFLAGS}")
+set(TEST_LIBS "-lSOIL ${GLEW_LDFLAGS} ${GLFW_LDFLAGS} ${PA_LDFLAGS} ${VORBIS_LDFLAGS} ${FTGL_LDFLAGS} ${Boost_LIBRARIES}")
 
 # Define our examples to compile in variable ${usage_test}
 file(
