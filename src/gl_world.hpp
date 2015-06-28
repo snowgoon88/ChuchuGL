@@ -136,7 +136,9 @@ public:
       std::cerr <<  "Pb pour lier l'attribut " << attribute_name << std::endl;
       exit( EXIT_FAILURE );
     }
-    
+
+    // Other Viewers
+    _rocket_viewer.init( _model.rocket() );
   };
   // ************************************************************* destruction
   virtual ~GLWorld()
@@ -192,10 +194,11 @@ public:
 
     glDisableVertexAttribArray(_attribute_coord2d);
     // Les Rockets
-    // TODO changer orientation en fonction de la position dans la grille
-    for( auto& rocket : _model.rocket()) {
-      _rocket_viewer.render( projection, rocket->pos(), 0 );
-    }
+    _rocket_viewer.render( projection, _model.stime() );
+    // // TODO changer orientation en fonction de la position dans la grille
+    // for( auto& rocket : _model.rocket()) {
+    //   _rocket_viewer.render( projection, rocket->pos(), 0 );
+    // }
     // Tous les chuchu
     for( auto& chuchu: _model.chuchu()) {
       _chuchu_viewer.render( projection, chuchu->pos(), chuchu->dir() );

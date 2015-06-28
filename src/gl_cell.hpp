@@ -6,7 +6,7 @@
 /** 
  * Viewer OpenGL des differentes Cell : texture.
  */
-#include "gl_utils.hpp"
+#include <gl_utils.hpp>
 
 #include <SOIL/SOIL.h>               // Load images
 
@@ -16,11 +16,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "cell.hpp"
+#include <cell.hpp>
 
 // ******************************************************************** GLOBAL
 #define ROCKET_ANIM_LENGTH 10
-  
 // ***************************************************************************
 // ****************************************************************** GLRocket
 // ***************************************************************************
@@ -150,28 +149,17 @@ public:
     glDeleteBuffers( 1, &_vbo_rocket_texcoords);
     glDeleteTextures( 1, &_texture_id);  
   };
-  // ******************************************************************** init
+  // ********************************************************** GLRocket::init
   void init( CRocketPtr liste_rocket )
   {
     _l_rocket.clear();
     for( auto& rocket_ptr: liste_rocket) {
-      _l_rocket.push_back( {rocket_ptr, 0} );
+      _l_rocket.push_back( {rocket_ptr, ROCKET_ANIM_LENGTH} );
     }    
   }
   // *********************************************************************render
-  void render( glm::mat4& proj, const Vec2& pos, const unsigned int sprite_index)
-  {
-    // Calculer la Translation
-    // Model : translation
-    glm::mat4 trans = glm::translate(glm::mat4(1.0f),
-				     glm::vec3( pos.x+0.5,
-						pos.y+0.5,
-						0.1));
-    glm::mat4 scal = glm::scale( glm::mat4(1.0f),
-				 glm::vec3( 0.4, 0.4, 0.4));
-    // Et finalement
-    glm::mat4 mvp = proj * trans * scal;
-    
+  void render( glm::mat4& proj, double simu_time )
+  {    
     // Draw
     glUseProgram(_program);
     // Carre avec Texture
@@ -191,27 +179,57 @@ public:
     glBindTexture(GL_TEXTURE_2D, _texture_id);
     _uniform_mytexture = glGetUniformLocation(_program, "mytexture");
     glUniform1i(_uniform_mytexture, /*GL_TEXTURE*/0);
-    // index de la texture 
-    int idtexture = (int) sprite_index;
-    glEnableVertexAttribArray(_attribute_texcoord);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_rocket_texcoords);
-    glVertexAttribPointer(
-       _attribute_texcoord, // attribute
-       2,                  // number of elements per vertex, here (x,y)
-       GL_FLOAT,           // the type of each element
-       GL_FALSE,           // take our values as-is
-       0,                  // no extra data between each position
-       (GLvoid*) (idtexture * 12 * sizeof(GLfloat)) // offset of first element (as Ptr!!)
-			  );
-
-    // Transform
-    glUniformMatrix4fv(_uniform_mvp, 1, GL_FALSE,
-     		       glm::value_ptr(mvp));
  
-    /* Push each element in buffer_vertices to the vertex shader
-     * according to index */
-    glDrawArrays(GL_TRIANGLES, 0, _vbo_carre_size );
 
+    for( auto& anim: _l_rocket) {
+      // Calculer la Translation
+      // Model : translation
+      glm::mat4 trans = glm::translate(glm::mat4(1.0f),
+				       glm::vec3( anim.rocket->pos().x+0.5,
+						  anim.rocket->pos().y+0.5,
+						  0.1));
+      // L'idx_anim dépend de la durée depuis _last_time des rocket
+      if( (simu_time - anim.rocket->time_last() ) < 0.001 ) {
+	anim.idx_anim = 0;
+      }
+      else if( anim.idx_anim < ROCKET_ANIM_LENGTH) {
+	anim.idx_anim += 1;
+      }
+      // Le reste du temps, on dessine avec idx_anim = ANIM_LENGTH
+
+      // scale entre 0.4 et 0.6
+      double anim_scale = 0.4;
+      if( anim.idx_anim < ROCKET_ANIM_LENGTH/2 )
+	anim_scale += anim.idx_anim * 0.01;
+      else 
+	anim_scale += (ROCKET_ANIM_LENGTH - anim.idx_anim) * 0.01;
+      glm::mat4 scal = glm::scale( glm::mat4(1.0f),
+				   glm::vec3( anim_scale, anim_scale, 0.4));
+      // Et finalement
+      glm::mat4 mvp = proj * trans * scal;
+      
+
+      // index de la texture 
+      int idtexture = (int) 0; // TODO compute sprite_index;
+      glEnableVertexAttribArray(_attribute_texcoord);
+      glBindBuffer(GL_ARRAY_BUFFER, _vbo_rocket_texcoords);
+      glVertexAttribPointer(
+		 _attribute_texcoord, // attribute
+		 2,                  // number of elements per vertex, here (x,y)
+		 GL_FLOAT,           // the type of each element
+		 GL_FALSE,           // take our values as-is
+		 0,                  // no extra data between each position
+		 (GLvoid*) (idtexture * 12 * sizeof(GLfloat)) // offset of first element (as Ptr!!)
+			    );
+
+      // Transform
+      glUniformMatrix4fv(_uniform_mvp, 1, GL_FALSE,
+			 glm::value_ptr(mvp));
+      
+      /* Push each element in buffer_vertices to the vertex shader
+       * according to index */
+      glDrawArrays(GL_TRIANGLES, 0, _vbo_carre_size );
+    }
     glDisableVertexAttribArray(_attribute_coord2d);
   };
   // ***************************************************************** attributs

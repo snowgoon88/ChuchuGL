@@ -100,6 +100,7 @@ public:
   
   // *************************************************************** attributs
   bool set_arrow( const Direction* dir) {return false;};
+  double time_last() const { return _time_last; };
 private:
   /** Lien vers le World */
   const World &_world;
