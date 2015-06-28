@@ -42,9 +42,18 @@ string(REPLACE ";" " " VORBIS_LDFLAGS "${VORBIS_LDFLAGS}")
 # (e.g. for compiling examples)
 SET(PROJECT_ALL_CFLAGS  "${PROJECT_CFLAGS}" )
 
+# Make sure the compiler can find include files from our library.
+include_directories (${CMAKE_SOURCE_DIR}/src 
+  ${CMAKE_SOURCE_DIR}/include 
+  ${EIGEN3_INCLUDE_DIR}
+  ${OPENGL_INCLUDE_DIR}
+  ${FTGL_INCLUDE_DIRS}
+  ${GLFW_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIR})
+
 ## Set of libraries for tests
-SET(TESTS_LIBS "")
-SET(CHUCHU_LIB "")
+#SET(TESTS_LIBS "")
+#SET(CHUCHU_LIB "")
 ###################################
 #  Subdirectories
 ###################################

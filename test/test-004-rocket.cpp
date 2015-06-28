@@ -17,7 +17,7 @@ int main( int argc, char *argv[] )
 
   std::cout << "__RUNNING" << "\n";
   for( unsigned int i = 0; i < 50; ++i) {
-    world.update();
+    world.update( 0.050 );
   }
 
   std::cout << "__END" << std::endl;

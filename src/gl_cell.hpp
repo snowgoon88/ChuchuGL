@@ -18,11 +18,22 @@
 
 #include "cell.hpp"
 
+// ******************************************************************** GLOBAL
+#define ROCKET_ANIM_LENGTH 10
+  
 // ***************************************************************************
 // ****************************************************************** GLRocket
 // ***************************************************************************
 class GLRocket
 {
+public:
+  // ********************************************************** GLRocket::type
+  typedef struct {
+    RocketPtr rocket;
+    unsigned int idx_anim;
+  } SRocket;
+  typedef std::list<SRocket>  CSRocket;
+
 public:
   // ****************************************************************** creation
   GLRocket()
@@ -139,6 +150,14 @@ public:
     glDeleteBuffers( 1, &_vbo_rocket_texcoords);
     glDeleteTextures( 1, &_texture_id);  
   };
+  // ******************************************************************** init
+  void init( CRocketPtr liste_rocket )
+  {
+    _l_rocket.clear();
+    for( auto& rocket_ptr: liste_rocket) {
+      _l_rocket.push_back( {rocket_ptr, 0} );
+    }    
+  }
   // *********************************************************************render
   void render( glm::mat4& proj, const Vec2& pos, const unsigned int sprite_index)
   {
@@ -197,6 +216,8 @@ public:
   };
   // ***************************************************************** attributs
 private:
+  /** Liste des Rocket et Animation */
+  CSRocket _l_rocket;
   /** Program GLSL */
   GLuint _program;
   /** Variables globale du Programme GLSL */

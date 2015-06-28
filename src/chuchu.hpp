@@ -12,10 +12,12 @@
  * 
  */
 
-#include "global.hpp"
-#include "cell.hpp"
+#include <global.hpp>
 
 #include <string>                      // std::string
+#include <memory>                      // ptr
+
+class Cell;  typedef std::shared_ptr<Cell>       CellPtr;
 
 // ***************************************************************************
 // ******************************************************************** CHUCHU

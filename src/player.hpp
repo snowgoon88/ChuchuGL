@@ -11,6 +11,7 @@
  */
 
 #include <global.hpp>
+#include <cell.hpp>
 #include <world.hpp>
 
 // ******************************************************************** GLOBAL
@@ -18,7 +19,6 @@
 #define NB_ARROW_MAX 3
 
 
-typedef std::shared_ptr<World>   WorldPtr;
 typedef std::list<CellPtr>       CArrowPtr;
 // ***************************************************************************
 // ******************************************************************** Player
@@ -27,7 +27,7 @@ class Player
 {
 public:
   // ******************************************************** Player::creation
-  Player( WorldPtr world, const MColor& color = _col_blue) :
+  Player( const World &world, const MColor& color = _col_blue) :
     _color(color), _world(world), 
     _cursor_pos({-0.5, (double)color.index}), _cross_pos({0,0})
   {
@@ -50,7 +50,7 @@ public:
     _cursor_pos.x += dir.vec.x * SPEED * delta_t; 
     _cursor_pos.y += dir.vec.y * SPEED * delta_t;
 
-    CellPtr cell = _world->cell( cursor_pos() );
+    CellPtr cell = _world.cell( cursor_pos() );
     if( cell ) {
       _cross_pos = cell->pos();
     }
@@ -63,7 +63,7 @@ public:
   /** Pose Arrow à un endroit */
   void put_arrow( const Direction& dir, const Vec2& pos )
   {
-    CellPtr place = _world->cell( pos );
+    CellPtr place = _world.cell( pos );
     if( place->set_arrow( &dir )) {
       _l_arrow.push_back( place );
       if( _l_arrow.size() > NB_ARROW_MAX ) {
@@ -82,7 +82,7 @@ private:
   /** Couleur */
   const MColor& _color;
   /** World */
-  WorldPtr _world;
+  const World &_world;
   /** Curseur position */
   Vec2 _cursor_pos;
   /** Cross position */

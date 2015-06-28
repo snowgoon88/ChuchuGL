@@ -24,7 +24,7 @@
 #include <world.hpp>
 #include <player.hpp>
 // Viewer
-#include "gl_text.hpp"
+#include <gl_text.hpp>
 
 // ******************************************************************** GLOBAL
 #define JOY_INDEX GLFW_JOYSTICK_1
@@ -38,7 +38,6 @@ class GLControler
 public:
   // ***************************************************** GLControler::global
   typedef std::shared_ptr<Player> PlayerPtr;
-  typedef std::shared_ptr<World>   WorldPtr;
   enum class Type {NOTHING,KEYBOARD,XPAD};
 
   typedef std::pair<int, const Direction&> BtnDir;
@@ -70,7 +69,7 @@ public:
   } Joystick;
   
   // *************************************************** GLControler::creation
-  GLControler( GLFWwindow* window,  WorldPtr world) :
+  GLControler( GLFWwindow* window,  const World &world) :
     _world(world), _ready(false), _window(window)
   {
     // Pas de joueur
@@ -296,7 +295,7 @@ public:
   const std::vector<Association>& assoc() const { return _l_assoc; };
 private:
   /** Ref vers World */
-  WorldPtr _world;
+  const World &_world;
   /** Liste des Association Player-Controler */
   std::vector<Association> _l_assoc;
   unsigned int _player_focus;

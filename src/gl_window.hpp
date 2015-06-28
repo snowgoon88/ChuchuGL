@@ -51,7 +51,7 @@ public:
   /** Création avec titre et taille de fenetre.*/
   GLWindow(const std::string& title = "GLFW Window", int width=800, int height=600, bool fullsize=false) :
     _screen_width(width), _screen_height(height),
-    _player(nullptr), _controler(nullptr),
+    _controler(nullptr),
     _gl_world(nullptr), _world(nullptr), _is_running(false),
     _anim_running(false),
     _fg_joy_ready(false),
@@ -95,13 +95,8 @@ public:
     // World
     _world = WorldPtr(new World( "data/world_6x5.json"));
     std::cout << _world->str_dump() << std::endl;
-    // Joueurs
-    _player = std::shared_ptr<Player>(new Player( _world, _col_blue ));
-    //_world->init3x4();
-    // Open file
-    // std::ifstream myfile( "../data/world_6x5.json" );
-    // _world->read_json( myfile );
-    // myfile.close();
+
+    // Des Viewer
     _arrow_viewer = std::unique_ptr<GLArrow>(new GLArrow());
     _gl_world = std::unique_ptr<GLWorld>(new GLWorld( *_world ));
     
@@ -127,7 +122,7 @@ public:
   // ************************************************* GLWindow::set_controler
   void set_controler( unsigned int nb_joueur_start )
   {
-    _controler = std::make_shared<GLControler>(_window, _world);
+    _controler = std::make_shared<GLControler>(_window, *_world);
     if( nb_joueur_start == 0) {
       _controler->render();
     }
@@ -334,7 +329,6 @@ private:
     std::cerr <<  description << std::endl;
   }
   // ***************************************************************** players
-  PlayerPtr _player;
   GLControlerPtr _controler;
   std::unique_ptr<GLArrow>  _arrow_viewer;
   // ******************************************************************* world

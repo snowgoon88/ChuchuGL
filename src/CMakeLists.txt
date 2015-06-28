@@ -1,5 +1,5 @@
 ## The files that make this library
-set( SRC_FILES chuchu.cpp cell.cpp )
+set( SRC_FILES chuchu.cpp cell.cpp world.cpp )
 
 add_library( CHUCHU_LIB ${SRC_FILES} )
 set_target_properties( CHUCHU_LIB PROPERTIES LINKER_LANGUAGE CXX)

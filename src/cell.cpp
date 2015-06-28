@@ -1,7 +1,8 @@
 // -*- coding: utf-8 -*-
 
-#include "cell.hpp"
-#include "chuchu.hpp"
+#include <cell.hpp>
+#include <chuchu.hpp>
+
 #include <iostream>                       // std::cout
 #include <sstream>                        // std::stringstream
 
@@ -55,11 +56,10 @@ const Direction* Cell::dir_arrive_from( const Direction* dir ) const
 };
 // ************************************************************ Source::update
 /** Return nullptr or a new Chuchu */
-std::unique_ptr<Chuchu> Source::update( double delta_t )
+std::unique_ptr<Chuchu> Source::update()
 {
-  _duration += delta_t;
-  if( _duration > _refract ) {
-    _duration = _duration - _refract;
+  if( (_world.stime() - _time_last) > _refract ) {
+    _time_last = _world.stime();
     // Création d'un Chuchu
     return std::unique_ptr<Chuchu>(new Chuchu( {_pos.x+0.5, _pos.y+0.5}, _dir, 1.0));
   }

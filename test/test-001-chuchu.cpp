@@ -7,11 +7,14 @@
 
 #include <iostream>                       // std::cout
 
+#include <world.hpp>
+#include <cell.hpp>
 #include <chuchu.hpp>
 
 //******************************************************************************
 int main( int argc, char *argv[] )
 {
+  World world;
   Chuchu chu;
   std::cout << chu.str_dump() << std::endl;
 
@@ -25,7 +28,7 @@ int main( int argc, char *argv[] )
   std::cout << other.str_dump() << std::endl;
 
   // On en a besoin dans la création du monde : Rocket à partir de Cell
-  Rocket rocket(cell);
+  Rocket rocket(world, cell);
   std::cout << rocket.str_dump() << std::endl;
   return 0;
 }

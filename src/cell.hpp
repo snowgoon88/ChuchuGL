@@ -14,9 +14,8 @@
 #include <sstream>                        // std::stringstream
 #include <memory>                         // std::unique_ptr
 
-#include "global.hpp"
-
-class Chuchu;
+#include <global.hpp>
+#include <world.hpp>
 
 // ***************************************************************************
 // ********************************************************************** Cell
@@ -74,9 +73,11 @@ class Rocket : public Cell
 {
 public:
   // **************************************************************** creation
-  Rocket( Vec2 position = {0,0} ) : Cell( position ), _count(0)
+  Rocket( const World &world, Vec2 position = {0,0} ) : 
+    Cell( position ), _world(world), _count(0), _time_last(0)
   { _type = "ROCKET";};
-  Rocket( const Cell& cell ) : Cell(cell), _count(0)
+  Rocket( const World &world, const Cell& cell ) : 
+    Cell(cell), _world(world), _count(0), _time_last(0)
   { _type = "ROCKET";};
   // ********************************************************************* str
   /** Dump avec string */
@@ -91,12 +92,21 @@ public:
   // ******************************************************************* enter
   /** Return false si chuchu doit être détruit */
   virtual bool entered_by( const Chuchu& chu )
-  { _count += 1; return false;};
+  {
+    _time_last = _world.stime();
+    _count += 1;
+    return false;
+  };
   
   // *************************************************************** attributs
   bool set_arrow( const Direction* dir) {return false;};
 private:
+  /** Lien vers le World */
+  const World &_world;
+  /** nb de chuchu */
   unsigned int _count;
+  /** instant du dernier Chuchu créé */
+  double _time_last;
 };
 
 // ***************************************************************************
@@ -105,16 +115,18 @@ private:
 class Source : public Cell
 {
 public:
-  // **************************************************************** creation
-  Source( Vec2 position = {0,0}, Direction* dir = &_dir_up) :
+  // ******************************************************** Source::creation
+  Source( const World &world, 
+	  Vec2 position = {0,0}, Direction* dir = &_dir_up) :
     Cell( position ), _dir(dir),
-    _refract(1), _duration(0)
+    _world(world), _refract(1), _time_last(0)
   { _type = "SOURCE"; };
-  Source( const Cell& cell, Direction* dir = &_dir_up) : 
+  Source( const World &world,
+	  const Cell& cell, Direction* dir = &_dir_up) : 
     Cell(cell), _dir(dir),
-    _refract(1), _duration(0)
+    _world(world), _refract(1), _time_last(0)
   { _type = "SOURCE"; };
-  // ********************************************************************* str
+  // ************************************************************* Source::str  
   /** Dump avec string */
   virtual std::string str_dump()
   {
@@ -124,17 +136,19 @@ public:
 
     return dump.str();
   };
-  // ****************************************************************** update
+  // ********************************************************** Source::update
   /** Return nullptr or a new Chuchu */
-  std::unique_ptr<Chuchu> update( double delta_t );
-  // *************************************************************** attributs
+  std::unique_ptr<Chuchu> update();
+  // ******************************************************* Source::attributs
   bool set_arrow( const Direction* dir) {return false;};
 private:
   /** Direction des Chuchu sortants */
   Direction* _dir;
+  /** Ref au World, pour temps */
+  const World &_world;
   /** Periode refractaire */
   double _refract;
-  /** _temps depuis le dernier Chuchu créé */
-  double _duration;
+  /** instant du dernier Chuchu créé */
+  double _time_last;
 };
 #endif // CELL_CPP

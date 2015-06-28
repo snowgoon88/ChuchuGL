@@ -1,11 +1,11 @@
 // -*- coding: utf-8 -*-
 
-#include "chuchu.hpp"
+#include <chuchu.hpp>
 
 #include <iostream>
 #include <sstream>                        // std::stringstream
 
-
+#include <cell.hpp>
 
 // ****************************************************************** creation
 Chuchu::Chuchu( Vec2 position, const Direction* dir, Spd speed) :

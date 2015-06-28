@@ -15,7 +15,7 @@ int main( int argc, char *argv[] )
   std::cout << world.str_dump() << std::endl;
 
   for( unsigned int i = 0; i < 20; ++i) {
-    world.update();
+    world.update( 0.050 );
   }
 
   return 0;
