@@ -1,6 +1,6 @@
 Chuchu Rocket again...
 
-Right now : some tuto on OpenGL and some moving Chuchu, but not visualized.
+29/06/2015 : Up to 2 players can put arrows to manipulate Chuchu that keep coming. The Chuchu can enter one Rocket, on a mini-world.
 
 COMPILE
 =======
@@ -11,11 +11,10 @@ Create a directory 'build' and run cmake in it
 > cd build
 > cmake ..
 ```
-
-Then compile and run tuto-001-triangle for example
+The most advanced "game" version is test/test-005-glbase.cpp
 ```
-> make tuto-001-triangle
-> opengltuto/tuto-001-triangle
+> make test-005-glbase
+> test/test-005-glbase
 ```
 
 DEPENDANCIES
@@ -24,7 +23,7 @@ DEPENDANCIES
 * OpenGL with GLEXT: for visualisation
 * GLFW3 : for graphical window management
 * GLM : for OpenGL mathematics
-* SOIL : for loading images as OpenGL textures
+* SOIL : for loading PNG images as OpenGL textures
 * PortAudio : for playing sounds
 * vorbis : pour lire les .ogg
-* boost::program_options : pour lire certaines option
+* boost::program_options : pour lire certaines options

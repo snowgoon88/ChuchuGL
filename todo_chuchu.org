@@ -36,6 +36,10 @@ Dernier tracé => en haut, Z compte pas
 ** TODO 3D+Tex de Source
 ** TODO Tex des damiers
 ** Animation de la Cross (scale)
+Cross qui devient pâle sur fusée ou flèches autre ??
+** Title Frame
+*** largeur 512 + 128 = 640
+*** hauteur 256 + 128 + 64 + 32 = 480
 * [2/2] Input
 ** DONE Joystick controler avec GLFW
 ** DONE <<<BUG>>> pose flèche hors zone ???
