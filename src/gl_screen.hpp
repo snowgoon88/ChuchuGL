@@ -31,6 +31,15 @@
 // ******************************************************************** GLOBAL
 typedef std::unique_ptr<GLTexture> GLTexturePtr;
 typedef std::unique_ptr<GLSprite>  GLSpritePtr;
+
+#define ELLIPSE_A2     3.168f
+#define ELLIPSE_B2     2.310f
+#define ELLIPSE_X     -0.59
+#define ELLIPSE_Y      0.57
+#define ELLIPSE_SPEED  150.f
+#define LOGO_X        -0.4
+#define LOGO_Y         0.17
+#define LOGO_SCALE     0.93
 // ***************************************************************************
 // ****************************************************************** GLWindow
 // ***************************************************************************
@@ -89,7 +98,7 @@ public:
 					    "../Images/tex_title_logo.png",
 					    1, 1, {-2.56,-1.32}, {2.56,1.32}));
 
-    // 261 x 173, rayon = 153
+    // 261 x 173, rayon = 153 => -59,27 par rapport au centre de (640,400)
     // 96 x 142 rocket
     // 512 x 264
   };
@@ -135,18 +144,40 @@ public:
 
       // Rocket
       _gl_rocket->pre_render();
+      // Calculer la Transformation
+      // Ellipse : x²/a² + y²/b² = 1.0
+      //           x=r.cos(theta) y=r.sin(theta)
+      //           
+      //           r².cos²/a² + r².sin²/b² = 1
+      //           r².(b²cos²+a²sin²) = (a²b²)
+      //           r² = (a²b²)/(b²cos²+a²sin²)
+      // ici a²=1.78², b²=1.52².
+      float theta = (float) -M_PI/ ELLIPSE_SPEED * compteur;
+      float radius = sqrtf( (ELLIPSE_A2 * ELLIPSE_B2) /
+			    (ELLIPSE_B2 * powf(cosf(theta),2) 
+			     + ELLIPSE_A2 * powf(sinf(theta),2)));
+      // translation centre
+      glm::mat4 trans_c = glm::translate(glm::mat4(1.0f),
+					 glm::vec3( ELLIPSE_X,
+						    ELLIPSE_Y,
+						    0.0));
+      // rotation autour du centre
       glm::mat4 rot = glm::rotate( glm::mat4(1.0f),
-				   (float) -M_PI/ 100.f * compteur,
-				   glm::vec3( 0.f, 0.f, 1.0f));
-      glm::mat4 mvp = projection * rot;
-      _gl_rocket->render( mvp, {-0.59,0.57}, 1.0, 0 );
+      				   theta,
+      				   glm::vec3( 0.f, 0.f, 1.0f));
+      // translation du rayon
+      glm::mat4 trans_r = glm::translate(glm::mat4(1.0f),
+					 glm::vec3( -radius,
+						    0.0,
+						    0.0));
+      glm::mat4 mvp = projection * trans_c * rot * trans_r;
+      _gl_rocket->render( mvp, {0,0}, 1.0, 0 );
       _gl_rocket->post_render();
       
       // Logo
       _gl_logo->pre_render();
-      _gl_logo->render( projection, {-0.59,0.57}, 1.0, 0);
+      _gl_logo->render( projection, {LOGO_X, LOGO_Y}, LOGO_SCALE, 0);
       _gl_logo->post_render();
-
 
       // Remove any programm so that glText can "work"
       glUseProgram(0);
@@ -182,7 +213,7 @@ private:
   // ********************************************************* public_callback
   void on_key_pressed( int key ) 
   {
-    std::cout << "GLWindow::key_pressed key=" << key << std::endl;
+    //std::cout << "GLWindow::key_pressed key=" << key << std::endl;
   };
   /**
    * Callback pour gérer les messages d'erreur de GLFW
