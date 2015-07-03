@@ -32,14 +32,16 @@
 typedef std::unique_ptr<GLTexture> GLTexturePtr;
 typedef std::unique_ptr<GLSprite>  GLSpritePtr;
 
-#define ELLIPSE_A2     3.168f
-#define ELLIPSE_B2     2.310f
-#define ELLIPSE_X     -0.59
-#define ELLIPSE_Y      0.57
-#define ELLIPSE_SPEED  150.f
-#define LOGO_X        -0.4
-#define LOGO_Y         0.17
-#define LOGO_SCALE     0.93
+#define ROCKET_RADIUS  1.73f
+#define ROCKET_X      -0.59
+#define ROCKET_Y       0.67
+#define ROCKET_SPEED   150.f
+#define LOGO_X        -0.42
+#define LOGO_Y         0.32
+#define LOGO_SCALE     1.00
+#define START_X       -0.11
+#define START_Y       -1.38
+#define START_SCALE    1.00
 // ***************************************************************************
 // ****************************************************************** GLWindow
 // ***************************************************************************
@@ -50,7 +52,8 @@ public:
   /** Création avec titre et taille de fenetre.*/
   GLScreen(const std::string& title = "GLFW Window", int width=800, int height=600, bool fullsize=false) :
     _screen_width(width), _screen_height(height),
-    _gl_texture(nullptr), _gl_fond(nullptr)
+    _gl_texture(nullptr), _gl_fond(nullptr),
+    _pos({-0.59, 0.67}), _scale(1.73)
   {
     std::cout << "Window creation" << std::endl;
     
@@ -90,17 +93,21 @@ public:
     // Le fond d'écran comme un Sprite
     _gl_fond = GLSpritePtr(new GLSprite( *_gl_texture,
 					 "../Images/tex_title.png",
-					 1, 1, {-3.2,-2}, {3.2,2} ) );
+					 1, 1, {-3.2,-2.4}, {3.2,2.4} ) );
     _gl_rocket = GLSpritePtr(new GLSprite( *_gl_texture,
 					   "../Images/tex_titlerocket.png",
 					   1, 1, {-0.48,-0.71}, {0.48,0.71} ));
     _gl_logo = GLSpritePtr(new GLSprite( *_gl_texture,
 					    "../Images/tex_title_logo.png",
 					    1, 1, {-2.56,-1.32}, {2.56,1.32}));
+    _gl_start = GLSpritePtr(new GLSprite( *_gl_texture,
+					  "../Images/tex_pressstart.png",
+					  1, 1, {-1.33,-0.16}, {1.32,0.16}));
 
-    // 261 x 173, rayon = 153 => -59,27 par rapport au centre de (640,400)
+    // 261 x 173, rayon = 153 => -59,67 par rapport au centre de (640,480)
     // 96 x 142 rocket
     // 512 x 264
+    // 265 x 32
   };
   // ******************************************************************** render
   void render ()
@@ -123,7 +130,7 @@ public:
 
       // Pour préserver mon ratio 640x400
       float width = 6.4f;
-      float height = 4.0f;
+      float height = 4.8f;
       float ratio = height / width;
       if( _screen_width * ratio > _screen_height ) {
 	width = (float)_screen_width / (float)_screen_height * height;
@@ -145,29 +152,19 @@ public:
       // Rocket
       _gl_rocket->pre_render();
       // Calculer la Transformation
-      // Ellipse : x²/a² + y²/b² = 1.0
-      //           x=r.cos(theta) y=r.sin(theta)
-      //           
-      //           r².cos²/a² + r².sin²/b² = 1
-      //           r².(b²cos²+a²sin²) = (a²b²)
-      //           r² = (a²b²)/(b²cos²+a²sin²)
-      // ici a²=1.78², b²=1.52².
-      float theta = (float) -M_PI/ ELLIPSE_SPEED * compteur;
-      float radius = sqrtf( (ELLIPSE_A2 * ELLIPSE_B2) /
-			    (ELLIPSE_B2 * powf(cosf(theta),2) 
-			     + ELLIPSE_A2 * powf(sinf(theta),2)));
+      float theta = (float) -M_PI/ ROCKET_SPEED * compteur;
       // translation centre
       glm::mat4 trans_c = glm::translate(glm::mat4(1.0f),
-					 glm::vec3( ELLIPSE_X,
-						    ELLIPSE_Y,
-						    0.0));
+      					 glm::vec3( ROCKET_X,
+      						    ROCKET_Y,
+      						    0.0));
       // rotation autour du centre
       glm::mat4 rot = glm::rotate( glm::mat4(1.0f),
       				   theta,
       				   glm::vec3( 0.f, 0.f, 1.0f));
       // translation du rayon
       glm::mat4 trans_r = glm::translate(glm::mat4(1.0f),
-					 glm::vec3( -radius,
+					 glm::vec3( -ROCKET_RADIUS,
 						    0.0,
 						    0.0));
       glm::mat4 mvp = projection * trans_c * rot * trans_r;
@@ -178,6 +175,13 @@ public:
       _gl_logo->pre_render();
       _gl_logo->render( projection, {LOGO_X, LOGO_Y}, LOGO_SCALE, 0);
       _gl_logo->post_render();
+
+      // Start
+      _gl_start->pre_render();
+      _gl_start->render( projection, {START_X,START_Y}, START_SCALE, 0);
+      _gl_start->post_render();
+
+      std::cout << "POS={"<<_pos.x<<", "<<_pos.y<<"} scale=" << _scale << std::endl;
 
       // Remove any programm so that glText can "work"
       glUseProgram(0);
@@ -194,7 +198,10 @@ private:
   GLFWwindow* _window;
   int _screen_width=800, _screen_height=600;
   GLTexturePtr _gl_texture;
-  GLSpritePtr _gl_fond, _gl_rocket, _gl_logo;
+  GLSpritePtr _gl_fond, _gl_rocket, _gl_logo, _gl_start;
+  /** Positionning */
+  Vec2 _pos;
+  double _scale;
   //******************************************************************* callback
   /**
    * Callback qui gère les événements 'key'
@@ -214,6 +221,24 @@ private:
   void on_key_pressed( int key ) 
   {
     //std::cout << "GLWindow::key_pressed key=" << key << std::endl;
+    if( key == GLFW_KEY_UP) {
+      _pos.y += 0.01;
+    }
+    else if( key == GLFW_KEY_DOWN) {
+      _pos.y -= 0.01;
+    }
+    else if( key == GLFW_KEY_LEFT) {
+      _pos.x -= 0.01;
+    }
+    else if( key == GLFW_KEY_RIGHT) {
+      _pos.x += 0.01;
+    }
+    else if( key == GLFW_KEY_Q) {
+      _scale -= 0.01;
+    }
+    else if( key == GLFW_KEY_W) {
+      _scale += 0.01;
+    }
   };
   /**
    * Callback pour gérer les messages d'erreur de GLFW

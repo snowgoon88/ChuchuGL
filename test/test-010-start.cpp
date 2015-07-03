@@ -12,7 +12,7 @@
 int main( int argc, char *argv[] )
 {
   std::cout << "__WINDOW" << std::endl;
-  GLScreen app( "Chuchu Rocket", 640, 400);
+  GLScreen app( "Chuchu Rocket", 640, 480);
 
   std::cout << "__CREATION" << std::endl;
   app.init();
