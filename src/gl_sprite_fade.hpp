@@ -1,14 +1,15 @@
 /* -*- coding: utf-8 -*- */
 
-#ifndef GL_SPRITES_HPP
-#define GL_SPRITES_HPP
+#ifndef GL_SPRITES_FADE_HPP
+#define GL_SPRITES_FADE_HPP
 
 /** 
- * Viewer de Sprite
+ * Viewer de Sprite, avec fade.
  */
 
 #include <global.hpp>
 #include <gl_utils.hpp>
+#include <gl_texture_fade.hpp>
 
 #include <SOIL/SOIL.h>               // Load images
 
@@ -29,7 +30,7 @@
 // ***************************************************************************
 // ******************************************************************* GLArrow
 // ***************************************************************************
-class GLSprite
+class GLSpriteFade
 {
 public:
   // ****************************************************** GLSprite::creation
@@ -39,10 +40,10 @@ public:
    * Ils ont tous la même taille, rectangle donnée par son point 
    * en bas à gauche (bl_pt) et en haut à droite (ur_pt)
    */
-  GLSprite( GLTexture& gl_texture, std::string filename,
-	    unsigned int nb_row, unsigned int nb_col,
-	    const Vec2& bl_pt = {-1,-1},
-	    const Vec2& ur_pt = {1, 1} ) :
+  GLSpriteFade( GLTextureFade& gl_texture, std::string filename,
+		unsigned int nb_row, unsigned int nb_col,
+		const Vec2& bl_pt = {-1,-1},
+		const Vec2& ur_pt = {1, 1} ) :
     _gl_texture(gl_texture)
   {
     // VBO pour un carré : 2 x triangle de 3 vertex
@@ -110,7 +111,7 @@ public:
     glEnableVertexAttribArray( _gl_texture.attribute_coord2d() );
   };
   // **************************************************** GLSprite::destruction
-  ~GLSprite()
+  ~GLSpriteFade()
   {
     // Et les vbo
     glDeleteBuffers( 1, &_vbo_carre_vtx);
@@ -190,6 +191,9 @@ public:
     // Transform
     glUniformMatrix4fv(_gl_texture.uniform_mvp(), 1, GL_FALSE,
      		       glm::value_ptr(mvp));
+
+    // Fade
+    glUniform1f( _gl_texture.uniform_fade(), alpha );
  
     /* Push each element in buffer_vertices to the vertex shader
      * according to index */
@@ -203,7 +207,7 @@ public:
   // ******************************************************** GLArrow::attributs
 private:
   /** Program GLSL */
-  GLTexture &_gl_texture;
+  GLTextureFade &_gl_texture;
   /** id de notre texture */
   GLuint _texture_id;
   /** uniform var */

@@ -27,10 +27,14 @@
 // Viewer
 #include <gl_texture.hpp>
 #include <gl_sprite.hpp>
+#include <gl_texture_fade.hpp>
+#include <gl_sprite_fade.hpp>
 
 // ******************************************************************** GLOBAL
 typedef std::unique_ptr<GLTexture> GLTexturePtr;
 typedef std::unique_ptr<GLSprite>  GLSpritePtr;
+typedef std::unique_ptr<GLTextureFade> GLTextureFadePtr;
+typedef std::unique_ptr<GLSpriteFade>  GLSpriteFadePtr;
 
 #define ROCKET_RADIUS  1.73f
 #define ROCKET_X      -0.59
@@ -52,7 +56,10 @@ public:
   /** Création avec titre et taille de fenetre.*/
   GLScreen(const std::string& title = "GLFW Window", int width=800, int height=600, bool fullsize=false) :
     _screen_width(width), _screen_height(height),
-    _gl_texture(nullptr), _gl_fond(nullptr),
+    _start(false),
+    _gl_texture(nullptr), _gl_texture_fade(nullptr),
+    _gl_fond(nullptr), _gl_rocket(nullptr), _gl_logo(nullptr),
+    _gl_start(nullptr),
     _pos({-0.59, 0.67}), _scale(1.73)
   {
     std::cout << "Window creation" << std::endl;
@@ -90,6 +97,7 @@ public:
   {
     // GLTexture pour GLSprite
     _gl_texture = GLTexturePtr(new GLTexture() );
+    _gl_texture_fade = GLTextureFadePtr(new GLTextureFade() );
     // Le fond d'écran comme un Sprite
     _gl_fond = GLSpritePtr(new GLSprite( *_gl_texture,
 					 "../Images/tex_title.png",
@@ -100,7 +108,7 @@ public:
     _gl_logo = GLSpritePtr(new GLSprite( *_gl_texture,
 					    "../Images/tex_title_logo.png",
 					    1, 1, {-2.56,-1.32}, {2.56,1.32}));
-    _gl_start = GLSpritePtr(new GLSprite( *_gl_texture,
+    _gl_start = GLSpriteFadePtr(new GLSpriteFade( *_gl_texture_fade,
 					  "../Images/tex_pressstart.png",
 					  1, 1, {-1.33,-0.16}, {1.32,0.16}));
 
@@ -118,7 +126,7 @@ public:
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     float compteur = 0;
-    while (!glfwWindowShouldClose(_window)) {
+    while (!glfwWindowShouldClose(_window) and not _start) {
       // update screen size
       glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
       
@@ -177,11 +185,15 @@ public:
       _gl_logo->post_render();
 
       // Start
+      float fade = fmod( compteur, 40.f)/20.f;
+      if( fade > 1.f ) fade = 2.f - fade;
       _gl_start->pre_render();
-      _gl_start->render( projection, {START_X,START_Y}, START_SCALE, 0);
+      _gl_start->render( projection, {START_X,START_Y}, START_SCALE, 0,
+			 fade );
       _gl_start->post_render();
 
-      std::cout << "POS={"<<_pos.x<<", "<<_pos.y<<"} scale=" << _scale << std::endl;
+      //std::cout << "POS={"<<_pos.x<<", "<<_pos.y<<"} scale=" << _scale << std::endl;
+      //std::cout << "compteur="<<compteur<<" fade="<<fade << std::endl;
 
       // Remove any programm so that glText can "work"
       glUseProgram(0);
@@ -197,8 +209,13 @@ private:
   /** Ptr sur la Fenetre */
   GLFWwindow* _window;
   int _screen_width=800, _screen_height=600;
+  /** ready */
+  bool _start;
   GLTexturePtr _gl_texture;
-  GLSpritePtr _gl_fond, _gl_rocket, _gl_logo, _gl_start;
+  GLTextureFadePtr _gl_texture_fade;
+  /* Sprites */
+  GLSpritePtr _gl_fond, _gl_rocket, _gl_logo;
+  GLSpriteFadePtr _gl_start;
   /** Positionning */
   Vec2 _pos;
   double _scale;
@@ -239,9 +256,13 @@ private:
     else if( key == GLFW_KEY_W) {
       _scale += 0.01;
     }
+    // End
+    else if( key == GLFW_KEY_SPACE or key == GLFW_KEY_ENTER) {
+      _start = true;
+    }
   };
   /**
-   * Callback pour gérer les messages d'erreur de GLFW
+   * callback pour gérer les messages d'erreur de GLFW
    */
   static void error_callback(int error, const char* description)
   {

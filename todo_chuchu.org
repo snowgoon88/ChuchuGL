@@ -13,11 +13,11 @@ En continuant ce qui est fait pour -l_walls
 Quand on ajoute un flèche, certains Chuchu déjà engagés dans la sortie ne prennent plus le trajet qui va de centre de case en centre de case.
 *** TODO flag : dir_set ?
 
-* [3/7] Graphic
+* [5/8] Graphic
 ** DONE Attention, transparence pas très bien gérée (bord blanc autoure des rockets)
-Enlevé DEPT_TEST je crois
+   Enlevé DEPT_TEST je crois
 ** DONE 3D Chuchu models => 1 texture par direction 
-** TODO Animation texture + coord
+** DONE Animation texture + coord
 *** Rocket
 le compteur d'animation doit être avec la Rocket.
 Mais, normalement, c'est pas dans le modèle... Quoique
@@ -29,6 +29,8 @@ On parle ici d'une sorte de GLSprite
  - pre_render => choisi program; _vbo_carre_vtx
  - set_texture
  - render avec (proj, pos, row,col) ; glm::matrix, glDraw...
+*** TODO Refactor GLTexture pour détecter l'utilisation de 'fade'
+test lorsqu'on essaie de faire le binding
  
 ** DONE Qui est au dessus de qui ? (transparence)
 Dernier tracé => en haut, Z compte pas
@@ -37,7 +39,7 @@ Dernier tracé => en haut, Z compte pas
 ** TODO Tex des damiers
 ** Animation de la Cross (scale)
 Cross qui devient pâle sur fusée ou flèches autre ??
-** Title Frame
+** DONE Title Frame
 *** largeur 512 + 128 = 640
 *** hauteur 256 + 128 + 64 + 32 = 480
 * [2/2] Input
