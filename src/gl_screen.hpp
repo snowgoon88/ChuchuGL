@@ -4,8 +4,8 @@
 #define GL_SCREEN_HPP
 
 /** 
- * Une Fenetre GLFW où on dessine avec OpenGL.
- * L'idée étant de séparer en différent GLScreen.
+ * Un exemple de concept::GLScreen pour gérer l'écran de 
+ * départ du jeu.
  */
 
 #include <memory>                        // std::unique_ptr
@@ -31,9 +31,7 @@
 #include <gl_sprite_fade.hpp>
 
 // ******************************************************************** GLOBAL
-typedef std::unique_ptr<GLTexture> GLTexturePtr;
 typedef std::unique_ptr<GLSprite>  GLSpritePtr;
-typedef std::unique_ptr<GLTextureFade> GLTextureFadePtr;
 typedef std::unique_ptr<GLSpriteFade>  GLSpriteFadePtr;
 
 #define ROCKET_RADIUS  1.73f
@@ -47,45 +45,12 @@ typedef std::unique_ptr<GLSpriteFade>  GLSpriteFadePtr;
 #define START_Y       -1.38
 #define START_SCALE    1.00
 // ***************************************************************************
-// ****************************************************************** GLWindow
+// ****************************************************************** GLScreen
 // ***************************************************************************
 class GLScreen
 {
 public:
-  // ****************************************************************** creation
-  /** Création avec titre et taille de fenetre.*/
-  // GLScreen(const std::string& title = "GLFW Window", int width=800, int height=600, bool fullsize=false) :
-  //   _screen_width(width), _screen_height(height),
-  //   _finished(false),
-  //   _gl_texture(nullptr), _gl_texture_fade(nullptr),
-  //   _gl_fond(nullptr), _gl_rocket(nullptr), _gl_logo(nullptr),
-  //   _gl_start(nullptr),
-  //   _pos({-0.59, 0.67}), _scale(1.73)
-  // {
-  //   std::cout << "Window creation" << std::endl;
-    
-  //   glfwSetErrorCallback(error_callback);
-    
-  //   if (!glfwInit())
-  //     exit(EXIT_FAILURE);
-    
-  //   if( fullsize ) {
-  //     _window = glfwCreateWindow(width, height, title.c_str(),
-  // 				 glfwGetPrimaryMonitor(), NULL);
-  //   }
-  //   else {
-  //     _window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
-  //   }
-    
-  //   if (!_window) {
-  //     glfwTerminate();
-  //     exit(EXIT_FAILURE);
-  //   }
-  //   // 'this' est associé à cette _window (pour les callback)
-  //   glfwSetWindowUserPointer( _window, this);
-  //   glfwMakeContextCurrent(_window);
-  //   glfwSetKeyCallback(_window, key_callback);
-  // };
+  // ****************************************************** GLScreen::creation
   /** Création avec une window déjà créée */
   GLScreen( GLEngine& engine ) : 
     _window(engine.window()),
@@ -95,24 +60,18 @@ public:
     _gl_fond(nullptr), _gl_rocket(nullptr), _gl_logo(nullptr),
     _gl_start(nullptr)
   {
-  }
-
-  
-  // *************************************************************** destruction
+  };
+  // *************************************************** GLScreen::destruction
   ~GLScreen()
   {
-    // glfwDestroyWindow(_window);
-    // glfwTerminate();
   };
-  // ********************************************************************** init
+  // ********************************************************** GLScreen::init
   void init()
   {
+    // Installe les callback pour les touches
     glfwSetWindowUserPointer( _window, this);
     glfwSetKeyCallback(_window, key_callback);
 
-    // // GLTexture pour GLSprite
-    // _gl_texture = GLTexturePtr(new GLTexture("src/shaders/sprite") );
-    // _gl_texture_fade = GLTextureFadePtr(new GLTextureFade("src/shaders/sprite_fade") );
     // Le fond d'écran comme un Sprite
     _gl_fond = GLSpritePtr(new GLSprite( _gl_texture,
 					 "../Images/tex_title.png",
@@ -126,13 +85,8 @@ public:
     _gl_start = GLSpriteFadePtr(new GLSpriteFade( _gl_texture_fade,
 					  "../Images/tex_pressstart.png",
 					  1, 1, {-1.33,-0.16}, {1.32,0.16}));
-
-    // 261 x 173, rayon = 153 => -59,67 par rapport au centre de (640,480)
-    // 96 x 142 rocket
-    // 512 x 264
-    // 265 x 32
   };
-  // ******************************************************************** render
+  // ********************************************************* GLScreen::render
   void render ()
   {
     // Transparence
@@ -221,15 +175,14 @@ public:
   }
   // *************************************************** GLScreen::final_state
   bool final_state() const { return _finished; };
-  // ***************************************************************** attributs
+  // ***************************************************** GLScreen::attributs
 private:
   /** Ptr sur la Fenetre */
   GLFWwindow* _window;
-  int _screen_width=800, _screen_height=600;
+  int _screen_width, _screen_height;
   /** ready */
   bool _finished;
-  // GLTexturePtr _gl_texture;
-  // GLTextureFadePtr _gl_texture_fade;
+  /** Shaders */
   const GLTexture&     _gl_texture;
   const GLTextureFade& _gl_texture_fade;
   /* Sprites */
@@ -238,7 +191,7 @@ private:
   /** Positionning */
   Vec2 _pos;
   double _scale;
-  //******************************************************************* callback
+  //******************************************************** GLScreen::callback
   /**
    * Callback qui gère les événements 'key'
    */
@@ -253,7 +206,7 @@ private:
       ((GLScreen *)glfwGetWindowUserPointer(window))->on_key_pressed( key );
     }
   }
-  // ********************************************************* public_callback
+  // ************************************************ GLScreen::public_callback
   void on_key_pressed( int key ) 
   {
     //std::cout << "GLWindow::key_pressed key=" << key << std::endl;
@@ -289,4 +242,4 @@ private:
   }
 };
 
-#endif // GL_WINDOW_HPP
+#endif // GL_SCREEN_HPP
