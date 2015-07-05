@@ -29,6 +29,7 @@ On parle ici d'une sorte de GLSprite
  - pre_render => choisi program; _vbo_carre_vtx
  - set_texture
  - render avec (proj, pos, row,col) ; glm::matrix, glDraw...
+*** TODO UPD de test-005-gl_base et utilisation GLControlers
 *** TODO Refactor GLTexture pour détecter l'utilisation de 'fade'
 test lorsqu'on essaie de faire le binding
  
@@ -36,6 +37,7 @@ test lorsqu'on essaie de faire le binding
 Dernier tracé => en haut, Z compte pas
 
 ** TODO 3D+Tex de Source
+Les chuchu grossisent et "sautent" hors des sources, qui, comme les fusées, sont extrudées du sol et donc vue en perspectives.
 ** TODO Tex des damiers
 ** Animation de la Cross (scale)
 Cross qui devient pâle sur fusée ou flèches autre ??

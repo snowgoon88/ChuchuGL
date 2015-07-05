@@ -39,7 +39,7 @@ public:
    * Ils ont tous la même taille, rectangle donnée par son point 
    * en bas à gauche (bl_pt) et en haut à droite (ur_pt)
    */
-  GLSprite( GLTexture& gl_texture, std::string filename,
+  GLSprite( const GLTexture& gl_texture, std::string filename,
 	    unsigned int nb_row, unsigned int nb_col,
 	    const Vec2& bl_pt = {-1,-1},
 	    const Vec2& ur_pt = {1, 1} ) :
@@ -203,7 +203,7 @@ public:
   // ******************************************************** GLArrow::attributs
 private:
   /** Program GLSL */
-  GLTexture &_gl_texture;
+  const GLTexture &_gl_texture;
   /** id de notre texture */
   GLuint _texture_id;
   /** uniform var */

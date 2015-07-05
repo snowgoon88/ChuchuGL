@@ -97,10 +97,10 @@ public:
     GLint link_ok = GL_FALSE;
     GLuint vs, fs;
     /** Vertex Shader */
-    if ((vs = GLUtils::create_shader("src/shaders/chuchu.v.glsl", GL_VERTEX_SHADER))   == 0)
+    if ((vs = GLUtils::create_shader("src/shaders/sprite.v.glsl", GL_VERTEX_SHADER))   == 0)
       exit( EXIT_FAILURE );
     /** Fragment Shader */
-    if ((fs = GLUtils::create_shader("src/shaders/chuchu.f.glsl", GL_FRAGMENT_SHADER)) == 0)
+    if ((fs = GLUtils::create_shader("src/shaders/sprite.f.glsl", GL_FRAGMENT_SHADER)) == 0)
       exit( EXIT_FAILURE );
     /** GLSL program */
     // link Vertex et Fragment Shaders

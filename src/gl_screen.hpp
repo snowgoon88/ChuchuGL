@@ -54,61 +54,76 @@ class GLScreen
 public:
   // ****************************************************************** creation
   /** Création avec titre et taille de fenetre.*/
-  GLScreen(const std::string& title = "GLFW Window", int width=800, int height=600, bool fullsize=false) :
-    _screen_width(width), _screen_height(height),
-    _start(false),
-    _gl_texture(nullptr), _gl_texture_fade(nullptr),
+  // GLScreen(const std::string& title = "GLFW Window", int width=800, int height=600, bool fullsize=false) :
+  //   _screen_width(width), _screen_height(height),
+  //   _finished(false),
+  //   _gl_texture(nullptr), _gl_texture_fade(nullptr),
+  //   _gl_fond(nullptr), _gl_rocket(nullptr), _gl_logo(nullptr),
+  //   _gl_start(nullptr),
+  //   _pos({-0.59, 0.67}), _scale(1.73)
+  // {
+  //   std::cout << "Window creation" << std::endl;
+    
+  //   glfwSetErrorCallback(error_callback);
+    
+  //   if (!glfwInit())
+  //     exit(EXIT_FAILURE);
+    
+  //   if( fullsize ) {
+  //     _window = glfwCreateWindow(width, height, title.c_str(),
+  // 				 glfwGetPrimaryMonitor(), NULL);
+  //   }
+  //   else {
+  //     _window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
+  //   }
+    
+  //   if (!_window) {
+  //     glfwTerminate();
+  //     exit(EXIT_FAILURE);
+  //   }
+  //   // 'this' est associé à cette _window (pour les callback)
+  //   glfwSetWindowUserPointer( _window, this);
+  //   glfwMakeContextCurrent(_window);
+  //   glfwSetKeyCallback(_window, key_callback);
+  // };
+  /** Création avec une window déjà créée */
+  GLScreen( GLEngine& engine ) : 
+    _window(engine.window()),
+    _finished(false),
+    _gl_texture(engine.gl_texture()),
+    _gl_texture_fade(engine.gl_texture_fade()),
     _gl_fond(nullptr), _gl_rocket(nullptr), _gl_logo(nullptr),
-    _gl_start(nullptr),
-    _pos({-0.59, 0.67}), _scale(1.73)
+    _gl_start(nullptr)
   {
-    std::cout << "Window creation" << std::endl;
-    
-    glfwSetErrorCallback(error_callback);
-    
-    if (!glfwInit())
-      exit(EXIT_FAILURE);
-    
-    if( fullsize ) {
-      _window = glfwCreateWindow(width, height, title.c_str(),
-				 glfwGetPrimaryMonitor(), NULL);
-    }
-    else {
-      _window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
-    }
-    
-    if (!_window) {
-      glfwTerminate();
-      exit(EXIT_FAILURE);
-    }
-    // 'this' est associé à cette _window (pour les callback)
-    glfwSetWindowUserPointer( _window, this);
-    glfwMakeContextCurrent(_window);
-    glfwSetKeyCallback(_window, key_callback);
-  };
+  }
+
+  
   // *************************************************************** destruction
   ~GLScreen()
   {
-    glfwDestroyWindow(_window);
-    glfwTerminate();
+    // glfwDestroyWindow(_window);
+    // glfwTerminate();
   };
   // ********************************************************************** init
   void init()
   {
-    // GLTexture pour GLSprite
-    _gl_texture = GLTexturePtr(new GLTexture() );
-    _gl_texture_fade = GLTextureFadePtr(new GLTextureFade() );
+    glfwSetWindowUserPointer( _window, this);
+    glfwSetKeyCallback(_window, key_callback);
+
+    // // GLTexture pour GLSprite
+    // _gl_texture = GLTexturePtr(new GLTexture("src/shaders/sprite") );
+    // _gl_texture_fade = GLTextureFadePtr(new GLTextureFade("src/shaders/sprite_fade") );
     // Le fond d'écran comme un Sprite
-    _gl_fond = GLSpritePtr(new GLSprite( *_gl_texture,
+    _gl_fond = GLSpritePtr(new GLSprite( _gl_texture,
 					 "../Images/tex_title.png",
 					 1, 1, {-3.2,-2.4}, {3.2,2.4} ) );
-    _gl_rocket = GLSpritePtr(new GLSprite( *_gl_texture,
+    _gl_rocket = GLSpritePtr(new GLSprite( _gl_texture,
 					   "../Images/tex_titlerocket.png",
 					   1, 1, {-0.48,-0.71}, {0.48,0.71} ));
-    _gl_logo = GLSpritePtr(new GLSprite( *_gl_texture,
+    _gl_logo = GLSpritePtr(new GLSprite( _gl_texture,
 					    "../Images/tex_title_logo.png",
 					    1, 1, {-2.56,-1.32}, {2.56,1.32}));
-    _gl_start = GLSpriteFadePtr(new GLSpriteFade( *_gl_texture_fade,
+    _gl_start = GLSpriteFadePtr(new GLSpriteFade( _gl_texture_fade,
 					  "../Images/tex_pressstart.png",
 					  1, 1, {-1.33,-0.16}, {1.32,0.16}));
 
@@ -126,7 +141,7 @@ public:
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     float compteur = 0;
-    while (!glfwWindowShouldClose(_window) and not _start) {
+    while (!glfwWindowShouldClose(_window) and not _finished) {
       // update screen size
       glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
       
@@ -204,15 +219,19 @@ public:
       compteur += 1.0f;
     }
   }
+  // *************************************************** GLScreen::final_state
+  bool final_state() const { return _finished; };
   // ***************************************************************** attributs
 private:
   /** Ptr sur la Fenetre */
   GLFWwindow* _window;
   int _screen_width=800, _screen_height=600;
   /** ready */
-  bool _start;
-  GLTexturePtr _gl_texture;
-  GLTextureFadePtr _gl_texture_fade;
+  bool _finished;
+  // GLTexturePtr _gl_texture;
+  // GLTextureFadePtr _gl_texture_fade;
+  const GLTexture&     _gl_texture;
+  const GLTextureFade& _gl_texture_fade;
   /* Sprites */
   GLSpritePtr _gl_fond, _gl_rocket, _gl_logo;
   GLSpriteFadePtr _gl_start;
@@ -258,7 +277,7 @@ private:
     }
     // End
     else if( key == GLFW_KEY_SPACE or key == GLFW_KEY_ENTER) {
-      _start = true;
+      _finished = true;
     }
   };
   /**

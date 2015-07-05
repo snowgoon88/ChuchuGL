@@ -8,6 +8,7 @@
  */
 
 #include <gl_utils.hpp>
+#include <string>
 
 // ***************************************************************************
 // ***************************************************************** GLTexture
@@ -16,16 +17,16 @@ class GLTexture
 {
 public:
   // ***************************************************** GLTexture::creation
-  GLTexture() 
+  GLTexture( std::string shadername ) 
   {
     // Charger les Shaders CARRE + TEXTURE
     GLint link_ok = GL_FALSE;
     GLuint vs, fs;
     /** Vertex Shader */
-    if ((vs = GLUtils::create_shader("src/shaders/chuchu.v.glsl", GL_VERTEX_SHADER))   == 0)
+    if ((vs = GLUtils::create_shader(shadername+std::string(".v.glsl"), GL_VERTEX_SHADER))   == 0)
       exit( EXIT_FAILURE );
     /** Fragment Shader */
-    if((fs = GLUtils::create_shader("src/shaders/chuchu.f.glsl", GL_FRAGMENT_SHADER)) == 0)
+    if((fs = GLUtils::create_shader(shadername+std::string(".f.glsl"), GL_FRAGMENT_SHADER)) == 0)
       exit( EXIT_FAILURE );
     /** GLSL program */
     // link Vertex et Fragment Shaders
@@ -65,7 +66,7 @@ public:
     }
   };
   // ************************************************** GLTexture::destruction
-  ~GLTexture()
+  virtual ~GLTexture()
   {
     // Détruit le programme GLSL
     glDeleteProgram(_program);
@@ -75,7 +76,7 @@ public:
   const GLint&  attribute_coord2d() const { return _attribute_coord2d; };
   const GLint&  attribute_texcoord() const { return _attribute_texcoord; };
   const GLint&  uniform_mvp() const { return _uniform_mvp; };
-private:
+protected:
   /** Program GLSL */
   GLuint _program;
   /** Variables globale du Programme GLSL */
