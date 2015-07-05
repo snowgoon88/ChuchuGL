@@ -24,12 +24,15 @@
 #include <world.hpp>
 #include <player.hpp>
 // Viewer
+#include <gl_engine.hpp>
 #include <gl_text.hpp>
+#include <gl_texture.hpp>
+#include <gl_sprite.hpp>
 
 // ******************************************************************** GLOBAL
-#define JOY_INDEX GLFW_JOYSTICK_1
 #define NB_MAX_PLAYER 2
 
+typedef std::unique_ptr<GLSprite>  GLSpritePtr;
 // ***************************************************************************
 // *************************************************************** GLControler
 // ***************************************************************************
@@ -69,8 +72,31 @@ public:
   } Joystick;
   
   // *************************************************** GLControler::creation
-  GLControler( GLFWwindow* window,  const World &world) :
-    _world(world), _ready(false), _window(window)
+  // GLControler( GLFWwindow* window,  const World &world) :
+  //   _world(world), _ready(false), _window(window),
+  //   _gl_fond(nullptr)
+  // {
+  //   // Pas de joueur
+  //   _l_assoc.clear();
+  //   _player_focus = 0;
+
+  //   // Les Joystick
+  //   for( unsigned int i = GLFW_JOYSTICK_1; i < GLFW_JOYSTICK_LAST; ++i) {
+  //     _l_joy[i].present = GL_FALSE;
+  //   }
+  //   _nb_joy = 0;
+
+  //   // Basculer de GLFrame en GLFrame
+  //   // 'this' est associé à cette _window (pour les callback)
+  //   glfwSetWindowUserPointer( _window, this);
+  //   glfwSetKeyCallback(_window, key_callback);
+  // };
+  /** Création à partir d'un GLEngine */
+  GLControler( GLEngine& engine, const World &world) :
+    _world(world), _ready(false),
+    _window(engine.window()),
+    _gl_texture(engine.gl_texture()),
+    _gl_fond(nullptr)
   {
     // Pas de joueur
     _l_assoc.clear();
@@ -81,11 +107,19 @@ public:
       _l_joy[i].present = GL_FALSE;
     }
     _nb_joy = 0;
-
-    // Basculer de GLFrame en GLFrame
-    // 'this' est associé à cette _window (pour les callback)
+  };
+  // ******************************************************* GLControler::init
+  void init()
+  {
+    // Installe les callback pour les touches
     glfwSetWindowUserPointer( _window, this);
     glfwSetKeyCallback(_window, key_callback);
+
+    // Le fond d'écran comme un Sprite
+    _gl_fond = GLSpritePtr(new GLSprite( _gl_texture,
+					 "../Images/tex_bg.png",
+					 1, 1, {-2.99,-2.26}, {2.99,2.26} ));
+    
   };
   // *********************************************** GLControler::init_default
   /** 
@@ -291,6 +325,8 @@ public:
       glfwPollEvents();
     }
   };
+  // ************************************************ GLControler::final_state
+  bool final_state() const { return _ready; };
   // ************************************************** GLControler::attributs
   const std::vector<Association>& assoc() const { return _l_assoc; };
 private:
@@ -419,6 +455,10 @@ private:
   GLFWwindow* _window;
   int _screen_width=800, _screen_height=600;
   GLText _gl_text;
+  /** Shaders */
+  const GLTexture&     _gl_texture;
+  /* Sprites */
+  GLSpritePtr          _gl_fond;
 };
 
 #endif // GL_CONTROLER_HPP
