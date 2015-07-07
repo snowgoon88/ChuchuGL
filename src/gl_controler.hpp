@@ -32,10 +32,13 @@
 // ******************************************************************** GLOBAL
 #define NB_MAX_PLAYER 2
 
+#define BG_WIDTH  6.40
+#define BG_HEIGHT 4.80
+
 typedef std::unique_ptr<GLSprite>  GLSpritePtr;
 // ***************************************************************************
 // *************************************************************** GLControler
-// ***************************************************************************
+// *************************g**************************************************
 class GLControler
 {
 public:
@@ -72,25 +75,6 @@ public:
   } Joystick;
   
   // *************************************************** GLControler::creation
-  // GLControler( GLFWwindow* window,  const World &world) :
-  //   _world(world), _ready(false), _window(window),
-  //   _gl_fond(nullptr)
-  // {
-  //   // Pas de joueur
-  //   _l_assoc.clear();
-  //   _player_focus = 0;
-
-  //   // Les Joystick
-  //   for( unsigned int i = GLFW_JOYSTICK_1; i < GLFW_JOYSTICK_LAST; ++i) {
-  //     _l_joy[i].present = GL_FALSE;
-  //   }
-  //   _nb_joy = 0;
-
-  //   // Basculer de GLFrame en GLFrame
-  //   // 'this' est associé à cette _window (pour les callback)
-  //   glfwSetWindowUserPointer( _window, this);
-  //   glfwSetKeyCallback(_window, key_callback);
-  // };
   /** Création à partir d'un GLEngine */
   GLControler( GLEngine& engine, const World &world) :
     _world(world), _ready(false),
@@ -118,7 +102,9 @@ public:
     // Le fond d'écran comme un Sprite
     _gl_fond = GLSpritePtr(new GLSprite( _gl_texture,
 					 "../Images/tex_bg.png",
-					 1, 1, {-2.99,-2.26}, {2.99,2.26} ));
+					 1, 1, 
+					 {-BG_WIDTH/2.0,-BG_HEIGHT/2.0},
+					 { BG_WIDTH/2.0, BG_HEIGHT/2.0} ));
     
   };
   // *********************************************** GLControler::init_default
@@ -295,31 +281,65 @@ public:
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     _gl_text.set_glstate();
 
-    while( not _ready && !glfwWindowShouldClose(_window)) {
+    while( not _ready and !glfwWindowShouldClose(_window)) {
       // Détecte Joystick et prépare message
       detect();
 
       glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
       glViewport(0, 0, _screen_width, _screen_height);
-      /* Clear the background as yellow #ffde94 */
-      glClearColor(1.0, 1.0, 0.58, 1.0);
+      /* Clear the background as black */
+      glClearColor(0.0, 0.0, 0.0, 1.0);
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
       // do_ortho() - Needed by _gl_text
       glMatrixMode(GL_PROJECTION);
       glLoadIdentity();
 
-      glOrtho(-1.0f, 10.0f, -1.0f, 10.0f, 1.f, -1.f);
+      // Préserver le ratio de mon fond BG
+      float ext_width = 0.f;
+      float ext_height = 0.f;
+      float ratio = (float) BG_HEIGHT / (float) BG_WIDTH;
+      if( _screen_width * ratio > _screen_height ) {
+	ext_width = ((float)_screen_width / 
+		     (float)_screen_height * (float) BG_HEIGHT)
+	  - (float) BG_WIDTH;
+      }
+      else {
+	ext_height = ((float)_screen_height / 
+		      (float)_screen_width * (float) BG_WIDTH)
+	  - (float) BG_HEIGHT;
+      }
+      glOrtho(-ext_width/2.f, (float) BG_WIDTH + ext_width/2.f,
+	      -ext_height/2.f,(float) BG_HEIGHT + ext_height/2.f,
+	      1.f, -1.f);
+
+
+      // Fond
+      // Projection (to 2D screen)
+      glm::mat4 projection = glm::ortho( -ext_width/2.f,
+					 (float) BG_WIDTH + ext_width/2.f,
+					 -ext_height/2.f,
+					 (float) BG_HEIGHT + ext_height/2.f,
+					 -1.0f, 1.0f );
+
+      _gl_fond->pre_render();
+      _gl_fond->render( projection, {BG_WIDTH/2.0, BG_HEIGHT/2.0}, 1.0, 0 );
+      _gl_fond->post_render();
+      // Remove any programm so that glText can "work"
+      glUseProgram(0);
 
       // Needed by _gl_text
       glMatrixMode(GL_MODELVIEW);
       glLoadIdentity();
 
       // Prépare GLText
-      _gl_text.set_scale( (10.f + 1.f)/(float)_screen_width,
-			  (10.f + 1.f)/(float)_screen_height );
-      glColor3f( 0.f, 0.f, 0.f );
-      render_text( 0.f, 9.f );
+      // De fontes dont la taille ne dépend pas de la taille de la fenetre
+      // _gl_text.set_scale( ((float)BG_WIDTH+ext_width)/(float)_screen_width,
+      //	  ((float)BG_HEIGHT+ext_height)/(float)_screen_height );
+      // Sinon, on peut avoir un ratio fixe taille fenetre vs taille fonte
+      _gl_text.set_scale( 0.01f, 0.01f );
+      glColor3f( 0.f, 0.f, 1.f );
+      render_text( 0.1f * (float) BG_WIDTH, 0.9f * (float) BG_HEIGHT );
 
       glfwSwapBuffers(_window);
       glfwPollEvents();
