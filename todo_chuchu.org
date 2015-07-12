@@ -23,12 +23,13 @@ le compteur d'animation doit être avec la Rocket.
 Mais, normalement, c'est pas dans le modèle... Quoique
 1) ajouter un update à chaque Rocket qui gère le compteur d'animation
 ++++2) GLRocket maintient un compteur d'animation par Rocket => essayer de lui passer en paramètre un GLSprite::render( projection, Vec2, unsigned int spriteIndex ou (row,col)) où projection peut être mutiplié par scale fonction de l'anim. En static ou en Ptr. Modèle déclence le moment d'entrée, donc de début d'animation.
-** TODO Refactor as utils class/template/other
+** TODO [0/3] Refactor as utils class/template/other
 On parle ici d'une sorte de GLSprite
  - on lui ajoute des Textures (nb_row, nb_col)
  - pre_render => choisi program; _vbo_carre_vtx
  - set_texture
  - render avec (proj, pos, row,col) ; glm::matrix, glDraw...
+*** TODO Voir post_render !!
 *** TODO UPD de test-005-gl_base et utilisation GLControlers
 *** TODO Refactor GLTexture pour détecter l'utilisation de 'fade'
 test lorsqu'on essaie de faire le binding
@@ -44,7 +45,7 @@ Cross qui devient pâle sur fusée ou flèches autre ??
 ** DONE Title Frame
 *** largeur 512 + 128 = 640
 *** hauteur 256 + 128 + 64 + 32 = 480
-* [2/2] Input
+* [2/3] Input
 ** DONE Joystick controler avec GLFW
 ** DONE <<<BUG>>> pose flèche hors zone ???
 Maintenant qu'on a un GL_Controler, la pose de flèche alors que le 
@@ -52,6 +53,48 @@ cursor est hors zone => SegFault
 ** Lien pour savoir où on a cliqué avec souris.
 ** GL Unproject
    http://en.wikibooks.org/wiki/OpenGL_Programming/Object_selection
+** TODO Boost::Options et Contoler
+// Parsing command line options
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
+// ******************************************************************* options
+void setup_options(int argc, char **argv)
+{
+  po::options_description desc("Options");
+  desc.add_options()
+    ("help,h", "produce help message")
+    ("nb_player,n", po::value<unsigned int>(), "nb de joueur par défaut")
+    ;
+
+  // Options en ligne de commande
+  po::options_description cmdline_options;
+  cmdline_options.add(desc);
+
+  // Options qui sont 'après'
+  po::positional_options_description pod;
+  //pod.add( "data_file", 1);
+  
+  // Parse
+  po::variables_map vm;
+  po::store(po::command_line_parser(argc, argv).
+	    options(desc).positional(pod).run(), vm);
+  po::notify(vm);
+
+  if (vm.count("help")) {
+    std::cout << "Usage: " << argv[0] << " [options]" << std::endl;
+      std::cout << desc << std::endl;
+    exit(1);
+  }
+
+  if (vm.count("nb_player")) {
+    _nb_player = vm["nb_player"].as<unsigned int>();
+  }
+}
+
+>>>>>> Dans MAIN
+setup_options( argc, argv );
+std::cout << "__SET_CONTROLER" << std::endl;
+app.set_controler( _nb_player );
 * [1/2] Son
 ** DONE play son 31xxx ds data
 ** TODO Mix

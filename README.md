@@ -1,6 +1,7 @@
 Chuchu Rocket again...
 
-29/06/2015 : Up to 2 players can put arrows to manipulate Chuchu that keep coming. The Chuchu can enter one Rocket, on a mini-world.
+12/07/2015 : Up to 2 players can put arrows to manipulate Chuchu that keep coming. The Chuchu can enter one Rocket, on a mini-world.
+Start Screen, Controler Screen, Game Screen
 
 COMPILE
 =======
@@ -11,10 +12,10 @@ Create a directory 'build' and run cmake in it
 > cd build
 > cmake ..
 ```
-The most advanced "game" version is test/test-005-glbase.cpp
+The most advanced "game" version is test/test-011-engine.cpp
 ```
-> make test-005-glbase
-> test/test-005-glbase
+> make test-011-engine.cpp
+> test/test-011-engine
 ```
 
 DEPENDANCIES
