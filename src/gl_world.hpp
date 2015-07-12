@@ -14,9 +14,11 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "world.hpp"
-#include "gl_chuchu.hpp"
-#include "gl_cell.hpp"
+// Model
+#include <world.hpp>
+// Viewer
+#include <gl_engine.hpp>
+#include <gl_cell.hpp>
 #include <gl_arrow.hpp>
 // ******************************************************************** GLOBAL
 /** épaisseur d'un mur et nb de point pour dessiner un mur*/
@@ -30,7 +32,11 @@ class GLWorld
 {
 public:
   // **************************************************************** creation
-  GLWorld( World& world ) : _model(world)
+  GLWorld( GLEngine& engine, World& world ) : 
+    _model(world),
+    _chuchu_viewer( engine.gl_texture(), "../Images/tex_chuchu_first.png",
+		    1, 4),
+    _rocket_viewer( engine )
   {
     // VBO pour les lignes : 4 float par ligne
     GLfloat line_vtx[(_model.nb_row()+1+_model.nb_col()+1)*4];
@@ -192,19 +198,21 @@ public:
     /* Push each element in buffer_vertices to the vertex shader */
     glDrawArrays(GL_TRIANGLES, 0, _vbo_walls_size);
 
-    glDisableVertexAttribArray(_attribute_coord2d);
+    //glDisableVertexAttribArray(_attribute_coord2d);
+
     // Les Rockets
+    // TODO changer orientation en fonction de la position dans la grille
+    _rocket_viewer.pre_render();
     _rocket_viewer.render( projection, _model.stime() );
-    // // TODO changer orientation en fonction de la position dans la grille
-    // for( auto& rocket : _model.rocket()) {
-    //   _rocket_viewer.render( projection, rocket->pos(), 0 );
-    // }
+    _rocket_viewer.post_render();
+
     // Tous les chuchu
+    _chuchu_viewer.pre_render();
     for( auto& chuchu: _model.chuchu()) {
-      _chuchu_viewer.render( projection, chuchu->pos(), chuchu->dir() );
+      _chuchu_viewer.render( projection, chuchu->pos(), 
+			     0.4, chuchu->dir().index );
     }
-    // Un Chuchu vers la droite en (2,2)
-    //_chuchu_viewer.render( projection, Vec2({2,2}), _dir_right );
+    _chuchu_viewer.post_render();
   };
   // *************************************************************** attributs
 private:
@@ -220,7 +228,7 @@ private:
   GLuint _vbo_lines, _vbo_walls;
   unsigned int _vbo_lines_size, _vbo_walls_size;
   /** Sous-viewer */
-  GLChuchu _chuchu_viewer;
+  GLSprite _chuchu_viewer;
   GLRocket _rocket_viewer;
   // **************************************************************** add_wall
   /**

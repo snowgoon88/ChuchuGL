@@ -41,6 +41,7 @@ public:
     
     dump << "PLAYER " << _color.str;
     dump << " cursor at (" << _cursor_pos.x << "; " << _cursor_pos.y << ")";
+    dump << " cross at {" << _cross_pos.x << ", " << _cross_pos.y << "}";
   
     return dump.str();
   };

@@ -110,7 +110,7 @@ public:
     glEnableVertexAttribArray( _gl_texture.attribute_coord2d() );
   };
   // **************************************************** GLSprite::destruction
-  ~GLSprite()
+  virtual ~GLSprite()
   {
     // Et les vbo
     glDeleteBuffers( 1, &_vbo_carre_vtx);
@@ -173,6 +173,52 @@ public:
 				 glm::vec3( scale, scale, 1.0));
     // Et finalement
     glm::mat4 mvp = proj * trans * scal;
+    
+    // TODO => pareil, vérifier ordre
+    //glBindBuffer(GL_ARRAY_BUFFER, _vbo_sprite_texcoords);
+    //glEnableVertexAttribArray(_gl_texture.attribute_texcoord() );
+
+    glVertexAttribPointer(
+       _gl_texture.attribute_texcoord(), // attribute
+       2,                  // number of elements per vertex, here (x,y)
+       GL_FLOAT,           // the type of each element
+       GL_FALSE,           // take our values as-is
+       0,                  // no extra data between each position
+       (GLvoid*) (idx_sprite * 12 * sizeof(GLfloat)) // offset of first element (as Ptr!!)
+			  );
+
+    // Transform
+    glUniformMatrix4fv(_gl_texture.uniform_mvp(), 1, GL_FALSE,
+     		       glm::value_ptr(mvp));
+ 
+    /* Push each element in buffer_vertices to the vertex shader
+     * according to index */
+    glDrawArrays(GL_TRIANGLES, 0, _vbo_carre_size );
+  };
+  /** 
+   * @param 'proj' : matrice de projection
+   * @param 'pos' : position du centre du Sprite
+   * @param 'rot' : rotation du sprite, en radian
+   * @param 'scale' : change taille du Sprite
+   * @param 'idx_sprite' : index du Sprite sur la texture.
+   */
+  void render( glm::mat4& proj, const Vec2& pos, double rot, double scale,
+	       unsigned int idx_sprite, double alpha=1.0 )
+  {
+    // Calculer la Translation
+    // Model : translation
+    glm::mat4 trans = glm::translate(glm::mat4(1.0f),
+				     glm::vec3( pos.x,
+						pos.y,
+						0.0));
+    glm::mat4 rotate = glm::rotate( glm::mat4(1.0f),
+				    (float) rot,
+				    glm::vec3( 0.f, 0.f, 1.0f));
+    // Model : scale
+    glm::mat4 scal = glm::scale( glm::mat4(1.0f),
+				 glm::vec3( scale, scale, 1.0));
+    // Et finalement
+    glm::mat4 mvp = proj * trans * rotate * scal;
     
     // TODO => pareil, vérifier ordre
     //glBindBuffer(GL_ARRAY_BUFFER, _vbo_sprite_texcoords);
