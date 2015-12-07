@@ -104,3 +104,23 @@ app.set_controler( _nb_player );
 *** TODO music = 10-single-player-theme pour les PUZZLE
 *** TODO music = 02-multiplayer-theme pour JEU
 *** TODO effect = enter_rocket.mp3
+
+== TactiShip ==
+===============
+
+* [2/7] New beginning <2015-12-02 Wed>
+Reprendre un peu tout à partir de SpaceZombie et faire un afficheur de traces de vaisseaux (genre Tie SW et Navette :o) )
+** IMPORTANT : ne pas hésiter à s'inspirer de ChuchuRocket => même rép ?
+** DONE Passer sous WAF
+** DONE C++ 11
+** TODO Reprendre Trackball
+** TODO Reprendre Axe 3D
+*** un GL_Screen avec axe et flèches 3D. Comme SZ.
+*** TODO [0/2] Position en 3D : translation + rotation
+**** TODO Eigen ??
+**** TODO glMath ??
+** TODO Afficher simple vaisseau
+** TODO Afficher vaisseau qui fait un rond autour de Oz
+** TODO Afficher la trace de ce vaisseau
+*** Static
+*** Dynamic

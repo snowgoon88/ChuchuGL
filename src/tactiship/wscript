@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
+def build(bld):
+    bld.program(
+        source='tactiship.cpp', target='tactiship',
+        includes=['.','..'],
+        libs=['m'],
+        use = ['OPENGL','GLFW3']
+    )
