@@ -19,11 +19,15 @@ def configure(conf):
     conf.env['CXXFLAGS'] = ['-D_REENTRANT','-Wall','-fPIC','-g','-std=c++11']
     ##conf.env['INCLUDES'] = ['src']
 
-    ## Required LIBRARIES
+    ## Check GLM
+    conf.check_cc(header_name="glm/glm.hpp")
+
+    ## Required LIBRARIES OpenGL
     conf.check_cfg(package='gl',
                    uselib_store='OPENGL',
                    args=['--cflags', '--libs']
     )
+    ## Required LIBRARIES GLFW3
     conf.check_cfg(package='glfw3',
                    uselib_store='GLFW3',
                    args=['--cflags', '--libs']
