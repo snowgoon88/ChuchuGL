@@ -7,7 +7,8 @@
  * TODO
  */
 
-#include<gl_3dvect.hpp>
+#include <gl_3dvect.hpp>
+#include <trackball.h>
 
 // OpenGL
 #define GL_GLEXT_PROTOTYPES
@@ -27,8 +28,10 @@
 #define ZOOM_MAX  10.0f
 #define ZOOM_MIN   0.1f
 
-typedef glm::vec2 Position;
-enum class MouseAction {NOTHING,ZOOM};
+typedef glm::vec2  Position;
+enum class         MouseAction {NOTHING,ZOOM,ROTATE};
+typedef float      Quaternion[4];          // cf trackball.h
+typedef float      RotMatrix[16];          // cf trackball.h
 // ***************************************************************************
 // **************************************************************** GL3DScreen
 // ***************************************************************************
@@ -38,7 +41,7 @@ public:
   // **************************************************** GL3DScreen::creation
   GL3DScreen( GLEngine& engine ) :
     _window(engine.window()),
-    _zoom(1.0), _start(0,0), _action(MouseAction::NOTHING),
+    _zoom(1.0), _start(0,0), _orient{0,0,0,1}, _action(MouseAction::NOTHING),
     _finished(false)
   {
   };
@@ -83,11 +86,17 @@ public:
 					 );
       
       // Zoom
-      glm::mat4 view = glm::scale( glm::mat4(1.0f),
+      glm::mat4 zoom = glm::scale( glm::mat4(1.0f),
 				   glm::vec3( _zoom,
 					      _zoom,
 					      _zoom));
-      glm::mat4 vp = projection * view;
+      // Rotation
+      RotMatrix view_rotation;
+      build_rotmatrix( view_rotation, _orient );
+      glm::mat4 rotation = glm::make_mat4x4( view_rotation );
+      
+      // Projection-View
+      glm::mat4 vp = projection * zoom * rotation;
 
       // _gl_vect.pre_render();
       _gl_vect.render( vp /*projection*/ );
@@ -110,6 +119,7 @@ private:
   int _screen_width=800, _screen_height=600;
   float _zoom;
   Position _start;
+  Quaternion _orient;
   MouseAction _action;
   /** ready */
   bool _finished;
@@ -154,6 +164,8 @@ public:
 	}
 	else {
 	  //_scene->mouse_action_start ("rotate",x,y);
+	  _start = Position(x,y);
+	  _action = MouseAction::ROTATE;
 	  std::cout << "rotate at " << x << ", " << y  << std::endl;
 	}
       }
@@ -180,6 +192,16 @@ public:
       _zoom = _zoom * (1.0 - (_start.y - ypos) / _screen_height);
       if( _zoom > ZOOM_MAX ) _zoom = ZOOM_MAX;
       else if( _zoom < ZOOM_MIN ) _zoom = ZOOM_MIN;
+      _start = Position(xpos,ypos);
+      break;
+    case MouseAction::ROTATE:
+      Quaternion d_quat;
+      trackball( d_quat,
+		 (2.0 * _start.x - _screen_width) / _screen_width,
+		 (_screen_height - 2.0 * _start.y) / _screen_height,
+		 (2.0 * xpos - _screen_width) / _screen_width,
+		 (_screen_height - 2.0 * ypos) / _screen_height);
+      add_quats( d_quat, _orient, _orient );
       _start = Position(xpos,ypos);
       break;
     case MouseAction::NOTHING:

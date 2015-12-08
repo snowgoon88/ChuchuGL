@@ -3,7 +3,7 @@
 
 def build(bld):
     bld.program(
-        source='tactiship.cpp', target='tactiship',
+        source=['tactiship.cpp', 'trackball.cc'], target='tactiship',
         includes=['.','..'],
         libs=['m'],
         use = ['OPENGL','GLFW3']
