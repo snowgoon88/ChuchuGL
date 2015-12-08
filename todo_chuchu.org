@@ -108,16 +108,15 @@ app.set_controler( _nb_player );
 == TactiShip ==
 ===============
 
-* [3/7] New beginning <2015-12-02 Wed>
+* [4/7] New beginning <2015-12-02 Wed>
 Reprendre un peu tout à partir de SpaceZombie et faire un afficheur de traces de vaisseaux (genre Tie SW et Navette :o) )
 ** IMPORTANT : ne pas hésiter à s'inspirer de ChuchuRocket => même rép ?
 ** DONE Passer sous WAF
 ** DONE C++ 11
 ** DONE Reprendre Trackball
-** TODO [0/3] Reprendre Axe 3D
-*** TODO Utiliser glDrawElement pour d'abord la ligne puis ensuite le triangle.
-*** TODO un GL_Screen avec axe et flèches 3D. Comme SZ.
-*** TODO [1/1] Position en 3D : translation + rotation
+** DONE [2/3] Reprendre Axe 3D
+*** DONE un GL_Screen avec axe et flèches 3D. Comme SZ.
+*** DONE [1/1] Position en 3D : translation + rotation
 **** DONE glMath ??
 ** TODO Afficher simple vaisseau
 ** TODO Afficher vaisseau qui fait un rond autour de Oz

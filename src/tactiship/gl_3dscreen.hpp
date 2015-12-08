@@ -7,7 +7,7 @@
  * TODO
  */
 
-#include <gl_3dvect.hpp>
+#include <gl_3dframe.hpp>
 #include <trackball.h>
 
 // OpenGL
@@ -43,7 +43,8 @@ public:
     _window(engine.window()),
     _zoom(1.0), _start(0,0), _pos{0,0}, _orient{0,0,0,1}, 
     _action(MouseAction::NOTHING),
-    _finished(false)
+    _finished(false),
+    _viewer_frame()
   {
   };
   // ******************************************************** GL3DScreen::init
@@ -83,7 +84,7 @@ public:
       // Projection to screen
       glm::mat4 projection = glm::ortho( -3.f, 3.f, // left;right
 					 -3.f, 3.f, // bottom,top
-					 -3.f, 3.f // near far
+					 -100.f, 100.f // near far
 					 );
       
       // Zoom
@@ -102,10 +103,10 @@ public:
 							  _pos.y,
 							  0.f));
       // Projection-View
-      glm::mat4 vp = projection * zoom * rotation * translation;
+      glm::mat4 vp = projection * zoom * translation * rotation;
 
-      // _gl_vect.pre_render();
-      _gl_vect.render( vp /*projection*/ );
+      // Pré render => non
+      _viewer_frame.render( vp /*projection*/ );
       // _gl_vect.post_render();
       // Remove any programm so that glText can "work"
       glUseProgram(0);
@@ -131,7 +132,7 @@ private:
   /** ready */
   bool _finished;
   /** Viewer */
-  GL3DVect _gl_vect;
+  GL3DFrame _viewer_frame;
   // **************************************************** GL3DScreen::callback
   static void mouse_button_callback(GLFWwindow* window, int button,
 				    int action, int mods)
