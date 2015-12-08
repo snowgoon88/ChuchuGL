@@ -29,7 +29,7 @@
 #define ZOOM_MIN   0.1f
 
 typedef glm::vec2  Position;
-enum class         MouseAction {NOTHING,ZOOM,ROTATE};
+enum class         MouseAction {NOTHING,ZOOM,ROTATE,MOVE};
 typedef float      Quaternion[4];          // cf trackball.h
 typedef float      RotMatrix[16];          // cf trackball.h
 // ***************************************************************************
@@ -41,7 +41,8 @@ public:
   // **************************************************** GL3DScreen::creation
   GL3DScreen( GLEngine& engine ) :
     _window(engine.window()),
-    _zoom(1.0), _start(0,0), _orient{0,0,0,1}, _action(MouseAction::NOTHING),
+    _zoom(1.0), _start(0,0), _pos{0,0}, _orient{0,0,0,1}, 
+    _action(MouseAction::NOTHING),
     _finished(false)
   {
   };
@@ -94,9 +95,14 @@ public:
       RotMatrix view_rotation;
       build_rotmatrix( view_rotation, _orient );
       glm::mat4 rotation = glm::make_mat4x4( view_rotation );
-      
+
+      // Translation
+      glm::mat4 translation = glm::translate(  glm::mat4(1.0f),
+					       glm::vec3( _pos.x,
+							  _pos.y,
+							  0.f));
       // Projection-View
-      glm::mat4 vp = projection * zoom * rotation;
+      glm::mat4 vp = projection * zoom * rotation * translation;
 
       // _gl_vect.pre_render();
       _gl_vect.render( vp /*projection*/ );
@@ -119,6 +125,7 @@ private:
   int _screen_width=800, _screen_height=600;
   float _zoom;
   Position _start;
+  Position _pos;
   Quaternion _orient;
   MouseAction _action;
   /** ready */
@@ -158,6 +165,8 @@ public:
 	if( mods & GLFW_MOD_SHIFT ) {
 	  //_scene->mouse_action_start ("move-resize",x,y);
 	  std::cout << "move-resize at " << x << ", " << y  << std::endl;
+	  _start = Position(x,y);
+	  _action = MouseAction::MOVE;
 	}
 	else if( mods & GLFW_MOD_CONTROL ) {
 	  std::cout << "zoom at " << x << ", " << y  << std::endl;
@@ -202,6 +211,11 @@ public:
 		 (2.0 * xpos - _screen_width) / _screen_width,
 		 (_screen_height - 2.0 * ypos) / _screen_height);
       add_quats( d_quat, _orient, _orient );
+      _start = Position(xpos,ypos);
+      break;
+    case MouseAction::MOVE:
+      _pos += Position(2*(xpos-_start.x)/_screen_width,
+		       -2*(ypos-_start.y)/_screen_height);
       _start = Position(xpos,ypos);
       break;
     case MouseAction::NOTHING:
