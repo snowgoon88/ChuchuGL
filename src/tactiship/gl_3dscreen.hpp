@@ -7,8 +7,10 @@
  * TODO
  */
 
-#include <gl_3dframe.hpp>
 #include <trackball.h>
+
+#include <gl_3dframe.hpp>
+#include <gl_3dship.hpp>
 
 // OpenGL
 #define GL_GLEXT_PROTOTYPES
@@ -44,7 +46,7 @@ public:
     _zoom(1.0), _start(0,0), _pos{0,0}, _orient{0,0,0,1}, 
     _action(MouseAction::NOTHING),
     _finished(false),
-    _viewer_frame()
+    _viewer_frame(), _viewer_ship()
   {
   };
   // ******************************************************** GL3DScreen::init
@@ -82,8 +84,8 @@ public:
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
       // Projection to screen
-      glm::mat4 projection = glm::ortho( -3.f, 3.f, // left;right
-					 -3.f, 3.f, // bottom,top
+      glm::mat4 projection = glm::ortho( -10.f, 10.f, // left;right
+					 -10.f, 10.f, // bottom,top
 					 -100.f, 100.f // near far
 					 );
       
@@ -106,6 +108,7 @@ public:
       glm::mat4 vp = projection * zoom * translation * rotation;
 
       // Pré render => non
+      _viewer_ship.render( vp );
       _viewer_frame.render( vp /*projection*/ );
       // _gl_vect.post_render();
       // Remove any programm so that glText can "work"
@@ -133,6 +136,7 @@ private:
   bool _finished;
   /** Viewer */
   GL3DFrame _viewer_frame;
+  GL3DShip  _viewer_ship;
   // **************************************************** GL3DScreen::callback
   static void mouse_button_callback(GLFWwindow* window, int button,
 				    int action, int mods)

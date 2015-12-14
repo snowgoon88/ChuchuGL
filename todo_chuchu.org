@@ -114,11 +114,12 @@ Reprendre un peu tout à partir de SpaceZombie et faire un afficheur de traces d
 ** DONE Passer sous WAF
 ** DONE C++ 11
 ** DONE Reprendre Trackball
-** DONE [2/3] Reprendre Axe 3D
+** DONE [2/2] Reprendre Axe 3D
 *** DONE un GL_Screen avec axe et flèches 3D. Comme SZ.
 *** DONE [1/1] Position en 3D : translation + rotation
 **** DONE glMath ??
-** TODO Afficher simple vaisseau
+** TODO [0/1] Afficher simple vaisseau
+*** TODO [Pk] les Z du vaisseaux ne sont pas les bons ?
 ** TODO Afficher vaisseau qui fait un rond autour de Oz
 ** TODO Afficher la trace de ce vaisseau
 *** Static
