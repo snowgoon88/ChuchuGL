@@ -55,7 +55,7 @@ public:
   {
     // Installe les callback pour les touches
     glfwSetWindowUserPointer( _window, this);
-    // glfwSetKeyCallback(_window, key_callback);
+    glfwSetKeyCallback(_window, key_callback);
     glfwSetMouseButtonCallback( _window, mouse_button_callback );
     glfwSetCursorPosCallback( _window, mouse_move_callback );
     glfwSetScrollCallback( _window, scroll_callback);
@@ -138,6 +138,13 @@ private:
   GL3DFrame _viewer_frame;
   GL3DShip  _viewer_ship;
   // **************************************************** GL3DScreen::callback
+  static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+  {
+    // ESC
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+      glfwSetWindowShouldClose(window, GL_TRUE);
+  };
+
   static void mouse_button_callback(GLFWwindow* window, int button,
 				    int action, int mods)
   {
