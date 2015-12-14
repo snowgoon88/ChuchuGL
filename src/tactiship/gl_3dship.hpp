@@ -124,7 +124,7 @@ public:
     glDeleteBuffers(1, &_ibo_ship_elements);
   };
   // ******************************************************** GL3DShip::render
-  void render( glm::mat4& projection,
+  void render( const glm::mat4& projection,
   	       const glm::vec3& origin = {0,0,0})
   {
     glPushAttrib (GL_ENABLE_BIT);

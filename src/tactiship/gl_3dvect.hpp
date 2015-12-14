@@ -107,7 +107,7 @@ public:
     glDeleteBuffers(1, &_vbo_tail);
   };
   // ******************************************************** GL3DVect::render
-  void render( glm::mat4& projection,
+  void render( const glm::mat4& projection,
 	       const glm::vec3& fg_color = {1,0,0},
 	       const glm::vec3& vector = {1,0,0},
 	       const glm::vec3& origin = {0,0,0})

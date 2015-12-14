@@ -26,7 +26,7 @@ public:
   {
   };
   // ******************************************************* GL3DFrame::render
-  void render( glm::mat4& projection )
+  void render( const glm::mat4& projection )
   {
     // 1ère flèche normale
     _vect_viewer.render( projection );
@@ -38,7 +38,7 @@ public:
     _vect_viewer.render( vpm, {0,1,0} /* green */ );
     // 3ème, blue avec rotation
     rotation = glm::rotate( glm::mat4(1.0f), //rotation,
-			    (float) M_PI/2.f,
+			    -(float) M_PI/2.f,
 			    glm::vec3(0,1,0));
     vpm = projection * rotation;
     _vect_viewer.render( vpm, {0,0,1} /* blue */ );
