@@ -108,7 +108,7 @@ app.set_controler( _nb_player );
 == TactiShip ==
 ===============
 
-* [5/7] New beginning <2015-12-02 Wed>
+* [6/8] New beginning <2015-12-02 Wed>
 Reprendre un peu tout à partir de SpaceZombie et faire un afficheur de traces de vaisseaux (genre Tie SW et Navette :o) )
 ** IMPORTANT : ne pas hésiter à s'inspirer de ChuchuRocket => même rép ?
 ** DONE Passer sous WAF
@@ -120,8 +120,39 @@ Reprendre un peu tout à partir de SpaceZombie et faire un afficheur de traces d
 **** DONE glMath ??
 ** DONE [1/1] Afficher simple vaisseau
 *** DONE [Pk] les Z du vaisseaux ne sont pas les bons ?
-** TODO Afficher vaisseau qui fait un rond autour de Oz
+** [1/3] TODO Afficher vaisseau qui fait un rond autour de Oz
+*** DONE Afficher en plusieurs Pose
+*** TODO Scale du Vaisseau
+*** TODO Template pour différents objets => concept GLObject ??
 ** TODO Afficher la trace de ce vaisseau
-Sous forme d'une ligne avec, de temps à autre une silhouette "fadée".
+*** Sous forme d'une ligne avec, de temps à autre une silhouette "fadée".
+** DONE Rotation avec quaternions
+http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-17-quaternions/
+
+Quaternion QuatAroundX = Quaternion( Vector3(1.0,0.0,0.0), EulerAngle.x );
+Quaternion QuatAroundY = Quaternion( Vector3(0.0,1.0,0.0), EulerAngle.y );
+Quaternion QuatAroundZ = Quaternion( Vector3(0.0,0.0,1.0), EulerAngle.z );
+Quaternion finalOrientation = QuatAroundX * QuatAroundY * QuatAroundZ;
+
+The concept of quaternion multiplication is similar to matrix multiplication, it is neither dot nor cross product. If you want to understand the usage of quaternions, then get used to matrices and understand axis-angles, their basic concept is pretty similar to quaternions, the math is a bit more advanced, but once you understood axis-angles, then quaternions are not far away anymore.
+
+Hamilton product => implémenté par operator*
+
+For two elements a1 + b1i + c1j + d1k and a2 + b2i + c2j + d2k, their product, called the Hamilton product (a1 + b1i + c1j + d1k) (a2 + b2i + c2j + d2k), is determined by the products of the basis elements and the distributive law. The distributive law makes it possible to expand the product so that it is a sum of products of basis elements. This gives the following expression:
+
+    a_{1}a_{2}+a_{1}b_{2}i+a_{1}c_{2}j+a_{1}d_{2}k
+    {}+b_{1}a_{2}i+b_{1}b_{2}i^{2}+b_{1}c_{2}ij+b_{1}d_{2}ik
+    {}+c_{1}a_{2}j+c_{1}b_{2}ji+c_{1}c_{2}j^{2}+c_{1}d_{2}jk
+    {}+d_{1}a_{2}k+d_{1}b_{2}ki+d_{1}c_{2}kj+d_{1}d_{2}k^{2}.
+
+Now the basis elements can be multiplied using the rules given above to get:[6]
+
+    a_{1}a_{2}-b_{1}b_{2}-c_{1}c_{2}-d_{1}d_{2}
+    {}+(a_{1}b_{2}+b_{1}a_{2}+c_{1}d_{2}-d_{1}c_{2})i
+    {}+(a_{1}c_{2}-b_{1}d_{2}+c_{1}a_{2}+d_{1}b_{2})j
+    {}+(a_{1}d_{2}+b_{1}c_{2}-c_{1}b_{2}+d_{1}a_{2})k.
+
+The product of two rotation quaternions will be equivalent to the rotation a1 + b1i + c1j + d1k followed by the rotation a2 + b2i + c2j + d2k.
+
 *** Static
 *** Dynamic
