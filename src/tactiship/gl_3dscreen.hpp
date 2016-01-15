@@ -115,7 +115,11 @@ public:
 			   // quaternion rotation from pitch, yaw, roll
 			   // roll (around 0x), pitch (0y), yaw (0z)
 			   glm::quat(glm::vec3{-M_PI/6.0,0,M_PI/4.}) );
-
+      _viewer_ship.render( vp, {1.f, 1.f, -2.f},
+			   // quaternion rotation from pitch, yaw, roll
+			   // roll (around 0x), pitch (0y), yaw (0z)
+			   glm::quat(glm::vec3{0,0,-M_PI/3.0}),
+			   {2.f, 0.5f, 0.2f} );
       _viewer_traj.render( vp );
       _viewer_frame.render( vp /*projection*/ );
       // _gl_vect.post_render();

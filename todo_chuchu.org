@@ -120,9 +120,9 @@ Reprendre un peu tout à partir de SpaceZombie et faire un afficheur de traces d
 **** DONE glMath ??
 ** DONE [1/1] Afficher simple vaisseau
 *** DONE [Pk] les Z du vaisseaux ne sont pas les bons ?
-** [1/3] TODO Afficher vaisseau qui fait un rond autour de Oz
+** [2/3] TODO Afficher vaisseau qui fait un rond autour de Oz
 *** DONE Afficher en plusieurs Pose
-*** TODO Scale du Vaisseau
+*** DONE Scale du Vaisseau
 *** TODO Template pour différents objets => concept GLObject ??
 ** TODO Afficher la trace de ce vaisseau
 *** Sous forme d'une ligne avec, de temps à autre une silhouette "fadée".

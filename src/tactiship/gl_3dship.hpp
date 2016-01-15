@@ -135,7 +135,8 @@ public:
   // ******************************************************** GL3DShip::render
   void render( const glm::mat4& projection,
   	       const glm::vec3& origin = {0,0,0},
-	       const glm::quat& rotation = {0,0,0,1}) const
+	       const glm::quat& rotation = {0,0,0,1},
+	       const glm::vec3& scale = {1,1,1} ) const
   {
     glPushAttrib (GL_ENABLE_BIT);
     glEnable (GL_CULL_FACE);
@@ -144,14 +145,16 @@ public:
     glEnable (GL_LINE_SMOOTH);
 
     glUseProgram( _program );
-    // Ajouter le changement de position et d'orientation
+    // Scale
+    glm::mat4 scale_mtx = glm::scale( glm::mat4(1.0f),
+				      scale );
     // Rotation
     glm::mat4 rotation_mtx = glm::toMat4( rotation );
 
     // Translation
     glm::mat4 translation_mtx = glm::translate(  glm::mat4(1.0f),
 						 origin );
-    glm::mat4 mvp = projection * translation_mtx * rotation_mtx;
+    glm::mat4 mvp = projection * translation_mtx * rotation_mtx * scale_mtx;
     glUniformMatrix4fv(_uniform_mvp, 1, GL_FALSE,
      		       glm::value_ptr(mvp));
     // Fade
