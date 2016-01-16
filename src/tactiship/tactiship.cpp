@@ -11,7 +11,7 @@
 #include <trajectory.hpp>
 
 // Model
-#define NB_POS 8
+#define NB_POS 64
 // *************************************************************** Traj cercle
 Trajectory make_circle( const Position& center = {0,0,0}, float radius=1.f )
 {
@@ -19,10 +19,15 @@ Trajectory make_circle( const Position& center = {0,0,0}, float radius=1.f )
 
   for( unsigned int i = 0; i < NB_POS; ++i) {
     float angle = 2.f * M_PI * (float) i / float (NB_POS);
-    Position pos = center + Position{radius*cosf( angle ), radius*sinf(angle), 0.f};
+    Position pos = center + Position{radius*cosf( angle ), radius*sinf(angle), angle};
     // roll (around 0x), pitch (0y), yaw (0z)
-    Rotation rot = glm::quat( glm::vec3{0,0,angle+M_PI/2.f});
-    traj.push_back( Pose{pos,rot} );
+    Rotation rot = glm::quat( glm::vec3{-2*angle,0,angle+M_PI/2.f});
+    if( i % 8 == 0) {
+      traj.push_back( Pose{pos,rot,true} );
+    }
+    else {
+      traj.push_back( Pose{pos,rot,false} );
+    }
   }
 
   return traj;

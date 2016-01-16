@@ -124,8 +124,10 @@ Reprendre un peu tout à partir de SpaceZombie et faire un afficheur de traces d
 *** DONE Afficher en plusieurs Pose
 *** DONE Scale du Vaisseau
 *** TODO Template pour différents objets => concept GLObject ??
-** TODO Afficher la trace de ce vaisseau
-*** Sous forme d'une ligne avec, de temps à autre une silhouette "fadée".
+** TODO [1/2] Afficher la trace de ce vaisseau
+*** DONE Sous forme d'une ligne avec, de temps à autre une silhouette "fadée".
+*** TODO Ruban avec deux couleur (clair haut, sombre dessous)
+https://en.wikibooks.org/wiki/GLSL_Programming/GLUT/Two-Sided_Surfaces
 ** DONE Rotation avec quaternions
 http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-17-quaternions/
 
