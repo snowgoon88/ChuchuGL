@@ -108,7 +108,7 @@ app.set_controler( _nb_player );
 == TactiShip ==
 ===============
 
-* [6/8] New beginning <2015-12-02 Wed>
+* [7/8] New beginning <2015-12-02 Wed>
 Reprendre un peu tout à partir de SpaceZombie et faire un afficheur de traces de vaisseaux (genre Tie SW et Navette :o) )
 ** IMPORTANT : ne pas hésiter à s'inspirer de ChuchuRocket => même rép ?
 ** DONE Passer sous WAF
@@ -124,9 +124,10 @@ Reprendre un peu tout à partir de SpaceZombie et faire un afficheur de traces d
 *** DONE Afficher en plusieurs Pose
 *** DONE Scale du Vaisseau
 *** TODO Template pour différents objets => concept GLObject ??
-** TODO [1/2] Afficher la trace de ce vaisseau
+** DONE [2/2] Afficher la trace de ce vaisseau
 *** DONE Sous forme d'une ligne avec, de temps à autre une silhouette "fadée".
-*** TODO Ruban avec deux couleur (clair haut, sombre dessous)
+*** DONE Ruban transparent de dessous (culling)
+*** Ruban avec deux couleur (clair haut, sombre dessous)
 https://en.wikibooks.org/wiki/GLSL_Programming/GLUT/Two-Sided_Surfaces
 ** DONE Rotation avec quaternions
 http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-17-quaternions/
@@ -158,3 +159,4 @@ The product of two rotation quaternions will be equivalent to the rotation a1 + 
 
 *** Static
 *** Dynamic
+** TODO Charger Tie Fighter 3D model ??

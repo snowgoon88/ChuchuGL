@@ -167,10 +167,10 @@ public:
 	       const glm::quat& rotation = {0,0,0,1}) const
   {
     // D'abord les bords du ruban
-    //glPushAttrib (GL_ENABLE_BIT);
-    //glEnable (GL_CULL_FACE);
-    //glEnable (GL_DEPTH_TEST);
-    //glDepthMask (GL_TRUE);
+    glPushAttrib (GL_ENABLE_BIT);
+    glEnable (GL_CULL_FACE);
+    glEnable (GL_DEPTH_TEST);
+    glDepthMask (GL_TRUE);
     glEnable (GL_LINE_SMOOTH);
 
     glUseProgram( _program );
@@ -259,7 +259,8 @@ public:
 			  );
     // Push elements for drowing line
     glDrawArrays(GL_LINE_STRIP, 0, _traj.size() );
-    //glPopAttrib();
+    
+    glPopAttrib();
     
     // Un GL3DShip par point de la trajectoire
     for( auto& ship: _traj) {
