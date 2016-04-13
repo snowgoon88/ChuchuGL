@@ -1,0 +1,20 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# wscript in ./src
+
+import os
+
+def build( bld ):
+    print('→ build from ' + bld.path.abspath())
+
+    ## List of *.cpp files to add to chuchu_objs
+    l_chuchu = []
+    for file in os.listdir( bld.path.abspath() ):
+        if file.endswith(".cpp"):
+            l_chuchu.append( file )
+
+    bld.objects(
+        source  = l_chuchu,
+        includes = ['.','../include'],
+        target  = 'chuchu_objs')

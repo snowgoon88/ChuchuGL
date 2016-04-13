@@ -28,7 +28,7 @@ class GLArrow : public GLSprite
 public:
   // ******************************************************* GLArrow::creation
   GLArrow( GLEngine& engine ) :
-    GLSprite( engine.gl_texture(), "../Images/tex_arrow.png",
+    GLSprite( engine.gl_texture(), "Images/tex_arrow.png",
 	      NB_SPRITE_ROW, NB_SPRITE_COL)
   {
   };

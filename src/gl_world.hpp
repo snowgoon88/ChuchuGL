@@ -34,7 +34,7 @@ public:
   // **************************************************************** creation
   GLWorld( GLEngine& engine, World& world ) : 
     _model(world),
-    _chuchu_viewer( engine.gl_texture(), "../Images/tex_chuchu_first.png",
+    _chuchu_viewer( engine.gl_texture(), "Images/tex_chuchu_first.png",
 		    1, 4),
     _rocket_viewer( engine )
   {

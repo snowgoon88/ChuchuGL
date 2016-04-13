@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-VERSION='0.0.1'
-APPNAME='tactiship'
+# wscript in $CHUCHU
+
+VERSION='0.0.2'
+APPNAME='chuchu'
 
 top = '.'
 out = 'wbuild'
@@ -32,8 +34,33 @@ def configure(conf):
                    uselib_store='GLFW3',
                    args=['--cflags', '--libs']
     )
+    ## Required LIBRARIES FTGL
+    conf.check_cfg(package='ftgl',
+                   uselib_store='FTGL',
+                   args=['--cflags', '--libs']
+    )
+    ## Required LIBRARIES PortAudio
+    conf.check_cfg(package='portaudio-2.0',
+                   uselib_store='PA',
+                   args=['--cflags', '--libs']
+    )
+    ## Required LIBRARIES Vorbis
+    conf.check_cfg(package='vorbisfile',
+                   uselib_store='VORBIS',
+                   args=['--cflags', '--libs']
+    )
+    ## Require/Check libSOIL
+    conf.check_cxx( lib="SOIL" )
+    ## Require/Check libboost
+    conf.env.LIB_BOOST = ['boost_program_options']
+    conf.env.LIBPATH_BOOST = ['/usr/lib/x86_64-linux-gnu','/usr/lib/i386-linux-gnu']
+    print "Checking for 'BOOST::program_options'"
+    conf.find_file( 'lib'+conf.env.LIB_BOOST[0]+'.so', conf.env.LIBPATH_BOOST )
 
 def build(bld):
+    print('→ build from ' + bld.path.abspath())
+    bld.recurse('src')
     bld.recurse('src/tactiship')
-
+    bld.recurse('test')    
+    
 

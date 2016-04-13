@@ -74,16 +74,16 @@ public:
 
     // Le fond d'écran comme un Sprite
     _gl_fond = GLSpritePtr(new GLSprite( _gl_texture,
-					 "../Images/tex_title.png",
+					 "Images/tex_title.png",
 					 1, 1, {-3.2,-2.4}, {3.2,2.4} ) );
     _gl_rocket = GLSpritePtr(new GLSprite( _gl_texture,
-					   "../Images/tex_titlerocket.png",
+					   "Images/tex_titlerocket.png",
 					   1, 1, {-0.48,-0.71}, {0.48,0.71} ));
     _gl_logo = GLSpritePtr(new GLSprite( _gl_texture,
-					    "../Images/tex_title_logo.png",
+					    "Images/tex_title_logo.png",
 					    1, 1, {-2.56,-1.32}, {2.56,1.32}));
     _gl_start = GLSpriteFadePtr(new GLSpriteFade( _gl_texture_fade,
-					  "../Images/tex_pressstart.png",
+					  "Images/tex_pressstart.png",
 					  1, 1, {-1.33,-0.16}, {1.32,0.16}));
   };
   // ********************************************************* GLScreen::render

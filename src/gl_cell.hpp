@@ -30,7 +30,7 @@ public:
 public:
   // ****************************************************************** creation
   GLRocket( GLEngine& engine ) :
-    GLSprite( engine.gl_texture(), "../Images/tex_rocket.png",
+    GLSprite( engine.gl_texture(), "Images/tex_rocket.png",
 	      1, 4)
   {
   };

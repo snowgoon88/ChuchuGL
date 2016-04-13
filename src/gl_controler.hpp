@@ -101,7 +101,7 @@ public:
 
     // Le fond d'écran comme un Sprite
     _gl_fond = GLSpritePtr(new GLSprite( _gl_texture,
-					 "../Images/tex_bg.png",
+					 "Images/tex_bg.png",
 					 1, 1, 
 					 {-BG_WIDTH/2.0,-BG_HEIGHT/2.0},
 					 { BG_WIDTH/2.0, BG_HEIGHT/2.0} ));
