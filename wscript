@@ -22,18 +22,34 @@ def configure(conf):
     ## Check GLM
     conf.check_cc(header_name="glm/glm.hpp")
 
-    ## Required LIBRARIES OpenGL
+    ## Required LIBRARIES OpenGL using wrapper around pkg-config
     conf.check_cfg(package='gl',
                    uselib_store='OPENGL',
                    args=['--cflags', '--libs']
     )
-    ## Required LIBRARIES GLFW3
+    ## Required LIBRARIES GLFW3 using wrapper around pkg-config
     conf.check_cfg(package='glfw3',
                    uselib_store='GLFW3',
                    args=['--cflags', '--libs']
     )
+    ## Required LIBRARIES freetype2 using wrapper around pkg-config
+    conf.check_cfg(package='freetype2',
+                   uselib_store='FREETYPE2',
+                   args=['--cflags', '--libs']
+    )
+    # ## Required LIBRARIES glib-2.0using wrapper around pkg-config
+    # conf.check_cfg(package='glib-2.0',
+    #                uselib_store='GLIB2',
+    #                args=['--cflags', '--libs']
+    # )
+    # ## Required LIBRARIES Graphite2 using wrapper around pkg-config
+    # conf.check_cfg(package='graphite2',
+    #                uselib_store='GRAPHITE2',
+    #                args=['--cflags', '--libs']
+    # )
 
 def build(bld):
     bld.recurse('src/tactiship')
+    bld.recurse('test')
 
 
