@@ -24,12 +24,12 @@ def configure(conf):
     ## Check GLM
     conf.check_cc(header_name="glm/glm.hpp")
 
-    ## Required LIBRARIES OpenGL
+    ## Required LIBRARIES OpenGL using wrapper around pkg-config
     conf.check_cfg(package='gl',
                    uselib_store='OPENGL',
                    args=['--cflags', '--libs']
     )
-    ## Required LIBRARIES GLFW3
+    ## Required LIBRARIES GLFW3 using wrapper around pkg-config
     conf.check_cfg(package='glfw3',
                    uselib_store='GLFW3',
                    args=['--cflags', '--libs']
@@ -51,16 +51,23 @@ def configure(conf):
     )
     ## Require/Check libSOIL
     conf.check_cxx( lib="SOIL" )
+    ## Required LIBRARIES freetype2 using wrapper around pkg-config
+    conf.check_cfg(package='freetype2',
+                   uselib_store='FREETYPE2',
+                   args=['--cflags', '--libs']
+    )
     ## Require/Check libboost
     conf.env.LIB_BOOST = ['boost_program_options']
     conf.env.LIBPATH_BOOST = ['/usr/lib/x86_64-linux-gnu','/usr/lib/i386-linux-gnu']
     print "Checking for 'BOOST::program_options'"
     conf.find_file( 'lib'+conf.env.LIB_BOOST[0]+'.so', conf.env.LIBPATH_BOOST )
 
+
+
 def build(bld):
     print('→ build from ' + bld.path.abspath())
     bld.recurse('src')
     bld.recurse('src/tactiship')
     bld.recurse('test')    
-    
+
 

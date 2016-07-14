@@ -16,8 +16,21 @@ def build(bld):
                 source=[file],
                 target = file[:-4],
                 includes=['.', '../include', '../src'],
-                use = ['chuchu_objs','SOIL','PA','VORBIS','FTGL','OPENGL','GLFW3']
+                libs = ['m'],
+                use = ['chuchu_objs','SOIL','PA',
+                       'VORBIS','FTGL','OPENGL','GLFW3',
+                       'FREETYPE2'
+                ]
             )
         
     
     
+# =======
+# def build(bld):
+#     bld.program(
+#         source=['test-013-gltext.cpp'], target='test-013-gltext',
+#         includes=['.','../src',],
+#         libs=['m'],
+#         use = ['OPENGL','GLFW3','FREETYPE2']
+#     )
+# >>>>>>> text
