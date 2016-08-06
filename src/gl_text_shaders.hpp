@@ -131,12 +131,31 @@ public:
   {
     FT_Set_Pixel_Sizes( _face, 0, font_size );
   };
+  // ************************************************ GLTextShaders::set_scale
+  void set_scale( const float scale_x, const float scale_y )
+  {
+    _sx = scale_x;
+    _sy = scale_y;
+  }
   // ********************************************** GLTextShaders::render_text
   /**
    * Render text using the currently loaded font and currently set font size.
    * Rendering starts at coordinates (x, y), z is always 0.
-   * The pixel coordinates that the FreeType2 library uses are scaled by (sx, sy).
+   * The pixel coordinates used by FreeType2 are scaled by (_sx, _sy).
    */
+  void render( const char *text, float x, float y)
+  {
+    render_text( text, x, y, _sx, _sy );
+  }
+  void render( const char16_t *text, float x, float y)
+  {
+    render_text( text, x, y, _sx, _sy);
+  }
+  void render( const std::string& text, float x=0, float y=0 )
+  {
+    render_text( text.c_str(), x, y, _sx, _sy );
+  }
+  // *************************************************************************
   void render_text(const char *text, float x, float y, float sx, float sy)
   {
     const char *p;
@@ -183,6 +202,7 @@ public:
 	{x2, -y2 - h, 0, 1},
 	{x2 + w, -y2 - h, 1, 1},
       };
+      _lineheight = y2;
       
       /* Draw the character on the screen */
       glBufferData(GL_ARRAY_BUFFER, sizeof box, box, GL_DYNAMIC_DRAW);
@@ -246,6 +266,7 @@ public:
 	{x2, -y2 - h, 0, 1},
 	{x2 + w, -y2 - h, 1, 1},
       };
+      _lineheight = h;
       
       /* Draw the character on the screen */
       glBufferData(GL_ARRAY_BUFFER, sizeof box, box, GL_DYNAMIC_DRAW);
@@ -260,12 +281,16 @@ public:
   // ********************************************** GLTExtShaders::post_render
   void post_render()
   {
-    glDisableVertexAttribArray(_attribute_coord);
+    //glDisableVertexAttribArray(_attribute_coord);
     glDeleteTextures(1, &_tex);
   };
-  // ********************************************** GlTextShaders::attributs
+  // ************************************************ GlTextShaders::attributs
+  float line_height() const { return _lineheight; }
+  // *************************************************************************
   FT_Library _ft;
   FT_Face _face;
+  float _sx, _sy;    // scale
+  float _lineheight; // current line height
   const GLuint& program() const{ return _program; };
   const GLint&  attribute_coord() const { return _attribute_coord; };
 protected:

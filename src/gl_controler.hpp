@@ -25,7 +25,7 @@
 #include <player.hpp>
 // Viewer
 #include <gl_engine.hpp>
-#include <gl_text.hpp>
+#include <gl_text_shaders.hpp>
 #include <gl_texture.hpp>
 #include <gl_sprite.hpp>
 
@@ -202,22 +202,22 @@ public:
   void render_text( float topx, float topy )
   {
     // Joueurs
-    _gl_text.set_fontsize( 20 );
+    _gl_text.set_size( 20 );
     _gl_text.render( "CHOIX DES JOUEURS et des CONTROLEURS", topx, topy );
     topy -= _gl_text.line_height();
-    _gl_text.set_fontsize( 16 );
-    _gl_text.render( "     a/z : ajoute/enlève des joueurs", topx, topy );
+    _gl_text.set_size( 16 );
+    _gl_text.render( u"     a/z : ajoute/enlève des joueurs", topx, topy );
     topy -= _gl_text.line_height();
     _gl_text.render( "     UP/DOWN : choix du joueur  LEFT/RIGHT : choix du controler", topx, topy );
     topy -= _gl_text.line_height();
-    _gl_text.render( "     ENTER : sélection terminée", topx, topy );
+    _gl_text.render( u"     ENTER : sélection terminée", topx, topy );
     topy -= _gl_text.line_height();
     topy -= _gl_text.line_height();
 
-    _gl_text.set_fontsize( 20 );
+    _gl_text.set_size( 20 );
     _gl_text.render( "JOUEURS", topx, topy );
     topy -= _gl_text.line_height();
-    _gl_text.set_fontsize( 16 );
+    _gl_text.set_size( 16 );
 
     unsigned int idx_player = 0;
     for( auto& assoc: _l_assoc) {
@@ -254,10 +254,10 @@ public:
     topy -= _gl_text.line_height(); // endl
 
     // Joystick
-    _gl_text.set_fontsize( 20 );
+    _gl_text.set_size( 20 );
     _gl_text.render( "JOYSTICK DETECTES", topx, topy );
     topy -= _gl_text.line_height();
-    _gl_text.set_fontsize( 16 );
+    _gl_text.set_size( 16 );
     for( unsigned int i = 0; i < GLFW_JOYSTICK_LAST; ++i) {
       if( _l_joy[i].present ) {
 	std::stringstream buf;
@@ -279,7 +279,8 @@ public:
     // Enable alpha
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    _gl_text.set_glstate();
+    glEnable(GL_TEXTURE_2D);
+    // _gl_text.set_glstate();
 
     while( not _ready and !glfwWindowShouldClose(_window)) {
       // Détecte Joystick et prépare message
@@ -291,9 +292,9 @@ public:
       glClearColor(0.0, 0.0, 0.0, 1.0);
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-      // do_ortho() - Needed by _gl_text
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
+      // // do_ortho() - Needed by _gl_text
+      // glMatrixMode(GL_PROJECTION);
+      // glLoadIdentity();
 
       // Préserver le ratio de mon fond BG
       float ext_width = 0.f;
@@ -309,9 +310,9 @@ public:
 		      (float)_screen_width * (float) BG_WIDTH)
 	  - (float) BG_HEIGHT;
       }
-      glOrtho(-ext_width/2.f, (float) BG_WIDTH + ext_width/2.f,
-	      -ext_height/2.f,(float) BG_HEIGHT + ext_height/2.f,
-	      1.f, -1.f);
+      // glOrtho(-ext_width/2.f, (float) BG_WIDTH + ext_width/2.f,
+      // 	      -ext_height/2.f,(float) BG_HEIGHT + ext_height/2.f,
+      // 	      1.f, -1.f);
 
 
       // Fond
@@ -321,26 +322,35 @@ public:
 					 -ext_height/2.f,
 					 (float) BG_HEIGHT + ext_height/2.f,
 					 -1.0f, 1.0f );
-
       _gl_fond->pre_render();
       _gl_fond->render( projection, {BG_WIDTH/2.0, BG_HEIGHT/2.0}, 1.0, 0 );
       _gl_fond->post_render();
       // Remove any programm so that glText can "work"
-      glUseProgram(0);
+      // glUseProgram(0);
 
-      // Needed by _gl_text
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
-
-      // Prépare GLText
-      // De fontes dont la taille ne dépend pas de la taille de la fenetre
+      // Prepare GLText
+      // De fontes dont la taille ne depend pas de la taille de la fenetre
       // _gl_text.set_scale( ((float)BG_WIDTH+ext_width)/(float)_screen_width,
       //	  ((float)BG_HEIGHT+ext_height)/(float)_screen_height );
       // Sinon, on peut avoir un ratio fixe taille fenetre vs taille fonte
-      _gl_text.set_scale( 0.01f, 0.01f );
-      glColor3f( 0.f, 0.f, 1.f );
-      render_text( 0.1f * (float) BG_WIDTH, 0.9f * (float) BG_HEIGHT );
+      _gl_text.pre_render();
+      //_gl_text.set_scale( 0.01f, 0.01f );
+      _gl_text.set_scale( 2.f / _screen_width, 2.f / _screen_height );
+      _gl_text.set_size( 16 );
+      _gl_text.set_color( {0, 0, 1, 1} ); //glColor3f( 0.f, 0.f, 1.f );
 
+      // En ce qui concerne la position, si on ne specifie rien au shaders
+      // qui gere le texte, le (0,0) est au centre et chaque sommet est vaut
+      // +/- 1
+
+      // _gl_text.render( "ZERO", 0, 0 );
+      // _gl_text.render( "UN", 0, 0.5 );
+      // _gl_text.render( "DEUX", -0.9, 0.9);
+
+      render_text( -0.9f, 0.9f );
+      //render_text( 0.1f * (float) BG_WIDTH, 0.9f * (float) BG_HEIGHT );
+      _gl_text.post_render();
+      
       glfwSwapBuffers(_window);
       glfwPollEvents();
     }
@@ -474,7 +484,7 @@ private:
   /** Ptr sur la Fenetre */
   GLFWwindow* _window;
   int _screen_width=800, _screen_height=600;
-  GLText _gl_text;
+  GLTextShaders _gl_text;
   /** Shaders */
   const GLTexture&     _gl_texture;
   /* Sprites */

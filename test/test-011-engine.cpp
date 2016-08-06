@@ -30,6 +30,7 @@ int main( int argc, char *argv[] )
     World world( "data/world_6x5.json" ); 
     // World world( "data/world_pvp001.json" );
     GLControler controler_screen( app, world );
+    controler_screen.init_default(1);
     bool ready = app.run<GLControler,bool>( controler_screen );
     
     if( ready ) {

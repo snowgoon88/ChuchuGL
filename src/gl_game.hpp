@@ -11,6 +11,7 @@
 #include <world.hpp>
 
 // Viewer
+#include <gl_text.hpp>
 #include <gl_engine.hpp>
 #include <gl_world.hpp>
 #include <gl_arrow.hpp>
