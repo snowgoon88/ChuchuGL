@@ -4,7 +4,7 @@
 #define GL_CONTROLER_HPP
 
 /** 
- * Fait le lien entre les différents inputs (clavier, pad)
+ * Fait le lien entre les differents inputs (clavier, pad)
  * et les actions des Players.
  */
 
@@ -47,7 +47,7 @@ public:
   enum class Type {NOTHING,KEYBOARD,XPAD};
 
   typedef std::pair<int, const Direction&> BtnDir;
-  // Direction pour les axes positif, l'autre est opposé
+  // Direction pour les axes positif, l'autre est oppose
   typedef struct {
     int idx_axe;
     const Direction& dir_pos;
@@ -75,7 +75,7 @@ public:
   } Joystick;
   
   // *************************************************** GLControler::creation
-  /** Création à partir d'un GLEngine */
+  /** Creation a partir d'un GLEngine */
   GLControler( GLEngine& engine, const World &world) :
     _world(world), _ready(false),
     _window(engine.window()),
@@ -99,7 +99,7 @@ public:
     glfwSetWindowUserPointer( _window, this);
     glfwSetKeyCallback(_window, key_callback);
 
-    // Le fond d'écran comme un Sprite
+    // Le fond d'ecran comme un Sprite
     _gl_fond = GLSpritePtr(new GLSprite( _gl_texture,
 					 "Images/tex_bg.png",
 					 1, 1, 
@@ -127,7 +127,7 @@ public:
     }
   }
   // ***************************************************** GLControler::detect
-  /** Detecte les Joystick présents */
+  /** Detecte les Joystick presents */
   void detect()
   {
     _nb_joy = 0;
@@ -146,10 +146,10 @@ public:
     }
   };
   // ******************************************************** GLControler::act
-  /** En fonction de Input, déclenche les actions */
+  /** En fonction de Input, declenche les actions */
   void act( GLFWwindow *window )
   {
-    // Tous les joueurs enregistrés
+    // Tous les joueurs enregistres
     for( auto& assoc: _l_assoc ) {
       // std::cout << "ACT Player " << assoc.player->color().str << std::endl;
       switch(assoc.choice) {
@@ -199,76 +199,79 @@ public:
     }
   };
   // ******************************************************* GLControler::text
-  void render_text( float topx, float topy )
+  void render_text( float topx, float topy,
+		    float sx = 1.f, float sy = 1.f )
   {
     // Joueurs
     _gl_text.set_size( 20 );
     _gl_text.render( "CHOIX DES JOUEURS et des CONTROLEURS", topx, topy );
-    topy -= _gl_text.line_height();
+    // std::cout << "  line1=" << _gl_text.line_height() << std::endl;
+    topy -= _gl_text.line_height() * 2 ;
     _gl_text.set_size( 16 );
     _gl_text.render( u"     a/z : ajoute/enlève des joueurs", topx, topy );
-    topy -= _gl_text.line_height();
+    // std::cout << "  line2=" << _gl_text.line_height() << std::endl;
+    topy -= _gl_text.line_height() * 2;
     _gl_text.render( "     UP/DOWN : choix du joueur  LEFT/RIGHT : choix du controler", topx, topy );
-    topy -= _gl_text.line_height();
+    topy -= _gl_text.line_height() * 2;
     _gl_text.render( u"     ENTER : sélection terminée", topx, topy );
-    topy -= _gl_text.line_height();
-    topy -= _gl_text.line_height();
+    topy -= _gl_text.line_height() * 2;
+    topy -= _gl_text.line_height() * 2;
 
     _gl_text.set_size( 20 );
     _gl_text.render( "JOUEURS", topx, topy );
-    topy -= _gl_text.line_height();
+    topy -= _gl_text.line_height() * 2;
     _gl_text.set_size( 16 );
 
     unsigned int idx_player = 0;
     for( auto& assoc: _l_assoc) {
       std::stringstream buf;
       if( idx_player == _player_focus ) 
-	buf << " ***";
+    	buf << " ***";
       else
-	buf << "    ";
+    	buf << "    ";
       buf << "Player " <<  assoc.player->color().str;
       buf << " => ";
       switch( assoc.choice ) {
       case Type::NOTHING:
-	buf << "NO controler";
-	break;
+    	buf << "NO controler";
+    	break;
       case Type::KEYBOARD:
-	buf << "Clavier";
-	break;
+    	buf << "Clavier";
+    	break;
       case Type::XPAD:
-	if( _l_joy[assoc.idx_joy].present ) 
-	  buf << "PAD [" << _l_joy[assoc.idx_joy].name << "]";
-	else {
-	  assoc.choice = Type::NOTHING;
-	  assoc.idx_joy = 0;
-	}   
+    	if( _l_joy[assoc.idx_joy].present ) 
+    	  buf << "PAD [" << _l_joy[assoc.idx_joy].name << "]";
+    	else {
+    	  assoc.choice = Type::NOTHING;
+    	  assoc.idx_joy = 0;
+    	}   
       }
       if( idx_player == _player_focus ) 
-	buf << " ***";
+    	buf << " ***";
       else
-	buf << "    ";
+    	buf << "    ";
       _gl_text.render( buf.str(), topx, topy );
-      topy -= _gl_text.line_height();
+      topy -= _gl_text.line_height() * 2;
       idx_player++;
     } 
-    topy -= _gl_text.line_height(); // endl
+    topy -= _gl_text.line_height() * 2; // endl
 
     // Joystick
     _gl_text.set_size( 20 );
     _gl_text.render( "JOYSTICK DETECTES", topx, topy );
-    topy -= _gl_text.line_height();
+    topy -= _gl_text.line_height() * 2 ;
     _gl_text.set_size( 16 );
     for( unsigned int i = 0; i < GLFW_JOYSTICK_LAST; ++i) {
       if( _l_joy[i].present ) {
-	std::stringstream buf;
-	buf << "     " << i << " : " << _l_joy[i].name << " => ";
-	for( unsigned int j = 0;
-	     j < (unsigned int) _l_joy[i].button_count; ++j) {
-	  if( _l_joy[i].buttons[j] ) buf << "X";
-	  else buf << ".";
-	}
-	_gl_text.render( buf.str(), topx, topy );
-	topy -= _gl_text.line_height();
+    	std::stringstream buf;
+    	buf << "     " << i << " : " << _l_joy[i].name << " => ";
+    	for( unsigned int j = 0;
+    	     j < (unsigned int) _l_joy[i].button_count; ++j) {
+    	  if( _l_joy[i].buttons[j] ) buf << "X";
+    	  else buf << ".";
+    	}
+    	_gl_text.render( buf.str(), topx, topy );
+    	topy -= _gl_text.line_height() * 2;
       }
     }
   }
@@ -283,7 +286,7 @@ public:
     // _gl_text.set_glstate();
 
     while( not _ready and !glfwWindowShouldClose(_window)) {
-      // Détecte Joystick et prépare message
+      // Detecte Joystick et prepare message
       detect();
 
       glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
@@ -292,11 +295,7 @@ public:
       glClearColor(0.0, 0.0, 0.0, 1.0);
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-      // // do_ortho() - Needed by _gl_text
-      // glMatrixMode(GL_PROJECTION);
-      // glLoadIdentity();
-
-      // Préserver le ratio de mon fond BG
+      // Preserver le ratio de mon fond BG
       float ext_width = 0.f;
       float ext_height = 0.f;
       float ratio = (float) BG_HEIGHT / (float) BG_WIDTH;
@@ -310,23 +309,23 @@ public:
 		      (float)_screen_width * (float) BG_WIDTH)
 	  - (float) BG_HEIGHT;
       }
-      // glOrtho(-ext_width/2.f, (float) BG_WIDTH + ext_width/2.f,
-      // 	      -ext_height/2.f,(float) BG_HEIGHT + ext_height/2.f,
-      // 	      1.f, -1.f);
-
+      // Pour le texte, le point (1,1)
+      // a pour coordonnees 0.5 *( BG_WIDTH+ext_width, BG_HEIGHT+ext_height)
+      // On cherche les coordonnees de la texture de background
+      float top_x = BG_WIDTH / (BG_WIDTH + ext_width);
+      std::cout << "top_x=" << top_x << " ext=" << ext_width << " w=" << _screen_width << std::endl;
+      float top_y = BG_HEIGHT / (BG_HEIGHT + ext_height);
 
       // Fond
       // Projection (to 2D screen)
       glm::mat4 projection = glm::ortho( -ext_width/2.f,
-					 (float) BG_WIDTH + ext_width/2.f,
-					 -ext_height/2.f,
-					 (float) BG_HEIGHT + ext_height/2.f,
-					 -1.0f, 1.0f );
+      					 (float) BG_WIDTH + ext_width/2.f,
+      					 -ext_height/2.f,
+      					 (float) BG_HEIGHT + ext_height/2.f,
+      					 -1.0f, 1.0f );
       _gl_fond->pre_render();
       _gl_fond->render( projection, {BG_WIDTH/2.0, BG_HEIGHT/2.0}, 1.0, 0 );
       _gl_fond->post_render();
-      // Remove any programm so that glText can "work"
-      // glUseProgram(0);
 
       // Prepare GLText
       // De fontes dont la taille ne depend pas de la taille de la fenetre
@@ -343,11 +342,7 @@ public:
       // qui gere le texte, le (0,0) est au centre et chaque sommet est vaut
       // +/- 1
 
-      // _gl_text.render( "ZERO", 0, 0 );
-      // _gl_text.render( "UN", 0, 0.5 );
-      // _gl_text.render( "DEUX", -0.9, 0.9);
-
-      render_text( -0.9f, 0.9f );
+      render_text( -0.9f * top_x, 0.9f * top_y, 2.f / _screen_width, 2.f / _screen_height);
       //render_text( 0.1f * (float) BG_WIDTH, 0.9f * (float) BG_HEIGHT );
       _gl_text.post_render();
       
@@ -365,7 +360,7 @@ private:
   /** Liste des Association Player-Controler */
   std::vector<Association> _l_assoc;
   unsigned int _player_focus;
-  /** Liste des Joystick présent */
+  /** Liste des Joystick present */
   Joystick _l_joy[GLFW_JOYSTICK_LAST - GLFW_JOYSTICK_1 + 1];
   unsigned int _nb_joy;
   /** Choix fait ? */
@@ -409,11 +404,11 @@ private:
 	      Type::NOTHING, 0, nullptr}  );
       }
     }
-    // Enlève le dernier joueur
+    // Enleve le dernier joueur
     if( key == GLFW_KEY_W) {
       _l_assoc.pop_back();
     }
-    // Déplace parmis les joueurs
+    // Deplace parmis les joueurs
     // //std::cout << "on_key_presssed = " << key << std::endl;
     if( key == GLFW_KEY_UP) {
       _player_focus = (_player_focus + 1) % _l_assoc.size();

@@ -4,7 +4,10 @@
 #define GL_TEXT_SHADERS_HPP
 
 /** 
- * Fonctions pour afficher des textes simples avec des shaders.
+ * Display texts using shaders.
+ * Can render ascii (char) or unicode (char16_t) or string.
+ *
+ * By default, the screen coordinate go from (-1,-1) to (1,1).
  *
  * https://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_01
  */
@@ -33,7 +36,8 @@ class GLTextShaders
   struct point { GLfloat x; GLfloat y; GLfloat s; GLfloat t; };
 public:
   // ************************************************* GLTextShaders::creation
-  GLTextShaders()
+  GLTextShaders() :
+    _sx( 1.f ), _sy( 1.f )
   {
     // Charger les Shaders : texture+fade
     GLint link_ok = GL_FALSE;
@@ -103,6 +107,7 @@ public:
     if( FT_Load_Char( _face, 'X', FT_LOAD_RENDER)) {
       throw std::runtime_error( "GLTextShaders cannot load 'X'" );
     }
+    compute_lineheight();
   }
   // ******************************************** GLTextShaders::destruction
   ~GLTextShaders()
@@ -130,12 +135,14 @@ public:
   void set_size( const unsigned int font_size=FONT_SIZE )
   {
     FT_Set_Pixel_Sizes( _face, 0, font_size );
+    compute_lineheight();
   };
   // ************************************************ GLTextShaders::set_scale
   void set_scale( const float scale_x, const float scale_y )
   {
     _sx = scale_x;
     _sy = scale_y;
+    compute_lineheight();
   }
   // ********************************************** GLTextShaders::render_text
   /**
@@ -202,7 +209,9 @@ public:
 	{x2, -y2 - h, 0, 1},
 	{x2 + w, -y2 - h, 1, 1},
       };
-      _lineheight = y2;
+      // std::cout << "A -" << *p << "-";
+      // std::cout << "  box=" << x2 << ", " << -y2 << ", " << w << ", " << h  << std::endl;
+      // _lineheight = g->bitmap_top * sy;
       
       /* Draw the character on the screen */
       glBufferData(GL_ARRAY_BUFFER, sizeof box, box, GL_DYNAMIC_DRAW);
@@ -266,7 +275,9 @@ public:
 	{x2, -y2 - h, 0, 1},
 	{x2 + w, -y2 - h, 1, 1},
       };
-      _lineheight = h;
+      // std::cout << "U -" << *p << "-";
+      // std::cout << "  box=" << x2 << ", " << -y2 << ", " << w << ", " << h  << std::endl;
+      // _lineheight = g->bitmap_top * sy;
       
       /* Draw the character on the screen */
       glBufferData(GL_ARRAY_BUFFER, sizeof box, box, GL_DYNAMIC_DRAW);
@@ -284,6 +295,18 @@ public:
     //glDisableVertexAttribArray(_attribute_coord);
     glDeleteTextures(1, &_tex);
   };
+  // *************************************** GLTextShaders::compute_lineheight
+  /**
+   * Size of the 'O'
+   */
+  void compute_lineheight()
+  {
+    if (FT_Load_Char(_face, 79, FT_LOAD_RENDER))
+      _lineheight = 0;    
+    else
+      _lineheight =  _face->glyph->bitmap.rows * _sy;
+
+  }
   // ************************************************ GlTextShaders::attributs
   float line_height() const { return _lineheight; }
   // *************************************************************************
