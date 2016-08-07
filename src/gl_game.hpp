@@ -4,14 +4,14 @@
 #define GL_GAME_HPP
 
 /** 
- * GLGame implémente concept::GLScreen pour gérer une partie PvP.
+ * GLGame implements concept::GLScreen to deal a PvP game.
  */
 
 // Model
 #include <world.hpp>
 
 // Viewer
-#include <gl_text.hpp>
+#include <gl_text_shaders.hpp>
 #include <gl_engine.hpp>
 #include <gl_world.hpp>
 #include <gl_arrow.hpp>
@@ -29,7 +29,7 @@ class GLGame
 {
 public:
   // ******************************************************** GLGame::creation
-  /** Création avec un GLEngine */
+  /** Creation with a GLEngine */
   GLGame( GLEngine& engine, World& world, GLControler& controler) :
     _window(engine.window()),
     _gl_texture(engine.gl_texture()),
@@ -58,7 +58,6 @@ public:
     // Enable alpha
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    _gl_text.set_glstate();
 
     // TODO cbk quand fenêtre redimensionnée
     // FPS
@@ -92,27 +91,18 @@ public:
       glClearColor(1.0, 1.0, 0.58, 1.0);
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-      // do_ortho() - Needed by _gl_text
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-
-      glOrtho(-1.0f, 10.0f, -1.0f, 10.0f, 1.f, -1.f);
-      
-      // Needed by _gl_text
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
-      
-
       // Projection (to 2D screen)
       glm::mat4 projection = glm::ortho( -1.0f, 10.0f,
 					 -1.0f, 10.0f,
 					 -1.0f, 1.0f );
       // Prépare GLText
-      _gl_text.set_scale( (10.f + 1.f)/(float)_screen_width,
-      (10.f + 1.f)/(float)_screen_height );
-      glColor3f( 0.f, 0.f, 0.f );
-      _gl_text.render( fps_ss.str(), 0.f, 9.f );
-
+      _gl_text.pre_render();
+      _gl_text.set_scale( (2.f)/(float)_screen_width,
+      (2.f)/(float)_screen_height );
+      _gl_text.set_color( {0.f, 0.f, 0.f, 1.f} );
+      _gl_text.render( fps_ss.str(), -0.9f, 0.9f );
+      _gl_text.post_render();
+      
       // Les Arrow
       _gl_arrow.pre_render();
       for( auto& assoc: _controler.assoc()) {
@@ -142,7 +132,7 @@ public:
       anim_idx = anim_idx % ANIM_LENGTH;
       
       // Remove any programm so that glText can "work"
-      glUseProgram(0);
+      //glUseProgram(0);
       
       glfwSwapBuffers(_window);
       glfwPollEvents();
@@ -183,7 +173,7 @@ private:
   /** Viewer */
   GLWorld _gl_world;
   GLArrow _gl_arrow;
-  GLText _gl_text;
+  GLTextShaders _gl_text;
   /** Controler */
   GLControler& _controler;
   // ************************************************************** simulation
