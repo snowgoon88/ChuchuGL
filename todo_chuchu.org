@@ -13,7 +13,7 @@ En continuant ce qui est fait pour -l_walls
 Quand on ajoute un flèche, certains Chuchu déjà engagés dans la sortie ne prennent plus le trajet qui va de centre de case en centre de case.
 *** TODO flag : dir_set ?
 
-* [5/8] Graphic
+* [5/9] Graphic
 ** DONE Attention, transparence pas très bien gérée (bord blanc autoure des rockets)
    Enlevé DEPT_TEST je crois
 ** DONE 3D Chuchu models => 1 texture par direction 
@@ -40,6 +40,7 @@ Dernier tracé => en haut, Z compte pas
 ** TODO 3D+Tex de Source
 Les chuchu grossisent et "sautent" hors des sources, qui, comme les fusées, sont extrudées du sol et donc vue en perspectives.
 ** TODO Tex des damiers
+** TODO Tex des autres fusées
 ** Animation de la Cross (scale)
 Cross qui devient pâle sur fusée ou flèches autre ??
 ** DONE Title Frame
@@ -95,8 +96,9 @@ void setup_options(int argc, char **argv)
 setup_options( argc, argv );
 std::cout << "__SET_CONTROLER" << std::endl;
 app.set_controler( _nb_player );
-* [1/2] Son
+* [1/3] Son
 ** DONE play son 31xxx ds data
+** TODO Pourquoi ca marche pas sur usukun ??
 ** TODO Mix
 *** Z=A+B−AB.
 *** 2 (ou 3) streams ??
