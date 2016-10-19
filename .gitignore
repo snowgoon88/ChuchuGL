@@ -1,5 +1,8 @@
 # ignore build object and library and depency
 *.[oad]
 *~
+# waf related
 /build
-
+/wbuild
+.waf-*
+.lock-waf*

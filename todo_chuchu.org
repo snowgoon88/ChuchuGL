@@ -1,3 +1,4 @@
+* Current => Son
 * [6/6] Model
 ** DONE [2/2] leaving Cell
 *** DONE _arrow => prend dir de _arrow
