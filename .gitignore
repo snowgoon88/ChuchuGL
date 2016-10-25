@@ -6,3 +6,8 @@
 /wbuild
 .waf-*
 .lock-waf*
+# GTAGS
+GPATH
+GRTAGS
+GSYMS
+GTAGS
