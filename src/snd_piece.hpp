@@ -34,12 +34,15 @@ class Piece
 {
 public:
   // **************************************************************** creation
-  Piece( std::string filename, bool verb=false ) :
+  Piece( const std::string& filename, bool verb=false ) :
     _ogg_buffer(nullptr), _ogg_pcm_length(0)
   {
     // structure avec les infos sur le Fichier Ogg
     OggVorbis_File ogg_file;
     // Ouvre le fichier Ogg
+	if( verb ) {
+	  std::cout << "Opening " << filename << std::endl;
+	}
     int err = ov_fopen( filename.c_str(), &ogg_file );
     if( err < 0 ) { // fail
       Piece::error( "SND::Piece() ogg.open", err);

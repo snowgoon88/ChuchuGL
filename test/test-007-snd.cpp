@@ -17,7 +17,7 @@ int main( int argc, char *argv[] )
   std::cout << "__CREATION SNDPlayer__" << std::endl;
 
   SND::Piece sound( "data/31304__erdie__imp04.ogg", true );
-  SND::Piece music( "../ressources/15-sonic-team-presents.ogg", true );
+  SND::Piece music( "ressources/15-sonic-team-presents.ogg", true );
 
   sound.inverse();
   music.inverse();
