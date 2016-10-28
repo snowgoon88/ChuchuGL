@@ -97,10 +97,13 @@ void setup_options(int argc, char **argv)
 setup_options( argc, argv );
 std::cout << "__SET_CONTROLER" << std::endl;
 app.set_controler( _nb_player );
-* [2/3] Son
+* [2/4] Son
 ** DONE play son 31xxx ds data
 ** DONE Pourquoi ca marche pas sur usukun ??
 placer les fichiers au bon endroit
+** TODO [0/2] Lancer un thread avec Play
+*** TODO Nourrir le thread
+*** TODO Eventuellement, permettre ensuite le mix
 ** TODO Mix
 *** Z=A+B−AB.
 *** 2 (ou 3) streams ??

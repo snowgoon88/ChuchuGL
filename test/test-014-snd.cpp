@@ -1,8 +1,8 @@
 // -*- coding: utf-8 -*-
 
 /**
-   test-007-snd.cpp
- * Essai de jouer un fichier .ogg avec PortAudio et Vorbisfile.
+ * test-014-snd.cpp
+ * Play music using an external loop that feed the stream
  */
 #include <chrono>                         // std::chrono
 #include <thread>                         // std::thread
@@ -18,20 +18,36 @@ int main( int argc, char *argv[] )
   
   std::cout << "__CREATION SNDPlayer__" << std::endl;
 
-  SND::Piece sound( "data/31304__erdie__imp04.ogg", true );
   SND::Piece music( "ressources/15-sonic-team-presents.ogg", true );
 
-  //sound.inverse();
-  //music.inverse();
 
-  std::cout << "__PLAY__" << std::endl;
-  player.play( music );
-  player.play( sound );
-  std::cout << "__END__" << std::endl;
 
   std::cout << "__OPEN STREAM__" << std::endl;
+  SND::Player snd;
+  snd.open_stream();
+  std::cout << "pause 2s" << std::endl;
   std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  std::cout << "add piece" << std::endl;
+  snd.add_piece( music );
+
+  std::cout << "enter loop" << std::endl;
+  // loop of exactly 20ms
+  while( true ) {
+	auto start_proc = std::chrono::steady_clock::now();
+
+	snd.feed();
+
+	// wait
+	auto end_proc = std::chrono::steady_clock::now();
+	// wait period 
+	std::chrono::duration<double> elapsed_seconds = end_proc - start_proc;
+	std::this_thread::sleep_for(std::chrono::milliseconds(20)
+								- elapsed_seconds );
+  }
   std::cout << "__END STREAM__" << std::endl;
+  snd.close_stream();
+					  
   return 0;
 }
 

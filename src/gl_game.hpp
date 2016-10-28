@@ -4,7 +4,7 @@
 #define GL_GAME_HPP
 
 /** 
- * GLGame implements concept::GLScreen to deal a PvP game.
+ * GLGame implements concept::GLScreen to deal with a PvP game.
  */
 
 // Model
@@ -38,7 +38,9 @@ public:
     _gl_world(engine,world), _gl_arrow(engine), _gl_text(),
     _controler(controler),
     _is_running(false), _anim_running(false),
-    _frame_time_min(1000.0), _frame_time_max(0.0), _frame_time_avg(0.0)
+    _frame_time_min(1000.0), _frame_time_max(0.0), _frame_time_avg(0.0),
+	_graphic_time_min(1000.0), _graphic_time_max(0.0), _graphic_time_avg(0.0)
+	//_music_piece(nullptr)
   {
   };
   // ************************************************************ GLGame::init
@@ -50,6 +52,9 @@ public:
 
     std::cout << _world.str_dump() << std::endl;
 
+	// Music - start SND::Player
+	// _snd_player.open_stream();
+	// _music_piece = new SND::Piece( "ressources/15-sonic-team-presents.ogg" );
   };
   // ********************************************************** GLGame::render
   void render()
@@ -59,15 +64,17 @@ public:
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// Music - set music/Piece
+	// _snd_player.add_piece( *_music_piece );
+	
     // TODO cbk quand fenêtre redimensionnée
     // FPS
     auto frame_time = std::chrono::steady_clock::now();
     std::stringstream fps_ss;
-    fps_ss << "FPS m/avg/M : ";
-    fps_ss << _frame_time_min.count() << "/";
-    fps_ss << _frame_time_avg.count() << "/";
-    fps_ss << _frame_time_max.count();
-
+	fps_ss << "FTime : no set";
+	std::stringstream gtime_ss;
+	gtime_ss << "GTime : no set";
+	
     // L'index d'animation va varier entre 0 et ANIM_LENGTH
     unsigned int anim_idx = 0;
     while (!glfwWindowShouldClose(_window)) {
@@ -80,7 +87,7 @@ public:
       
       // world update
       if( _is_running ) {
-	_world.update( 0.020 );
+		_world.update( 0.020 );
       }
 
       glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
@@ -101,6 +108,7 @@ public:
       (2.f)/(float)_screen_height );
       _gl_text.set_color( {0.f, 0.f, 0.f, 1.f} );
       _gl_text.render( fps_ss.str(), -0.9f, 0.9f );
+	  _gl_text.render( gtime_ss.str(), 0.0f, 0.9f );
       _gl_text.post_render();
       
       // Les Arrow
@@ -123,7 +131,7 @@ public:
       // Les curseur des joueurs
       _gl_arrow.pre_render();
       for( auto& assoc: _controler.assoc()) {
-	_gl_arrow.render_cursor( projection, assoc.player->cursor_pos(),
+		_gl_arrow.render_cursor( projection, assoc.player->cursor_pos(),
 				 assoc.player->color().index, anim_idx );
       }
       _gl_arrow.post_render();
@@ -136,6 +144,9 @@ public:
       
       glfwSwapBuffers(_window);
       glfwPollEvents();
+
+	  // Music - take care of buffer
+	  // _snd_player.feed();
       
       // clock
       auto end_proc = std::chrono::steady_clock::now();
@@ -149,15 +160,33 @@ public:
       if( _frame_time_min > frame_delta_time ) _frame_time_min = frame_delta_time;
       if( _frame_time_max < frame_delta_time ) _frame_time_max = frame_delta_time;
       _frame_time_avg = 0.9 * _frame_time_avg + 0.1 * frame_delta_time;
+
+	  if( _graphic_time_min > elapsed_seconds )
+		_graphic_time_min = elapsed_seconds;
+	  if( _graphic_time_max < elapsed_seconds )
+		_graphic_time_max = elapsed_seconds;
+	  _graphic_time_avg = 0.9 * _graphic_time_avg + 0.1 * elapsed_seconds;
+	  
       frame_time = end_proc;
       
       fps_ss.str("");
-      fps_ss << "FPS m/avg/M : ";
+      fps_ss << "FTime m/avg/M : ";
       fps_ss << _frame_time_min.count() << "/";
       fps_ss << _frame_time_avg.count() << "/";
       fps_ss << _frame_time_max.count();
+
+	  gtime_ss.str("");
+      gtime_ss << "GTime m/avg/M : ";
+      gtime_ss << _graphic_time_min.count() << "/";
+      gtime_ss << _graphic_time_avg.count() << "/";
+      gtime_ss << _graphic_time_max.count();
+
     }
-  };
+
+	// Music - stop
+	// _snd_player.close_stream();
+	// if( _music_piece) delete _music_piece
+  }
   // ***************************************************** GLGame::final_state
   bool final_state() const { return true; };
   // ******************************************************* GLGame::attributs
@@ -183,6 +212,12 @@ private:
   std::chrono::duration<double, std::milli> _frame_time_min;
   std::chrono::duration<double, std::milli> _frame_time_max;
   std::chrono::duration<double, std::milli> _frame_time_avg;
+  std::chrono::duration<double, std::milli> _graphic_time_min;
+  std::chrono::duration<double, std::milli> _graphic_time_max;
+  std::chrono::duration<double, std::milli> _graphic_time_avg;
+  // ******************************************************************* Music
+  // SND::Player _snd_player;
+  // SND::Piece* _music_piece;
   //***************************************************************** callback
   /**
    * Callback qui gère les événements 'key'
