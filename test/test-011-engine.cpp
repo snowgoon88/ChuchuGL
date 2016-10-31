@@ -69,7 +69,7 @@ int main( int argc, char *argv[] )
   // Controllers must be configured
   if( _param.nb_player == 0 ) {
 	std::cout << "__WINDOW" << std::endl;
-	GLEngine app( "Chuchu Rocket", 640, 480);
+	GLEngine app( "Chuchu Rocket", 1128, 752);
   
 	std::cout << "__START_SCREEN" << std::endl;
 	GLScreen start_screen( app );
@@ -92,7 +92,7 @@ int main( int argc, char *argv[] )
   }
   // Controllers set by options
   else {
-	GLEngine app( "Chuchu Rocket Quick", 640, 480 );
+	GLEngine app( "Chuchu Rocket Quick", 1128, 752 );
 	World world( _param.data_file );
 	GLControler controler( app, world );
 	controler.init_default( _param.nb_player );

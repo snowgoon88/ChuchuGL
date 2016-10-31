@@ -100,7 +100,7 @@ bool World::set_cell( Chuchu& chu ) const
   unsigned int idx = (unsigned int) floor(chu.pos().x);
   unsigned int idy = (unsigned int) floor(chu.pos().y);
   // Implémente un monde torique
-  std::cout << chu.str_dump() << " would be in cell(" << idx << "; "  << idy << ")" << std::endl;
+  //DEBUG std::cout << chu.str_dump() << " would be in cell(" << idx << "; "  << idy << ")" << std::endl;
   bool changed_cell = chu.set_cell( _l_cell[idx+_nb_col*idy].get() );
   if( changed_cell ) {
     // Que se passe-t-il en arrivant sur la Cell ?

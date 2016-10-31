@@ -46,7 +46,7 @@ bool Chuchu::set_cell( Cell* cell )
     double pscal = (_pos.x - (cell->pos().x+0.5)) * _dir->vec.x +
       (_pos.y - (cell->pos().y+0.5)) * _dir->vec.y;
     if( pscal > 0.0 ) { // EXIT
-      std::cout << "pscal=" << pscal << " : EXIT cell " << cell->str_dump() << std::endl;
+      //DEBUG std::cout << "pscal=" << pscal << " : EXIT cell " << cell->str_dump() << std::endl;
       // Et donc une nouvelle Direction s'il ne l'a pas déjà eu
       if( not _is_exiting ) 
 	_dir = cell->dir_arrive_from( _dir );
@@ -54,7 +54,7 @@ bool Chuchu::set_cell( Cell* cell )
       return true; // toujours vivant
     }
     else if( pscal < 0.0 ) { // ENTER
-      std::cout << "pscal=" << pscal << " : ENTER cell " << cell->str_dump() << std::endl;
+      //DEBUG std::cout << "pscal=" << pscal << " : ENTER cell " << cell->str_dump() << std::endl;
       //return cell->entered_cbk( this );
     }
   }

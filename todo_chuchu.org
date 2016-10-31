@@ -24,7 +24,11 @@ le compteur d'animation doit être avec la Rocket.
 Mais, normalement, c'est pas dans le modèle... Quoique
 1) ajouter un update à chaque Rocket qui gère le compteur d'animation
 ++++2) GLRocket maintient un compteur d'animation par Rocket => essayer de lui passer en paramètre un GLSprite::render( projection, Vec2, unsigned int spriteIndex ou (row,col)) où projection peut être mutiplié par scale fonction de l'anim. En static ou en Ptr. Modèle déclence le moment d'entrée, donc de début d'animation.
-** TODO Verbose Mode
+** TODO [0/1] Screen size
+*** screen03 (pvp001) 1280x752
+*** screen01 ()       1024x768
+*** cookie 1920x1080 : 1024=>576, 1365<=768, 1280=>720, 1128<=752:1838x1080
+*** TODO Taille des cellule et épaisseurs de murs
 ** TODO [0/3] Refactor as utils class/template/other
 On parle ici d'une sorte de GLSprite
  - on lui ajoute des Textures (nb_row, nb_col)
