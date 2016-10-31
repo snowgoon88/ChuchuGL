@@ -19,7 +19,7 @@ def build(bld):
                 libs = ['m'],
                 use = ['chuchu_objs','SOIL','PA',
                        'VORBIS','FTGL','OPENGL','GLFW3',
-                       'FREETYPE2'
+                       'FREETYPE2','BOOST'
                 ]
             )
         

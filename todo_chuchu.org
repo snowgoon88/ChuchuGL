@@ -14,7 +14,7 @@ En continuant ce qui est fait pour -l_walls
 Quand on ajoute un flèche, certains Chuchu déjà engagés dans la sortie ne prennent plus le trajet qui va de centre de case en centre de case.
 *** TODO flag : dir_set ?
 
-* [5/9] Graphic
+* [5/10] Graphic
 ** DONE Attention, transparence pas très bien gérée (bord blanc autoure des rockets)
    Enlevé DEPT_TEST je crois
 ** DONE 3D Chuchu models => 1 texture par direction 
@@ -24,6 +24,7 @@ le compteur d'animation doit être avec la Rocket.
 Mais, normalement, c'est pas dans le modèle... Quoique
 1) ajouter un update à chaque Rocket qui gère le compteur d'animation
 ++++2) GLRocket maintient un compteur d'animation par Rocket => essayer de lui passer en paramètre un GLSprite::render( projection, Vec2, unsigned int spriteIndex ou (row,col)) où projection peut être mutiplié par scale fonction de l'anim. En static ou en Ptr. Modèle déclence le moment d'entrée, donc de début d'animation.
+** TODO Verbose Mode
 ** TODO [0/3] Refactor as utils class/template/other
 On parle ici d'une sorte de GLSprite
  - on lui ajoute des Textures (nb_row, nb_col)
@@ -47,7 +48,7 @@ Cross qui devient pâle sur fusée ou flèches autre ??
 ** DONE Title Frame
 *** largeur 512 + 128 = 640
 *** hauteur 256 + 128 + 64 + 32 = 480
-* [2/3] Input
+* [3/3] Input
 ** DONE Joystick controler avec GLFW
 ** DONE <<<BUG>>> pose flèche hors zone ???
 Maintenant qu'on a un GL_Controler, la pose de flèche alors que le 
@@ -55,7 +56,7 @@ cursor est hors zone => SegFault
 ** Lien pour savoir où on a cliqué avec souris.
 ** GL Unproject
    http://en.wikibooks.org/wiki/OpenGL_Programming/Object_selection
-** TODO Boost::Options et Contoler
+** DONE Boost::Options et Contoler
 // Parsing command line options
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;

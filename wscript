@@ -62,8 +62,6 @@ def configure(conf):
     print "Checking for 'BOOST::program_options'"
     conf.find_file( 'lib'+conf.env.LIB_BOOST[0]+'.so', conf.env.LIBPATH_BOOST )
 
-
-
 def build(bld):
     print('→ build from ' + bld.path.abspath())
     bld.recurse('src')
