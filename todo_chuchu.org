@@ -101,12 +101,15 @@ app.set_controler( _nb_player );
 ** DONE play son 31xxx ds data
 ** DONE Pourquoi ca marche pas sur usukun ??
 placer les fichiers au bon endroit
-** TODO [0/2] Lancer un thread avec Play
-*** TODO Nourrir le thread
+** TODO [3/5] Lancer un thread avec Play
+*** DONE Nourrir le thread
 *** TODO Eventuellement, permettre ensuite le mix
-** TODO Mix
+*** DONE Set Volume
+*** DONE Get Mute ?
+*** TODO Loop if finished
+** TODO [0/1] Mix
 *** Z=A+B−AB.
-*** 2 (ou 3) streams ??
+*** TODO 2 (ou 3) streams ??
 ** Music
 *** TODO music = 10-single-player-theme pour les PUZZLE
 *** TODO music = 02-multiplayer-theme pour JEU

@@ -33,10 +33,13 @@ class Player
 public:
   using OggIndex = struct oggindex {
 	bool play_end;
+	bool is_mute;
 	unsigned long ogg_idx;
 	unsigned long frame_size;
 	const float* buffer;
 	const unsigned int length;
+	float volume;
+	float* frame_buffer;
   };
 public:
   // **************************************************************** creation
@@ -140,15 +143,46 @@ public:
   // ************************************************************* Player::add
   void add_piece( const Piece& piece )
   {
+	clear_index();
 	// Set up some Music
 	_music_index = new OggIndex {
-	  false, 0, SAMPLE_PER_FRAME, piece.data(), piece.size()
+	  false, false, 0, SAMPLE_PER_FRAME, piece.data(), piece.size(), 1.f,
+	  new float[(SAMPLE_PER_FRAME+1)*NB_CHANNEL]
 	};
+  }
+  // ************************************************************* Player::index
+  void clear_index()
+  {
+	if( _music_index ) {
+	  if( _music_index->frame_buffer ) {
+		delete _music_index->frame_buffer;
+	  }
+	  delete _music_index;
+	  _music_index = nullptr;
+	}
+  }
+  // ************************************************************ Player::mute
+  void mute( bool state )
+  {
+	_music_index->is_mute = state;
+  }
+  bool is_mute()
+  {
+	return _music_index->is_mute;
+  }
+  // ********************************************************** Player::volume
+  void set_volume( float vol )
+  {
+	_music_index->volume = vol;
+  }
+  float get_volume()
+  {
+	return _music_index->volume;
   }
   // ************************************************************ Player::seed
   void feed()
   {
-	// How much room os left
+	// How much room is left
 	unsigned long pa_available = Pa_GetStreamWriteAvailable( _music_pa_stream );
       
 	// feed pa_stream with data
@@ -160,13 +194,23 @@ public:
 	  _music_index->frame_size = (_music_index->length - _music_index->ogg_idx)/NB_CHANNEL;
 	  _music_index->play_end = true;
 	}
-	std::cout << "* avail=" << pa_available << " frame_size="<< _music_index->frame_size << " idx=" << _music_index->ogg_idx << std::endl;
+	// copy into buffer
+	const float *from = &(_music_index->buffer[_music_index->ogg_idx]);
+	float *to = _music_index->frame_buffer;
+	for (unsigned int i=0; i < NB_CHANNEL * _music_index->frame_size; i++) {
+	  *(to++) = *(from++) * _music_index->volume;
+	}
 
-	PaError pa_err = Pa_WriteStream( _music_pa_stream,
-									 &(_music_index->buffer[_music_index->ogg_idx]), _music_index->frame_size);
-	if( pa_err != paNoError ) {
-	  std::cerr << "SND::Player.feed() write stream idx="<< _music_index->ogg_idx << std::endl;
-	  std::cerr << "            " << Pa_GetErrorText( pa_err );
+	//std::cout << "* avail=" << pa_available << " frame_size="<< _music_index->frame_size << " idx=" << _music_index->ogg_idx << std::endl;
+
+	if( _music_index->is_mute == false ) {
+	  PaError pa_err = Pa_WriteStream( _music_pa_stream,
+									   _music_index->frame_buffer,
+									   _music_index->frame_size);
+	  if( pa_err != paNoError ) {
+		std::cerr << "SND::Player.feed() write stream idx="<< _music_index->ogg_idx << std::endl;
+		std::cerr << "            " << Pa_GetErrorText( pa_err );
+	  }
 	}
 	_music_index->ogg_idx += NB_CHANNEL * _music_index->frame_size;
   }

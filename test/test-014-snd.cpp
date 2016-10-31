@@ -18,7 +18,7 @@ int main( int argc, char *argv[] )
   
   std::cout << "__CREATION SNDPlayer__" << std::endl;
 
-  SND::Piece music( "ressources/15-sonic-team-presents.ogg", true );
+  SND::Piece music( "ressources/02-multiplayer-theme.ogg", true );
 
 
 
@@ -33,11 +33,29 @@ int main( int argc, char *argv[] )
 
   std::cout << "enter loop" << std::endl;
   // loop of exactly 20ms
+  unsigned int count = 0;
   while( true ) {
 	auto start_proc = std::chrono::steady_clock::now();
 
 	snd.feed();
 
+	count += 1;
+	if( count == 15 ) {
+	  std::cout << "mute" << std::endl;
+	  snd.mute( true );
+	}
+	if( count == 80 ) {
+	  snd.mute( false );
+	  std::cout << "unmute" << std::endl;
+	}
+	if( count == 200 ) {
+	  snd.set_volume( 0.1f );
+	  std::cout << "volume " << snd.get_volume() << std::endl;
+
+	}
+	if( count > 2000 ) {
+	  break;
+	}
 	// wait
 	auto end_proc = std::chrono::steady_clock::now();
 	// wait period 
