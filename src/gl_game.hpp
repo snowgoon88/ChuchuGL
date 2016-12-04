@@ -92,8 +92,8 @@ public:
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
       // Projection (to 2D screen)
-      glm::mat4 projection = glm::ortho( -1.0f, 10.0f,
-					 -1.0f, 10.0f,
+      glm::mat4 projection = glm::ortho( -2.0f, 13.0f,
+					 -2.0f, 10.0f,
 					 -1.0f, 1.0f );
       // Prépare GLText
       _gl_text.pre_render();
