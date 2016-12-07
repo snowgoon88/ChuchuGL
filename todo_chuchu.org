@@ -1,6 +1,6 @@
 * Current => Simu
-* [] Simu <2016-12-04 Sun>
-** TODO shaders
+* [1/4] Simu <2016-12-04 Sun>
+** DONE shaders
 - tactiship/gl_3dvect.hpp : line3d.v.glsl, line.f.glsl
 - tactiship/gl_3dship.hpp : line_tri_xyz_rgb_fade.v.glsl, line_tri_xyz_rgb_fade.f.glsl
 - tactiship/trajectory.hpp : line_tri_xyz_rgb_fade.v.glsl, line_tri_xyz_rgb_fade.f.glsl
