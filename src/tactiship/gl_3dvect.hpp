@@ -7,6 +7,9 @@
  * Affiche un vecteur comme une flèche.
  */
 
+#include <gl_3dunicolor.hpp>
+#include <gl_3dengine.hpp>
+
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -24,7 +27,7 @@ class GL3DVect
 {
 public:
   // ****************************************************** GL3DVect::creation
-  GL3DVect()
+  GL3DVect( GL3DEngine& eng ) : _eng(eng)
   {
     // VBO pour le corp
     GLfloat tail_vtx[] = {0, 0, 0, 1.0,0,0};
@@ -50,80 +53,34 @@ public:
     // Pousse les points dans le VBO
     glBufferData(GL_ARRAY_BUFFER, sizeof( head_vtx ),
 		 head_vtx, GL_STATIC_DRAW);
-
-    // Charger les Shaders LINE + TRIANGLES 3D
-    GLint link_ok = GL_FALSE;
-    GLuint vs, fs;
-    /** Vertex Shader */
-    if ((vs = GLUtils::create_shader("src/shaders/line3d.v.glsl", GL_VERTEX_SHADER))   == 0)
-      exit( EXIT_FAILURE );
-    /** Fragment Shader */
-    if ((fs = GLUtils::create_shader("src/shaders/line.f.glsl", GL_FRAGMENT_SHADER)) == 0)
-      exit( EXIT_FAILURE );
-    /** GLSL program */
-    // link Vertex et Fragment Shaders
-    // program est une variable GLOBALE
-    _program = glCreateProgram();
-    glAttachShader(_program, vs);
-    glAttachShader(_program, fs);
-    glLinkProgram(_program);
-    glGetProgramiv(_program, GL_LINK_STATUS, &link_ok);
-    if (!link_ok) {
-      std::cerr << "__GL3DVect: Pb avec glLinkProgam "<< std::endl;
-      std::cerr << GLUtils::str_compiler_log(_program) << std::endl;
-      exit( EXIT_FAILURE );;
-    }
-
-    // Lier les variables des shaders
-    // l_color : couleur des lignes
-    const char* uniform_name = "l_color";
-    _uniform_l_color = glGetUniformLocation(_program, uniform_name);
-    if (_uniform_l_color == -1) {
-      std::cerr <<  "Pb pour lier l'uniform " << uniform_name << std::endl;
-      exit( EXIT_FAILURE );
-    }
-    // la variable uniforme mvp
-    uniform_name = "mvp";
-    _uniform_mvp = glGetUniformLocation(_program, uniform_name);
-    if (_uniform_mvp == -1) {
-      std::cerr <<  "Pb pour lier l'uniform " << uniform_name << std::endl;
-      exit( EXIT_FAILURE );
-    }
-    // coord3d : coordonnées du vertex
-    const char* attribute_name = "coord3d";
-    _attribute_coord3d= glGetAttribLocation(_program, attribute_name);
-    if (_attribute_coord3d == -1) {
-      std::cerr <<  "Pb pour lier l'attribut " << attribute_name << std::endl;
-      exit( EXIT_FAILURE );
-    }
-  };
+  }
   // *************************************************** GL3DVect::destruction
   virtual ~GL3DVect()
   {
-    // Détruit le programme GLSL
-    glDeleteProgram(_program);
     // Et les vbo
     glDeleteBuffers(1, &_vbo_head);
     glDeleteBuffers(1, &_vbo_tail);
-  };
+  }
   // ******************************************************** GL3DVect::render
   void render( const glm::mat4& projection,
 	       const glm::vec3& fg_color = {1,0,0},
 	       const glm::vec3& vector = {1,0,0},
 	       const glm::vec3& origin = {0,0,0})
   {
-    glUseProgram( _program );
-    glUniformMatrix4fv(_uniform_mvp, 1, GL_FALSE,
-     		       glm::value_ptr(projection));
+	glUseProgram( _eng.gl_unicolor().program() );
+	glUniformMatrix4fv(_eng.gl_unicolor().uniform_mvp(), 1, GL_FALSE,
+					   glm::value_ptr(projection));
     
     // Couleur de la flèche
-    glUniform3f( _uniform_l_color, fg_color.r, fg_color.g, fg_color.b );
-    glEnableVertexAttribArray( _attribute_coord3d );
+	glUniform3f( _eng.gl_unicolor().uniform_l_color(),
+				 fg_color.r, fg_color.g, fg_color.b );
+	
+	glEnableVertexAttribArray( _eng.gl_unicolor().attribute_coord3d() );
     /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
     // TAIL *****************************************
     glBindBuffer( GL_ARRAY_BUFFER, _vbo_tail );
     glVertexAttribPointer(
-      _attribute_coord3d, // attribute
+	  _eng.gl_unicolor().attribute_coord3d(), // attribute
       3,                 // number of elements per vertex, here (x,y)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
@@ -138,16 +95,16 @@ public:
 					     glm::vec3( 1.0f,
 							0.f,
 							0.f));
-  // Projection-View
+	// Projection-View
     glm::mat4 vp = projection * translation;
-    glUniformMatrix4fv(_uniform_mvp, 1, GL_FALSE,
-		       glm::value_ptr(vp));
+    glUniformMatrix4fv(_eng.gl_unicolor().uniform_mvp(), 1, GL_FALSE,
+					   glm::value_ptr(vp));
     // Dessiner la tête
     glBindBuffer( GL_ARRAY_BUFFER, _vbo_head );
-    glEnableVertexAttribArray( _attribute_coord3d );
+	glEnableVertexAttribArray( _eng.gl_unicolor().attribute_coord3d() );
   /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
     glVertexAttribPointer(
-      _attribute_coord3d, // attribute
+	  _eng.gl_unicolor().attribute_coord3d(), // attribute
       3,                 // number of elements per vertex, here (x,y)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
@@ -160,12 +117,8 @@ public:
   };
   // ***************************************************** GL3DVect::attributs
 private:
-  /** Program GLSL */
-  GLuint _program;
-  /** Variables globale du Programme GLSL */
-  GLint _attribute_coord3d;
-  /** Uniform var */
-  GLint _uniform_l_color, _uniform_mvp;
+  /** Graphic Engine for lines/triangles */
+  GL3DEngine& _eng;
   /** Vertex Buffer Object pour lines */
   GLuint _vbo_head, _vbo_tail;
   unsigned int _vbo_head_size, _vbo_tail_size;

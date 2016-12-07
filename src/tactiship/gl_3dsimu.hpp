@@ -1,17 +1,18 @@
 /* -*- coding: utf-8 -*- */
 
-#ifndef GL_3DSCREEN_HPP
-#define GL_3DSCREEN_HPP
+#ifndef GL_3DSIMU_HPP
+#define GL_3DSIMU_HPP
 
 /** 
- * TODO
+ * A Simulator 3D with
+ *  - frame reference.
+ *  - TODO grid
  */
 
 #include <trackball.h>
+
 #include <gl_3dengine.hpp>
 #include <gl_3dframe.hpp>
-#include <gl_3dship.hpp>
-#include <trajectory.hpp>
 
 // OpenGL
 #define GL_GLEXT_PROTOTYPES
@@ -26,32 +27,32 @@
 // #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-// ******************************************************** GL3DScreen::Global
+// ********************************************************** GL3DSimu::Global
 #define ZOOM_COEF  1.05f
 #define ZOOM_MAX  10.0f
 #define ZOOM_MIN   0.1f
 
-typedef glm::vec2  ScreenPos;
+//typedef glm::vec2  ScreenPos;
+using ScreenPos = glm::vec2;
 enum class         MouseAction {NOTHING,ZOOM,ROTATE,MOVE};
-typedef float      Quaternion[4];          // cf trackball.h
-typedef float      RotMatrix[16];          // cf trackball.h
+using Quaternion = float[4];          // cf trackball.h
+using RotMatrix = float[16];          // cf trackball.h
 // ***************************************************************************
-// **************************************************************** GL3DScreen
+// ****************************************************************** GL3DSimu
 // ***************************************************************************
-class GL3DScreen
+class GL3DSimu
 {
 public:
-  // **************************************************** GL3DScreen::creation
-  GL3DScreen( GL3DEngine& engine, const GL3DTrajectory& traj_viewer ) :
+  // ****************************************************** GL3DSimu::creation
+  GL3DSimu( GL3DEngine& engine ) :
     _window(engine.window()),
     _zoom(1.0), _start(0,0), _pos{0,0}, _orient{0,0,0,1}, 
     _action(MouseAction::NOTHING),
     _finished(false),
-    _viewer_frame(engine), _viewer_ship(),
-    _viewer_traj(traj_viewer)
+    _viewer_frame( engine )
   {
   };
-  // ******************************************************** GL3DScreen::init
+  // ********************************************************** GL3DSimu::init
   /** Callback pour touches et souris */
   void init() 
   {
@@ -62,7 +63,7 @@ public:
     glfwSetCursorPosCallback( _window, mouse_move_callback );
     glfwSetScrollCallback( _window, scroll_callback);
   };
-  // ********************************************************* GLScreen::render
+  // *********************************************************** GLScreen::render
   /**
    * render() est bloquant, ne rendant la main que quand le GLSCreen 
    * est terminé.
@@ -109,20 +110,8 @@ public:
       // Projection-View
       glm::mat4 vp = projection * zoom * translation * rotation;
 
-      // Pré render => non
-      _viewer_ship.render( vp );
-      _viewer_ship.render( vp, {1.f, 0.f, 2.f},
-	  		   // quaternion rotation from pitch, yaw, roll
-	  		   // roll (around 0x), pitch (0y), yaw (0z)
-	  		   glm::quat(glm::vec3{-M_PI/6.0,0,M_PI/4.}) );
-      _viewer_ship.render( vp, {1.f, 1.f, -2.f},
-	  		   // quaternion rotation from pitch, yaw, roll
-	  		   // roll (around 0x), pitch (0y), yaw (0z)
-	  		   glm::quat(glm::vec3{0,0,-M_PI/3.0}),
-	  		   {2.f, 0.5f, 0.2f} );
-      _viewer_traj.render( vp );
       _viewer_frame.render( vp /*projection*/ );
-      // _gl_vect.post_render();
+
       // Remove any programm so that glText can "work"
       glUseProgram(0);
 
@@ -131,9 +120,9 @@ public:
 
     }
   };
-  // ************************************************** GL3DScreen::final_state
+  // **************************************************** GL3DSimu::final_state
   bool final_state() const { return _finished; };
-  // *************************************************** GL3DScreen::attributs
+  // ***************************************************** GL3DSimu::attributs
   GLFWwindow* window() { return _window; };
 private:
   /** Ptr sur la Fenetre */
@@ -148,9 +137,7 @@ private:
   bool _finished;
   /** Viewer */
   GL3DFrame _viewer_frame;
-  GL3DShip  _viewer_ship;
-  const GL3DTrajectory& _viewer_traj;
-  // **************************************************** GL3DScreen::callback
+  // ****************************************************** GL3DSimu::callback
   static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {
     // ESC
@@ -162,22 +149,22 @@ private:
 				    int action, int mods)
   {
     // callback de la Classe
-    ((GL3DScreen *)glfwGetWindowUserPointer(window))->on_mouse_button( button, action, mods );
+    ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_mouse_button( button, action, mods );
   };
   static void mouse_move_callback( GLFWwindow* window, 
 				   double xpos, double ypos) 
   {
     // callback de la Classe
-    ((GL3DScreen *)glfwGetWindowUserPointer(window))->on_mouse_move( xpos, ypos);
+    ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_mouse_move( xpos, ypos);
   };
   static void scroll_callback(GLFWwindow* window,
 			      double xoffset, double yoffset)
   {
     // callback de la Classe
-    ((GL3DScreen *)glfwGetWindowUserPointer(window))->on_scroll( yoffset );
+    ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_scroll( yoffset );
   };
 public:
-  // ********************************************* GL3DScreen::on_mouse_button
+  // *********************************************** GL3DSimu::on_mouse_button
   void on_mouse_button( int button, int action, int mods ) 
   {
     double x, y;
@@ -217,7 +204,7 @@ public:
       std::cout << "           start= " << glm::to_string(_start) << std::endl;
     }
   };
-  // *********************************************** GL3DScreen::on_mouse_move
+  // ************************************************* GL3DSimu::on_mouse_move
   void on_mouse_move( double xpos, double ypos )
   {
     // En fonction des actions
@@ -248,7 +235,7 @@ public:
       break;
     }
   };
-  // *************************************************** GL3DScreen::on_scroll
+  // ***************************************************** GL3DSimu::on_scroll
   /** yoffset vaut +/- 1 */
   void on_scroll( double yoffset ) 
   {
@@ -265,4 +252,4 @@ public:
   };
 };
 
-#endif // GL_3DSCREEN_HPP
+#endif // GL_3DSIMU_HPP

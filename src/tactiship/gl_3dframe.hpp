@@ -6,8 +6,7 @@
 /** 
  * Repère 3D avec 3 GL3DVect.
  */
-
-#include<gl_3dvect.hpp>
+#include <gl_3dvect.hpp>
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -21,8 +20,9 @@ class GL3DFrame
 {
 public:
   // ***************************************************** GL3DFrame::creation
-  GL3DFrame() : 
-    _vect_viewer()
+  GL3DFrame( GL3DEngine& eng ) :
+	//_eng("src/shaders/line3d"),
+    _vect_viewer( eng )
   {
   };
   // ******************************************************* GL3DFrame::render
@@ -45,6 +45,7 @@ public:
   };
   // **************************************************** GL3DFrame::attributs
 private:
+  //GL3DUnicolor _eng;
   GL3DVect _vect_viewer;
 };
 #endif // GL_3DFRAME_HPP

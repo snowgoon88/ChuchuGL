@@ -8,3 +8,9 @@ def build(bld):
         libs=['m'],
         use = ['OPENGL','GLFW3']
     )
+    bld.program(
+        source=['simulator.cpp', 'trackball.cc'], target='simulator',
+        includes=['.','..'],
+        libs=['m'],
+        use = ['OPENGL','GLFW3']
+    )

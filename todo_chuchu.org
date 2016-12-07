@@ -1,4 +1,18 @@
-* Current => Son
+* Current => Simu
+* [] Simu <2016-12-04 Sun>
+** TODO shaders
+- tactiship/gl_3dvect.hpp : line3d.v.glsl, line.f.glsl
+- tactiship/gl_3dship.hpp : line_tri_xyz_rgb_fade.v.glsl, line_tri_xyz_rgb_fade.f.glsl
+- tactiship/trajectory.hpp : line_tri_xyz_rgb_fade.v.glsl, line_tri_xyz_rgb_fade.f.glsl
+- gl_engine.
+  - gl_texture : sprite
+  - gl_texture_fade : sprite_fade
+** TODO frame avec x,y,z
+** TODO horizontal floor with grid
+** TODO discs
+** vect vitesse
+** lien entre 2 pts
+** click pour avoir info
 * [6/6] Model
 ** DONE [2/2] leaving Cell
 *** DONE _arrow => prend dir de _arrow
@@ -116,7 +130,7 @@ app.set_controler( _nb_player );
 == TactiShip ==
 ===============
 
-* [7/8] New beginning <2015-12-02 Wed>
+* [7/8] Tactiship <2015-12-02 Wed>
 Reprendre un peu tout à partir de SpaceZombie et faire un afficheur de traces de vaisseaux (genre Tie SW et Navette :o) )
 ** IMPORTANT : ne pas hésiter à s'inspirer de ChuchuRocket => même rép ?
 ** DONE Passer sous WAF
