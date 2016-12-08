@@ -13,6 +13,7 @@
 
 #include <gl_3dengine.hpp>
 #include <gl_3dframe.hpp>
+#include <gl_3dgrid.hpp>
 
 // OpenGL
 #define GL_GLEXT_PROTOTYPES
@@ -44,12 +45,15 @@ class GL3DSimu
 {
 public:
   // ****************************************************** GL3DSimu::creation
-  GL3DSimu( GL3DEngine& engine ) :
+  GL3DSimu( GL3DEngine& engine,
+			float xmin=-10.f, float xmax=10.f, float xgap=1.f,
+			float ymin=-10.f, float ymax=10.f, float ygap=1.f ) :
     _window(engine.window()),
     _zoom(1.0), _start(0,0), _pos{0,0}, _orient{0,0,0,1}, 
     _action(MouseAction::NOTHING),
     _finished(false),
-    _viewer_frame( engine )
+    _viewer_frame( engine ),
+	_viewer_grid( engine, xmin, xmax, xgap, ymin, ymax, ygap )
   {
   };
   // ********************************************************** GL3DSimu::init
@@ -110,6 +114,7 @@ public:
       // Projection-View
       glm::mat4 vp = projection * zoom * translation * rotation;
 
+	  _viewer_grid.render( vp, {0.f, 0.f, 0.f} );
       _viewer_frame.render( vp /*projection*/ );
 
       // Remove any programm so that glText can "work"
@@ -119,7 +124,7 @@ public:
       glfwPollEvents();
 
     }
-  };
+  }
   // **************************************************** GL3DSimu::final_state
   bool final_state() const { return _finished; };
   // ***************************************************** GL3DSimu::attributs
@@ -137,32 +142,33 @@ private:
   bool _finished;
   /** Viewer */
   GL3DFrame _viewer_frame;
+  GL3DGrid _viewer_grid;
   // ****************************************************** GL3DSimu::callback
   static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {
     // ESC
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GL_TRUE);
-  };
+  }
 
   static void mouse_button_callback(GLFWwindow* window, int button,
 				    int action, int mods)
   {
     // callback de la Classe
     ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_mouse_button( button, action, mods );
-  };
+  }
   static void mouse_move_callback( GLFWwindow* window, 
 				   double xpos, double ypos) 
   {
     // callback de la Classe
     ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_mouse_move( xpos, ypos);
-  };
+  }
   static void scroll_callback(GLFWwindow* window,
 			      double xoffset, double yoffset)
   {
     // callback de la Classe
     ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_scroll( yoffset );
-  };
+  }
 public:
   // *********************************************** GL3DSimu::on_mouse_button
   void on_mouse_button( int button, int action, int mods ) 
@@ -203,7 +209,7 @@ public:
       std::cout << "end_action " << x << ", " << y  << std::endl;
       std::cout << "           start= " << glm::to_string(_start) << std::endl;
     }
-  };
+  }
   // ************************************************* GL3DSimu::on_mouse_move
   void on_mouse_move( double xpos, double ypos )
   {
@@ -234,7 +240,7 @@ public:
     default:
       break;
     }
-  };
+  }
   // ***************************************************** GL3DSimu::on_scroll
   /** yoffset vaut +/- 1 */
   void on_scroll( double yoffset ) 
@@ -249,7 +255,7 @@ public:
       _zoom /= ZOOM_COEF;
       if( _zoom < ZOOM_MIN ) _zoom = ZOOM_MIN;
     }
-  };
+  }
 };
 
 #endif // GL_3DSIMU_HPP
