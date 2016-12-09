@@ -71,7 +71,7 @@ public:
 	glUniformMatrix4fv(_eng.gl_unicolor().uniform_mvp(), 1, GL_FALSE,
 					   glm::value_ptr(projection));
     
-    // Couleur de la flèche
+    // Color of arrow
 	glUniform3f( _eng.gl_unicolor().uniform_l_color(),
 				 fg_color.r, fg_color.g, fg_color.b );
 	

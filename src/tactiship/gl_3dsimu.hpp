@@ -14,6 +14,7 @@
 #include <gl_3dengine.hpp>
 #include <gl_3dframe.hpp>
 #include <gl_3dgrid.hpp>
+#include <gl_3ddisc.hpp>
 
 // OpenGL
 #define GL_GLEXT_PROTOTYPES
@@ -53,7 +54,8 @@ public:
     _action(MouseAction::NOTHING),
     _finished(false),
     _viewer_frame( engine ),
-	_viewer_grid( engine, xmin, xmax, xgap, ymin, ymax, ygap )
+	_viewer_grid( engine, xmin, xmax, xgap, ymin, ymax, ygap ),
+	_viewer_disc( engine, 16 )
   {
   };
   // ********************************************************** GL3DSimu::init
@@ -115,6 +117,9 @@ public:
       glm::mat4 vp = projection * zoom * translation * rotation;
 
 	  _viewer_grid.render( vp, {0.f, 0.f, 0.f} );
+	  
+	  _viewer_disc.render( vp, {2.f, 0.f, 0.f}, {1.f,1.f,0.5f},
+						   {1.f,0.f,0.f});
       _viewer_frame.render( vp /*projection*/ );
 
       // Remove any programm so that glText can "work"
@@ -143,6 +148,7 @@ private:
   /** Viewer */
   GL3DFrame _viewer_frame;
   GL3DGrid _viewer_grid;
+  GL3DDisc _viewer_disc;
   // ****************************************************** GL3DSimu::callback
   static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {
