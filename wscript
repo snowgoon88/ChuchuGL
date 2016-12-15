@@ -66,6 +66,7 @@ def build(bld):
     print('→ build from ' + bld.path.abspath())
     bld.recurse('src')
     bld.recurse('src/tactiship')
+    bld.recurse('src/mcts')
     bld.recurse('test')    
-
+    
 
