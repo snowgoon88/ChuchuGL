@@ -96,9 +96,9 @@ public:
     // apply external action
     new_state[act] = 'O';
 
-    // Any legal moves left ?
+    // Any legal moves left and no winner ?
     auto actions = legal_moves( new_state );
-    if( not actions.empty() ) {
+    if( not actions.empty() and winner( new_state ) != 'O') {
       auto unif = std::uniform_int_distribution<>(0,actions.size()-1);
       Action botact = actions[unif(_rnd_engine)]; 
     // while( state[act] != '.' ) {

@@ -69,6 +69,30 @@ public:
     return best_actions[unif(_rnd_engine)];
     }
   }
+  // ******************************************************************** eval
+  double eval( const DecisionNode& node, Bot& bot)
+  {
+    double r_sum = 0;
+    State state = node.get_label();
+    while( bot.winner( state ) == '.' ) {
+      // chose an action
+      auto list_act = bot.legal_moves( state );
+      auto unif = std::uniform_int_distribution<>(0, list_act.size()-1);
+      auto act = list_act[unif(_rnd_engine)];
+
+      // generate next state
+      auto next_state = bot.play( state, act );
+      auto win = bot.winner( next_state );
+      if( win == '.' ) r_sum += 0.0;
+      else if( win == '-' ) r_sum += 1.0;
+      else if( win == 'O' ) r_sum += 5.0;
+      else r_sum += (-5.0);
+
+      state = next_state;
+    }
+    std::cout << "__EVAL ends at " <<  state << " with r_sum=" << r_sum << std::endl;
+    return r_sum;
+  }
 
   // **************************************************************** growtree
   /**
@@ -76,6 +100,9 @@ public:
    */
   void grow_tree( DecisionNode& tree, Bot& bot, double K=1.0)
   {
+    // cumulative reward
+    double cum_rew = 0.0;
+
     // selection of a leaf node
     DecisionNode* node = &tree;
     do {
@@ -101,8 +128,13 @@ public:
       node = &new_node;
     }
     while( node->_nb != 0 and node->_children.size() > 0 );
-  
     std::cout << "LEAF node is" << node->str_dump() << std::endl;
+
+    // Eval
+    cum_rew = eval( *node, bot );
+
+    // 
+    
   }
   // ********************************************************* Algo::attributs
 private:
