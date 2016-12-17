@@ -22,11 +22,13 @@
 #include <gl_texture.hpp>
 #include <gl_texture_fade.hpp>
 #include <gl_3dunicolor.hpp>
+#include <gl_3dtext_shaders.hpp>
 
 // ******************************************************************** GLOBAL
 typedef std::unique_ptr<GLTexture> GLTexturePtr;
 typedef std::unique_ptr<GLTextureFade> GLTextureFadePtr;
 using GL3DUnicolorPtr = std::unique_ptr<GL3DUnicolor>;
+using GL3DTextPtr = std::unique_ptr<GL3DTextShaders>;
 // ***************************************************************************
 // **************************************************************** GL3DEngine
 // ***************************************************************************
@@ -39,7 +41,7 @@ public:
 	   bool fullsize=false) :
     _screen_width(width), _screen_height(height),
     _gl_texture(nullptr), _gl_texture_fade(nullptr),
-	_gl_unicolor(nullptr)
+	_gl_unicolor(nullptr), _gl_text(nullptr)
   {
     glfwSetErrorCallback(error_callback);
     
@@ -66,6 +68,7 @@ public:
     _gl_texture = GLTexturePtr(new GLTexture("src/shaders/sprite") );
     _gl_texture_fade = GLTextureFadePtr(new GLTextureFade("src/shaders/sprite_fade") );
 	_gl_unicolor = GL3DUnicolorPtr(new GL3DUnicolor("src/shaders/line3d"));
+	_gl_text = GL3DTextPtr(new GL3DTextShaders() );
   }
   // *************************************************** GL3DEngine::destruction
   ~GL3DEngine()
@@ -113,6 +116,7 @@ public:
   const GLTexture& gl_texture() const { return *_gl_texture; };
   const GLTextureFade& gl_texture_fade() const { return *_gl_texture_fade; };
   const GL3DUnicolor& gl_unicolor() const { return *_gl_unicolor; }
+  GL3DTextShaders& gl_text() const { return *_gl_text; }
   GLFWwindow* window() { return _window; };
 private:
   /** Ptr sur la Fenetre */
@@ -121,7 +125,8 @@ private:
   /** Shaders */
   GLTexturePtr     _gl_texture;
   GLTextureFadePtr _gl_texture_fade;
-  GL3DUnicolorPtr _gl_unicolor;
+  GL3DUnicolorPtr  _gl_unicolor;
+  GL3DTextPtr      _gl_text;
   // ****************************************************** GL3DEngine::callback
   /**
    * Callback qui gère les événements 'key'

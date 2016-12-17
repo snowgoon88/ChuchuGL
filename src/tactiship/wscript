@@ -6,11 +6,11 @@ def build(bld):
         source=['tactiship.cpp', 'trackball.cc'], target='tactiship',
         includes=['.','..'],
         libs=['m'],
-        use = ['OPENGL','GLFW3']
+        use = ['OPENGL','GLFW3','FREETYPE2','FTGL']
     )
     bld.program(
         source=['simulator.cpp', 'trackball.cc'], target='simulator',
         includes=['.','..'],
         libs=['m'],
-        use = ['OPENGL','GLFW3']
+        use = ['OPENGL','GLFW3','FREETYPE2','FTGL']
     )

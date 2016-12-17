@@ -55,7 +55,8 @@ public:
     _finished(false),
     _viewer_frame( engine ),
 	_viewer_grid( engine, xmin, xmax, xgap, ymin, ymax, ygap ),
-	_viewer_disc( engine, 16 )
+	_viewer_disc( engine, 16 ),
+	_gl_text( engine.gl_text() )
   {
   };
   // ********************************************************** GL3DSimu::init
@@ -118,9 +119,20 @@ public:
 
 	  _viewer_grid.render( vp, {0.f, 0.f, 0.f} );
 	  
-	  _viewer_disc.render( vp, {2.f, 0.f, 0.f}, {1.f,1.f,0.5f},
+	  _viewer_disc.render( vp, {3.f, 0.f, 0.f}, {1.f,1.f,0.5f},
 						   {1.f,0.f,0.f});
       _viewer_frame.render( vp /*projection*/ );
+
+	  // Some text
+	  glm::quat rot_txt = glm::rotate({0,0,0,1},
+									  (float) -M_PI/2.f,
+									  glm::vec3(1,0,0));
+	  _gl_text.pre_render( vp, {0,0,0}, rot_txt );
+	  _gl_text.set_scale( (10.f)/(float)_screen_width,
+						  (10.f)/(float)_screen_height );
+      _gl_text.set_color( {0.f, 0.f, 0.f, 1.f} );
+      _gl_text.render( "Bouh", 0.5f, 0.5f );
+      _gl_text.post_render();
 
       // Remove any programm so that glText can "work"
       glUseProgram(0);
@@ -149,6 +161,7 @@ private:
   GL3DFrame _viewer_frame;
   GL3DGrid _viewer_grid;
   GL3DDisc _viewer_disc;
+  GL3DTextShaders& _gl_text;
   // ****************************************************** GL3DSimu::callback
   static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {
