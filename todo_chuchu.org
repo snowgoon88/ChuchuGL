@@ -168,9 +168,9 @@ The product of two rotation quaternions will be equivalent to the rotation a1 + 
 *** Static
 *** Dynamic
 ** TODO Charger Tie Fighter 3D model ??
-* [4/5] MCTS
+* [5/5] MCTS
 ** DONE GROWTREE : simulation
 ** DONE EVAL
-** TODO GROWTREE : remonter
+** DONE GROWTREE : remonter
 ** DONE GROWTREE : un DecisionNode doit être créé avec ses child
 ** DONE TTT : ajouter get_legel_moves() pour initialiser nodes

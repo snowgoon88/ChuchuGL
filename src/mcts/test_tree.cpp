@@ -10,6 +10,7 @@
 #include <tree.hpp>
 #include <algo.hpp>
 #include <tictactoe.hpp>
+#include <chrono>                      // std::chrono
 
 using DecisionNode = MCTS::Node<std::string,int>;
 using RandomNode   = MCTS::Node<int,std::string>;
@@ -108,8 +109,71 @@ void test_growtree()
 
   // Selection Algorithm
   MCTS::Algo<TTT::State,TTT::Action,TTT::Bot> alg;
+
+  std::string answer = "";
+  while( answer.compare("n") != 0 ) {
+    alg.grow_tree(nroot, bot, 1, true);
+
+    std::cout << "__After GROWTREE " << std::endl;
+    std::cout << nroot.str_tree() << std::endl;
+
+    std::cout << "Continuer [On] ?: ";
+    std::cin >> answer;
+    
+  }
+  // for( unsigned int i = 0; i < 100; ++i) {
+  //   alg.grow_tree(nroot, bot, 1);
+  // }
+  // std::cout << "__After GROWTREE " << std::endl;
+  // std::cout << nroot.str_tree() << std::endl;
+
+  // alg.grow_tree(nroot, bot, 1, true); 
+}
+// ***************************************************************** test_mcts
+void test_mcts( bool verb = false)
+{
+  TTT::Bot bot;
+  // Selection Algorithm
+  MCTS::Algo<TTT::State,TTT::Action,TTT::Bot> alg;
+
+  auto state_init = bot.starting_state();
+
+  auto act = alg.solve( state_init, bot, 1000, 10.0, verb);
+
+  std::cout << "In state " << state_init << " => " << act << std::endl;
+
+}
+// ***************************************************************** test_game
+void test_game( bool verb = false)
+{
+  TTT::Bot bot;
+  // Selection Algorithm
+  MCTS::Algo<TTT::State,TTT::Action,TTT::Bot> alg;
+
+  auto state = bot.starting_state();
+  std::cout << "*** STARTING STATE ***" << std::endl;
+  std::cout << TTT::str_nice(state)  << std::endl;
+  while( bot.winner( state) == '.' ) {
+    auto act = alg.solve( state, bot, std::chrono::milliseconds(500), 15.0, false );
+    state = bot.play( state, act );
+  }
+
+  std::cout << "*** FINAL STATE ***" << std::endl;
+  std::cout << TTT::str_nice(state)  << std::endl;
+
+  std::cout << "And the winner is :";
+  if( bot.winner(state) == 'O' ) {
+    std::cout << "MCTS !" << std::endl;
+  }
+  else if( bot.winner(state) == 'X' ) {
+    std::cout <<  "RANDOMNESS..." << std::endl;
+  }
+  else {
+    std::cout << "NOBODY." << std::endl;
+  }
+
+  bot.winner(state, true);
   
-  alg.grow_tree(nroot, bot, 1);
 }
 // ********************************************************************** main
 int main(int argc, char *argv[])
@@ -117,7 +181,9 @@ int main(int argc, char *argv[])
   //creation_and_print();
   //add_children();
   //test_select();
-  test_growtree();
+  //test_growtree();
+  //test_mcts( true );
+  test_game();
   
   return 0;
 }

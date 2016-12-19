@@ -38,6 +38,16 @@ StateRep str_rep(const State& state)
 
   return rep.str();
 }
+// ****************************************************************** str_nice
+std::string str_nice( const State& state )
+{
+  std::stringstream rep;
+  rep << state[0] << state[1] << state[2] << std::endl;
+  rep << state[3] << state[4] << state[5] << std::endl;
+  rep << state[6] << state[7] << state[8];
+
+  return rep.str();
+}
 // ***************************************************************************
 // *********************************************************************** Bot
 // ***************************************************************************
@@ -109,15 +119,28 @@ public:
     return new_state;
   }
   // ************************************************************* Bot::winner
-  char winner(const State& s)
+  char winner(const State& s, bool verb=false)
   {
     char winner = '.';
     for( unsigned int id = 0; id < 3; ++id) {
-      if( s[id] == s[id+1] and s[id+1] == s[id+2] and s[id] != winner ) return s[id];
-      if( s[id] == s[id+3] and s[id+3] == s[id+6] and s[id] != winner ) return s[id];
+      if( s[id*3] == s[id*3+1] and s[id*3+1] == s[id*3+2]
+	  and s[id*3] != winner ) {
+	if( verb) std::cout << "Line " << id  << std::endl;
+	return s[id*3];
+      }
+      if( s[id] == s[id+3] and s[id+3] == s[id+6] and s[id] != winner ) {
+	if( verb ) std::cout << "Col " << id << std::endl;
+	return s[id];
+      }
     }
-    if( s[0] == s[4] and s[4] == s[8] and s[0] != winner) return s[0];
-    if( s[2] == s[4] and s[4] == s[6] and s[2] != winner) return s[2];
+    if( s[0] == s[4] and s[4] == s[8] and s[0] != winner) {
+      if( verb) std::cout << "Diag 0-8" << std::endl;
+      return s[0];
+    }
+    if( s[2] == s[4] and s[4] == s[6] and s[2] != winner) {
+      if( verb ) std::cout << "Diag 2-6" << std::endl;
+      return s[2];
+    }
 
     // no winners ?
     for( auto& c: s) {

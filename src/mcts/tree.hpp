@@ -23,7 +23,8 @@ class Node
 // ************************************************************ Node::creation
 public:
   Node( const LabelNode& label) :
-    _label(label), _nb(0)
+    _label(label), _nb(0), _rec(0.0), _rec_sum(0.0),
+    _father(nullptr)
   {
     _children.clear();
   }
@@ -56,7 +57,7 @@ public:
   std::string str_display() const
   {
     std::stringstream dump;
-    dump << "N:" << _label << " (" << _nb << ")";
+    dump << "N:" << _label << " (" << _nb << ")" << " r=" << _rec << "/" << _rec_sum;
     
     return dump.str();
   }
@@ -71,6 +72,21 @@ public:
     
     return dump.str();
   }
+  /** maxdepth = -1 : no limit */
+  std::string str_tree(  int max_depth=-1, std::string indent = "") const
+  {
+    if( max_depth != 0 ) {
+      std::stringstream tree;
+      tree << indent << "+" << str_display() << std::endl;
+      for( auto& child: _children) {
+	tree << child.str_tree( max_depth-1, indent + "  " );
+      }
+      return tree.str();
+    }
+    else {
+      return "";
+    } 
+  }
   // ********************************************************* Node::add_child
   /** Insert an element if not already in _children */
   Node<LabelChild,LabelNode>& add_child( const LabelChild& lab )
@@ -78,18 +94,26 @@ public:
     for( auto& child: _children) {
       if( child.get_label() == lab ) return child;
     }
-    _children.push_back( Node<LabelChild,LabelNode>(lab) );
+
+    // create a new child
+    Node<LabelChild,LabelNode> child{lab};
+    child._father = this;
+    
+    _children.push_back( child );
     return _children.back();
   }
-// *********************************************************** Node::attributs
+// ************************************g*********************** Node::attributs
   const LabelNode& get_label() const{ return _label; };
+  Node<LabelChild,LabelNode>* get_father() const { return _father; };
+  
 private:
-  const LabelNode& _label;
+  const LabelNode _label;
 public:
   int _nb;
   double _rec;
   double _rec_sum;
   std::list<Node<LabelChild,LabelNode>> _children;
+  Node<LabelChild,LabelNode>* _father;
 };
 
 }; // namespace MCTS
