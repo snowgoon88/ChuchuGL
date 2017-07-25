@@ -37,13 +37,13 @@
 int main( int argc, char *argv[] )
 {
   std::cout << "__WINDOW" << std::endl;
-  GL3DEngine app( "Simulator", 640, 480);
+  GL3DEnginePtr app = GL3DEnginePtr(new GL3DEngine("Simulator", 640, 480));
   
   std::cout << "__START_SCREEN" << std::endl;
   GL3DSimu trid_screen( app );//, viewer_traj);
   
   std::cout << "__GO" << std::endl;
-  app.run<GL3DSimu,bool>( trid_screen );
+  app->run<GL3DSimu,bool>( trid_screen );
   
   return 0;
 }

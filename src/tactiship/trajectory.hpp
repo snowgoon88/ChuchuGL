@@ -288,3 +288,5 @@ private:
 };
 
 #endif // TRAJECTORY_HPP
+
+// Tvenn, Skjold

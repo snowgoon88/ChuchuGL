@@ -1,5 +1,17 @@
-* Current => Simu
-* [5/6] Simu <2016-12-04 Sun>
+* Current => Physics dans simu
+* Physics <2017-07-19 Wed>
+** TODO [2/3] Base transformation avec rotation
+*** DONE glm::rotate( q, vec3)
+*** DONE glm::inverse( q )
+*** TODO Show in simu
+** TODO Integration : apply speed_n to compute pos_{n+1} before computing speed_{n+1}
+** 3D Forces
+** 3D Rotation
+*** Quat tp 3x3 rotation matrix
+*** from torque, derive new angular velocity
+*** from ang_vel 3x3 => quaternion
+*** apply (multply) to update rotation
+* [5/7] Simu <2016-12-04 Sun>
 ** DONE shaders
 - tactiship/gl_3dvect.hpp : line3d.v.glsl, line.f.glsl
 - tactiship/gl_3dship.hpp : line_tri_xyz_rgb_fade.v.glsl, line_tri_xyz_rgb_fade.f.glsl
@@ -12,6 +24,7 @@
 ** DONE horizontal floor with grid
 ** DONE discs
 ** TODO vect vitesse
+** TODO vecteur vitesse angulaire ?
 ** lien entre 2 pts
 ** click pour avoir info
 * [6/6] Model
@@ -131,7 +144,7 @@ app.set_controler( _nb_player );
 == TactiShip ==
 ===============
 
-* [7/8] Tactiship <2015-12-02 Wed>
+* [7/8] Tactiship <2015-12-02 Wed> Merged into Simu
 Reprendre un peu tout à partir de SpaceZombie et faire un afficheur de traces de vaisseaux (genre Tie SW et Navette :o) )
 ** IMPORTANT : ne pas hésiter à s'inspirer de ChuchuRocket => même rép ?
 ** DONE Passer sous WAF
@@ -143,10 +156,10 @@ Reprendre un peu tout à partir de SpaceZombie et faire un afficheur de traces d
 **** DONE glMath ??
 ** DONE [1/1] Afficher simple vaisseau
 *** DONE [Pk] les Z du vaisseaux ne sont pas les bons ?
-** [2/3] TODO Afficher vaisseau qui fait un rond autour de Oz
+** [3/3] TODO Afficher vaisseau qui fait un rond autour de Oz
 *** DONE Afficher en plusieurs Pose
 *** DONE Scale du Vaisseau
-*** TODO Template pour différents objets => concept GLObject ??
+*** DONE Template pour différents objets => concept GLObject ??
 ** DONE [2/2] Afficher la trace de ce vaisseau
 *** DONE Sous forme d'une ligne avec, de temps à autre une silhouette "fadée".
 *** DONE Ruban transparent de dessous (culling)

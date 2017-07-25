@@ -4,11 +4,9 @@
 #define GL_3DVECT_HPP
 
 /** 
- * Affiche un vecteur comme une flèche.
+ * GL3DObject that draw a vector as an arrow.
  */
-
-#include <gl_3dunicolor.hpp>
-#include <gl_3dengine.hpp>
+#include <gl_3dobject.hpp>
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -23,11 +21,11 @@
 // ***************************************************************************
 // ****************************************************************** GL3DVect
 // ***************************************************************************
-class GL3DVect
+class GL3DVect : public GL3DObject
 {
 public:
   // ****************************************************** GL3DVect::creation
-  GL3DVect( GL3DEngine& eng ) : _eng(eng)
+  GL3DVect( GL3DEnginePtr eng ) : GL3DObject(eng)
   {
     // VBO pour le corp
     GLfloat tail_vtx[] = {0, 0, 0, 1.0,0,0};
@@ -62,25 +60,25 @@ public:
     glDeleteBuffers(1, &_vbo_tail);
   }
   // ******************************************************** GL3DVect::render
-  void render( const glm::mat4& projection,
-	       const glm::vec3& fg_color = {1,0,0},
-	       const glm::vec3& vector = {1,0,0},
-	       const glm::vec3& origin = {0,0,0})
+  virtual void render( const glm::mat4& projection,
+					   const glm::vec3& fg_color = {1,0,0},
+					   const glm::vec3& vector = {1,0,0},
+					   const glm::vec3& origin = {0,0,0}) const
   {
-	glUseProgram( _eng.gl_unicolor().program() );
-	glUniformMatrix4fv(_eng.gl_unicolor().uniform_mvp(), 1, GL_FALSE,
+	glUseProgram( _engine->gl_unicolor().program() );
+	glUniformMatrix4fv(_engine->gl_unicolor().uniform_mvp(), 1, GL_FALSE,
 					   glm::value_ptr(projection));
     
     // Color of arrow
-	glUniform3f( _eng.gl_unicolor().uniform_l_color(),
+	glUniform3f( _engine->gl_unicolor().uniform_l_color(),
 				 fg_color.r, fg_color.g, fg_color.b );
 	
-	glEnableVertexAttribArray( _eng.gl_unicolor().attribute_coord3d() );
+	glEnableVertexAttribArray( _engine->gl_unicolor().attribute_coord3d() );
     /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
     // TAIL *****************************************
     glBindBuffer( GL_ARRAY_BUFFER, _vbo_tail );
     glVertexAttribPointer(
-	  _eng.gl_unicolor().attribute_coord3d(), // attribute
+	  _engine->gl_unicolor().attribute_coord3d(), // attribute
       3,                 // number of elements per vertex, here (x,y)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
@@ -97,14 +95,14 @@ public:
 							0.f));
 	// Projection-View
     glm::mat4 vp = projection * translation;
-    glUniformMatrix4fv(_eng.gl_unicolor().uniform_mvp(), 1, GL_FALSE,
+    glUniformMatrix4fv(_engine->gl_unicolor().uniform_mvp(), 1, GL_FALSE,
 					   glm::value_ptr(vp));
     // Dessiner la tête
     glBindBuffer( GL_ARRAY_BUFFER, _vbo_head );
-	glEnableVertexAttribArray( _eng.gl_unicolor().attribute_coord3d() );
+	glEnableVertexAttribArray( _engine->gl_unicolor().attribute_coord3d() );
   /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
     glVertexAttribPointer(
-	  _eng.gl_unicolor().attribute_coord3d(), // attribute
+	  _engine->gl_unicolor().attribute_coord3d(), // attribute
       3,                 // number of elements per vertex, here (x,y)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
@@ -117,8 +115,6 @@ public:
   };
   // ***************************************************** GL3DVect::attributs
 private:
-  /** Graphic Engine for lines/triangles */
-  GL3DEngine& _eng;
   /** Vertex Buffer Object pour lines */
   GLuint _vbo_head, _vbo_tail;
   unsigned int _vbo_head_size, _vbo_tail_size;

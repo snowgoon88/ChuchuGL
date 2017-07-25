@@ -42,8 +42,8 @@ class GL3DScreen
 {
 public:
   // **************************************************** GL3DScreen::creation
-  GL3DScreen( GL3DEngine& engine, const GL3DTrajectory& traj_viewer ) :
-    _window(engine.window()),
+  GL3DScreen( GL3DEnginePtr engine, const GL3DTrajectory& traj_viewer ) :
+    _window(engine->window()),
     _zoom(1.0), _start(0,0), _pos{0,0}, _orient{0,0,0,1}, 
     _action(MouseAction::NOTHING),
     _finished(false),

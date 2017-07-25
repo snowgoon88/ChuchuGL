@@ -7,6 +7,8 @@
  * A Simulator 3D with
  *  - frame reference.
  *  - TODO grid
+ *
+ * Implements a glconcept::GLScreen (see ...)
  */
 
 #include <trackball.h>
@@ -44,19 +46,20 @@ using RotMatrix = float[16];          // cf trackball.h
 // ***************************************************************************
 class GL3DSimu
 {
+  using GL3DEnginePtr = std::shared_ptr<GL3DEngine>;
 public:
   // ****************************************************** GL3DSimu::creation
-  GL3DSimu( GL3DEngine& engine,
+  GL3DSimu( GL3DEnginePtr engine,
 			float xmin=-10.f, float xmax=10.f, float xgap=1.f,
 			float ymin=-10.f, float ymax=10.f, float ygap=1.f ) :
-    _window(engine.window()),
+    _window(engine->window()),
     _zoom(1.0), _start(0,0), _pos{0,0}, _orient{0,0,0,1}, 
     _action(MouseAction::NOTHING),
     _finished(false),
     _viewer_frame( engine ),
 	_viewer_grid( engine, xmin, xmax, xgap, ymin, ymax, ygap ),
 	_viewer_disc( engine, 16 ),
-	_gl_text( engine.gl_text() )
+	_gl_text( engine->gl_text() )
   {
   };
   // ********************************************************** GL3DSimu::init

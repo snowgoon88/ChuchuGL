@@ -37,7 +37,7 @@ Trajectory make_circle( const Position& center = {0,0,0}, float radius=1.f )
 int main( int argc, char *argv[] )
 {
   std::cout << "__WINDOW" << std::endl;
-  GL3DEngine app( "TactiShip", 640, 480);
+  GL3DEnginePtr app = GL3DEnginePtr(new GL3DEngine( "TactiShip", 640, 480));
   
   Trajectory traj = make_circle( {0,0,0}, 5.f );
   GL3DTrajectory viewer_traj(traj);
@@ -46,7 +46,7 @@ int main( int argc, char *argv[] )
   GL3DScreen trid_screen( app, viewer_traj);
   
   std::cout << "__GO" << std::endl;
-  app.run<GL3DScreen,bool>( trid_screen );
+  app->run<GL3DScreen,bool>( trid_screen );
   
   return 0;
 }

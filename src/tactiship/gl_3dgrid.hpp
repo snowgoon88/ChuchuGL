@@ -6,19 +6,18 @@
 /** 
  * A "horizontal grid" with a "gap" between lines.
  */
-
-#include <gl_3dengine.hpp>
+#include <gl_3dobject.hpp>
 
 // ***************************************************************************
 // ****************************************************************** GL3DGrid
 // ***************************************************************************
-class GL3DGrid
+class GL3DGrid : public GL3DObject
 {
 public:
   // ****************************************************** GL3DGrid::creation
-  GL3DGrid( GL3DEngine& eng,
+  GL3DGrid( GL3DEnginePtr eng,
 			float xmin, float xmax, float xgap,
-			float ymin, float ymax, float ygap) : _eng(eng)
+			float ymin, float ymax, float ygap) : GL3DObject(eng)
   {
 	// VBO for grid
 	// nb of lines along Ox and Oy
@@ -62,18 +61,18 @@ public:
   void render( const glm::mat4& projection,
 			   const glm::vec3& fg_color = {1,0,0} ) const
   {
-	glUseProgram( _eng.gl_unicolor().program() );
-	glUniformMatrix4fv(_eng.gl_unicolor().uniform_mvp(), 1, GL_FALSE,
+	glUseProgram( _engine->gl_unicolor().program() );
+	glUniformMatrix4fv(_engine->gl_unicolor().uniform_mvp(), 1, GL_FALSE,
 					   glm::value_ptr(projection));
     // Color
-	glUniform3f( _eng.gl_unicolor().uniform_l_color(),
+	glUniform3f( _engine->gl_unicolor().uniform_l_color(),
 				 fg_color.r, fg_color.g, fg_color.b );
 
-	glEnableVertexAttribArray( _eng.gl_unicolor().attribute_coord3d() );
+	glEnableVertexAttribArray( _engine->gl_unicolor().attribute_coord3d() );
     /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
 	glBindBuffer( GL_ARRAY_BUFFER, _vbo_lines );
     glVertexAttribPointer(
-	  _eng.gl_unicolor().attribute_coord3d(), // attribute
+	  _engine->gl_unicolor().attribute_coord3d(), // attribute
       3,                 // number of elements per vertex, here (x,y)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
@@ -85,8 +84,6 @@ public:
   }
   // ***************************************************** GL3DGrid::attributs
 private:
-  /** Graphic Engine for lines/triangles */
-  GL3DEngine& _eng;
   /** Vertex Buffer Object for lines */
   GLuint _vbo_lines;
   unsigned int _vbo_lines_size;

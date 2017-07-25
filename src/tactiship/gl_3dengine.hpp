@@ -4,10 +4,11 @@
 #define GL_3DENGINE_HPP
 
 /** 
- * Crée une fenêtre GLFW où on peut dessiner avec les différents
- * shaders initialisé dans ce moteur.
- * Un GLScreen peut être lancé.
- * TODO Voir glconcept::GLScreen.
+ * Create a GLFW _window where one can draw with the various
+ * shaders intialized.
+ * Can run a GLScreen (TODO see glconcept::GLScreen)
+ *
+ * SINGLETON : cannot be copied or assigned !
  */
 
 // OpenGL
@@ -24,11 +25,14 @@
 #include <gl_3dunicolor.hpp>
 #include <gl_3dtext_shaders.hpp>
 
+
 // ******************************************************************** GLOBAL
-typedef std::unique_ptr<GLTexture> GLTexturePtr;
-typedef std::unique_ptr<GLTextureFade> GLTextureFadePtr;
-using GL3DUnicolorPtr = std::unique_ptr<GL3DUnicolor>;
-using GL3DTextPtr = std::unique_ptr<GL3DTextShaders>;
+class GL3DEngine;
+using GL3DEnginePtr = std::shared_ptr<GL3DEngine>;
+using GLTexturePtr = std::shared_ptr<GLTexture>;
+using GLTextureFadePtr = std::shared_ptr<GLTextureFade>;
+using GL3DUnicolorPtr = std::shared_ptr<GL3DUnicolor>;
+using GL3DTextPtr = std::shared_ptr<GL3DTextShaders>;
 // ***************************************************************************
 // **************************************************************** GL3DEngine
 // ***************************************************************************
@@ -60,26 +64,45 @@ public:
       glfwTerminate();
       exit(EXIT_FAILURE);
     }
-    // 'this' est associé à cette _window (pour les callback)
+    // 'this' is associated with this _window (for callback)
     glfwSetWindowUserPointer( _window, this);
     glfwMakeContextCurrent(_window);
 
     // Shaders
-    _gl_texture = GLTexturePtr(new GLTexture("src/shaders/sprite") );
+    _gl_texture = GLTexturePtr (new GLTexture("src/shaders/sprite") );
     _gl_texture_fade = GLTextureFadePtr(new GLTextureFade("src/shaders/sprite_fade") );
 	_gl_unicolor = GL3DUnicolorPtr(new GL3DUnicolor("src/shaders/line3d"));
 	_gl_text = GL3DTextPtr(new GL3DTextShaders() );
   }
+  /** copy creation */
+  GL3DEngine( const GL3DEngine& eng ) = delete;
+  // 	_screen_width(eng._screen_width), _screen_height(eng._screen_height),
+  //   _gl_texture(eng._gl_texture), _gl_texture_fade(eng._gl_texture_fade),
+  // 	_gl_unicolor(eng._gl_unicolor), _gl_text(eng._gl_text)
+  // {}
+  /** assignment creation */
+  GL3DEngine operator=( const GL3DEngine& eng ) = delete;
+  // {
+  //   if (this != &eng) { // protect against invalid self-assignment
+  // 	  _screen_width = eng._screen_width;
+  // 	  _screen_height = eng._screen_height;
+  // 	  _gl_texture = eng._gl_texture;
+  // 	  _gl_texture_fade = eng._gl_texture_fade;
+  // 	  _gl_unicolor = eng._gl_unicolor;
+  // 	  _gl_text = eng._gl_text;
+  //   }
+  //   return *this;
+  // }
   // *************************************************** GL3DEngine::destruction
   ~GL3DEngine()
   {
     glfwDestroyWindow(_window);
     glfwTerminate();
-  };
+  }
   // *********************************************************** GL3DEngine::run
   /** 
-   * Comportement par défaut : fenêtre blanche.
-   * Arrêt avec ESC */
+   * Default behavior : white window.
+   * stop avec ESC */
   void run()
   {
     // set key callback
@@ -90,7 +113,7 @@ public:
       // update screen size
       glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
       
-      // TODO Vérifier ce que fait glViewport
+      // TODO Check what glViewport do.
       glViewport(0, 0, _screen_width, _screen_height);
       /* Clear the background as white */
       glClearColor(1.f, 1.f, 1.f, 1.f);
@@ -100,9 +123,9 @@ public:
       glfwSwapBuffers(_window);
       glfwPollEvents();
     }
-  };
+  }
   /**
-   * Function pour lancer un concept::GLScreen.
+   * To run a concept::GLScreen
    */
   template<class Screen, typename Result>
   Result run( Screen& screen )
@@ -119,11 +142,11 @@ public:
   GL3DTextShaders& gl_text() const { return *_gl_text; }
   GLFWwindow* window() { return _window; };
 private:
-  /** Ptr sur la Fenetre */
+  /** Ptr to the Window */
   GLFWwindow* _window;
   int _screen_width=800, _screen_height=600;
   /** Shaders */
-  GLTexturePtr     _gl_texture;
+  GLTexturePtr    _gl_texture;
   GLTextureFadePtr _gl_texture_fade;
   GL3DUnicolorPtr  _gl_unicolor;
   GL3DTextPtr      _gl_text;
@@ -136,7 +159,7 @@ private:
     // ESC
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GL_TRUE);
-  };
+  }
   /**
    * callback pour gérer les messages d'erreur de GLFW
    */

@@ -9,8 +9,7 @@
  *
  * unsigned int nb_segments in a circonference.
  */
-
-#include <gl_3dengine.hpp>
+#include <gl_3dobject.hpp>
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -23,11 +22,12 @@
 // ***************************************************************************
 // ****************************************************************** GL3DDisc
 // ***************************************************************************
-class GL3DDisc
+class GL3DDisc : public GL3DObject
 {
 public:
   // ****************************************************** GL3DDisc::creation
-  GL3DDisc( GL3DEngine& eng, unsigned int nb_segment ) : _eng(eng)
+  GL3DDisc( GL3DEnginePtr eng, unsigned int nb_segment ) :
+	GL3DObject(eng)
   {
     // VBO with 3d coord for volume.
 	unsigned int nb_vertex = 2 * nb_segment + 2;
@@ -119,9 +119,9 @@ public:
     glDepthMask (GL_TRUE);
     glEnable (GL_LINE_SMOOTH);
 
-    glUseProgram( _eng.gl_unicolor().program() );
+    glUseProgram( _engine->gl_unicolor().program() );
     // Color of disc
-	glUniform3f( _eng.gl_unicolor().uniform_l_color(),
+	glUniform3f( _engine->gl_unicolor().uniform_l_color(),
 				 fg_color.r, fg_color.g, fg_color.b );
 
     // Scale
@@ -134,15 +134,15 @@ public:
     glm::mat4 translation_mtx = glm::translate(  glm::mat4(1.0f),
 						 origin );
     glm::mat4 mvp = projection * translation_mtx * rotation_mtx * scale_mtx;
-    glUniformMatrix4fv(_eng.gl_unicolor().uniform_mvp(), 1, GL_FALSE,
+    glUniformMatrix4fv(_engine->gl_unicolor().uniform_mvp(), 1, GL_FALSE,
      		       glm::value_ptr(mvp));
 
     // Disc
     glBindBuffer( GL_ARRAY_BUFFER, _vbo_disk );
-    glEnableVertexAttribArray(_eng.gl_unicolor().attribute_coord3d());
+    glEnableVertexAttribArray(_engine->gl_unicolor().attribute_coord3d());
     /* Describe Vertices Array to OpenGL */
     glVertexAttribPointer(
-	  _eng.gl_unicolor().attribute_coord3d(), // attribute
+	  _engine->gl_unicolor().attribute_coord3d(), // attribute
       3,                 // number of elements per vertex, here (x,y,z)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
@@ -166,8 +166,6 @@ public:
   };
   // ***************************************************** GL3DDisc::attributs
 private:
- /** Graphic Engine for lines/triangles */
- GL3DEngine& _eng;
   /** Vertex Buffer Objects */
   GLuint _vbo_disk;
   GLuint _ibo_disk_elements;
