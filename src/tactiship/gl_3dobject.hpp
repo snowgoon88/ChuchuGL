@@ -13,11 +13,18 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+// #include <glm/gtx/string_cast.hpp>
+#include <glm/gtc/quaternion.hpp>           // glm::quat 
+#include <glm/gtx/quaternion.hpp>           // glm::quat toMat4
+
 // ***************************************************************************
 // **************************************************************** GL3DObject
 // ***************************************************************************
 class GL3DObject
 {
+public:
+  using TColRGB = glm::vec3;
 public:
   // **************************************************** GL3DObject::creation
   GL3DObject( GL3DEnginePtr engine ) :
@@ -64,9 +71,24 @@ public:
 
 	return mvp;
   }
+  // ********************************************************* GLObject::color
+  void set_color( const TColRGB& color, GLfloat fade = 1.f )
+  {
+	_color = color;
+	_fade = fade;
+  }
+  void set_color_to_gl() const
+  {
+	// Color using OpenGL shaders
+	glUniform3f( _engine->gl_unicolor().uniform_l_color(),
+				 _color.r, _color.g, _color.b );
+    glUniform1f( _engine->gl_unicolor().uniform_fade(), _fade );
+  }
   // ***************************************************** GLObject::attributs
 public:
   GL3DEnginePtr _engine;
+  TColRGB _color;
+  GLfloat _fade;
 };
 
 

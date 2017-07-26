@@ -17,6 +17,7 @@
  */
 #include <string>                     // std::string
 #include <sstream>                    // std::stringdtream
+#include <memory>                        // std::*_ptr
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -31,6 +32,8 @@ namespace physics {
   using TMass = TNumber;
   using TVec3 = glm::vec3;
   using TRot = glm::quat;
+  class RigidBody;
+  using RigidBodyPtr = std::shared_ptr<RigidBody>;
 class RigidBody
 {
 public:

@@ -5,6 +5,7 @@
 
 /** 
  * Render Lines/Trianlgles with uniform color using Shaders
+ * Color is also fade.
  */
 
 #include <gl_utils.hpp>
@@ -43,7 +44,7 @@ public:
     }
 
     // Lier les variables des Shaders
-    // coord 2D
+    // coord 3D
     const char* attribute_name = "coord3d";
     _attribute_coord3d= glGetAttribLocation(_program, attribute_name);
     if (_attribute_coord3d == -1) {
@@ -65,6 +66,13 @@ public:
       std::cerr <<  "Pb pour lier l'uniform " << uniform_name << std::endl;
       exit( EXIT_FAILURE );
     }
+	// fade : uniform (ALPHA) 
+    uniform_name = "fade";
+    _uniform_fade = glGetUniformLocation(_program, uniform_name);
+    if (_uniform_fade == -1) {
+      std::cerr <<  "Pb pour lier l'uniform " << uniform_name << std::endl;
+      exit( EXIT_FAILURE );;
+    }
   }
   // *********************************************** GL3DUnicolor::destruction
   virtual ~GL3DUnicolor()
@@ -77,13 +85,14 @@ public:
   const GLint&  attribute_coord3d() const { return _attribute_coord3d; };
   const GLint&  uniform_mvp() const { return _uniform_mvp; };
   const GLint&  uniform_l_color() const { return _uniform_l_color; };
+  const GLint&  uniform_fade() const { return _uniform_fade; };
 protected:
   /** Program GLSL */
   GLuint _program;
   /** Variables globale du Programme GLSL */
   GLint _attribute_coord3d;
   /** uniform var */
-  GLint _uniform_mvp, _uniform_l_color;
+  GLint _uniform_mvp, _uniform_l_color, _uniform_fade;
 };
 
 #endif // GL_3DUNICOLOR_HPP

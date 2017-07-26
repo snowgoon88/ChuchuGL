@@ -17,6 +17,7 @@
 #include <gl_3dframe.hpp>
 #include <gl_3dgrid.hpp>
 #include <gl_3ddisc.hpp>
+#include <gl_3drect.hpp>
 
 // OpenGL
 #define GL_GLEXT_PROTOTYPES
@@ -59,9 +60,14 @@ public:
     _viewer_frame( engine ),
 	_viewer_grid( engine, xmin, xmax, xgap, ymin, ymax, ygap ),
 	_viewer_disc( engine, 16 ),
-	_gl_text( engine->gl_text() )
+	_viewer_rect( engine ),
+	_gl_text( engine->gl_text() ),
+	_gui_rect( engine )
   {
-  };
+	_viewer_disc.set_color( {1.f,0.f,0.f}, 1.0f );
+	_viewer_rect.set_color( {0,0,1}, 0.5f );
+	_gui_rect.set_color( {1.f, 1.f, 1.f}, 0.2f );
+  }
   // ********************************************************** GL3DSimu::init
   /** Callback pour touches et souris */
   void init() 
@@ -119,26 +125,41 @@ public:
 							  0.f));
       // Projection-View
       glm::mat4 vp = projection * zoom * translation * rotation;
+	  _gl_text.set_scale( (10.f)/(float)_screen_width,
+	  					  (10.f)/(float)_screen_height );
 
 	  _viewer_grid.render( vp, {0.f, 0.f, 0.f} );
 	  
-	  _viewer_disc.render( vp, {3.f, 0.f, 0.f}, {1.f,1.f,0.5f},
-						   {1.f,0.f,0.f});
-      _viewer_frame.render( vp /*projection*/ );
+	  _viewer_disc.render( vp, {3.f, 0.f, 0.f}, glm::quat(glm::vec3(0,0,0)),
+						   {1.f,1.f,0.5f} );
+	  					
+	  _viewer_rect.render( vp, {0.f, 3.f, 1.f} );
+	  _viewer_frame.render( vp /*projection*/ );
 
-	  // Some text
-	  glm::quat rot_txt = glm::rotate({0,0,0,1},
-									  (float) -M_PI/2.f,
-									  glm::vec3(1,0,0));
-	  _gl_text.pre_render( vp, {0,0,0}, rot_txt );
-	  _gl_text.set_scale( (10.f)/(float)_screen_width,
-						  (10.f)/(float)_screen_height );
+	  // Some text, as GUI ?
+	  // Reset projection to 0,1 x 0,1
+	  projection = glm::ortho( 0.f, 1.f, // left;right
+					 0.f, 1.f, // bottom,top
+					 -1.f, 1.f // near far
+					 );
+	  //glm::quat rot_txt = glm::rotate({0,0,0,1},
+	  // 								  (float) -M_PI/2.f,
+	  // 								  glm::vec3(1,0,0));
+	  // rotation using euler vectors
+	  glm::quat rot_txt = glm::quat(glm::vec3(0,0,M_PI));
+	  // TODO BUT, strangely, need to rotate over Oz!!!
+	  _gui_rect.render( projection,
+						{0.5f,0.95f,1.0f}, glm::quat(glm::vec3(0,0,0)),
+						{1.0f,0.1f,1.0f} );
+	  _gl_text.pre_render( projection, {0,0,1.0f}, rot_txt );
+	  _gl_text.set_scale( (2.f)/(float)_screen_width,
+	  					  (2.f)/(float)_screen_height );
       _gl_text.set_color( {0.f, 0.f, 0.f, 1.f} );
-      _gl_text.render( "Bouh", 0.5f, 0.5f );
+      _gl_text.render( "Bouh", 0.05f, 0.95f );
       _gl_text.post_render();
 
       // Remove any programm so that glText can "work"
-      glUseProgram(0);
+      //glUseProgram(0);
 
       glfwSwapBuffers(_window);
       glfwPollEvents();
@@ -164,7 +185,10 @@ private:
   GL3DFrame _viewer_frame;
   GL3DGrid _viewer_grid;
   GL3DDisc _viewer_disc;
+  GL3DRect _viewer_rect;
   GL3DTextShaders& _gl_text;
+  /** GUI elements */
+  GL3DRect _gui_rect;
   // ****************************************************** GL3DSimu::callback
   static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {

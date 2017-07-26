@@ -72,6 +72,7 @@ public:
     // Color of arrow
 	glUniform3f( _engine->gl_unicolor().uniform_l_color(),
 				 fg_color.r, fg_color.g, fg_color.b );
+	glUniform1f( _engine->gl_unicolor().uniform_fade(), 1.0 );
 	
 	glEnableVertexAttribArray( _engine->gl_unicolor().attribute_coord3d() );
     /* Describe our vertices array to OpenGL (it can't guess its format automatically) */

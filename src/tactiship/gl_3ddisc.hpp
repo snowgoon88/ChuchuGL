@@ -11,14 +11,6 @@
  */
 #include <gl_3dobject.hpp>
 
-#define GLM_FORCE_RADIANS
-#include <glm/glm.hpp>
-// #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-// #include <glm/gtx/string_cast.hpp>
-#include <glm/gtc/quaternion.hpp>           // glm::quat 
-#include <glm/gtx/quaternion.hpp>           // glm::quat toMat4
-
 // ***************************************************************************
 // ****************************************************************** GL3DDisc
 // ***************************************************************************
@@ -105,13 +97,12 @@ public:
     // Et les vbo, ibo
     glDeleteBuffers(1, &_vbo_disk);
     glDeleteBuffers(1, &_ibo_disk_elements);
-  };
+  }
   // ******************************************************** GL3DDisc::render
   void render( const glm::mat4& projection,
 			   const glm::vec3& origin = {0,0,0},
-			   const glm::vec3& scale = {1,1,1},
-			   const glm::vec3& fg_color = {1,0,0},
-			   const glm::quat& rotation = {0,0,0,1} ) const
+			   const glm::quat& rotation = glm::quat(glm::vec3(0,0,0)),
+			   const glm::vec3& scale = {1,1,1} ) const
   {
     glPushAttrib (GL_ENABLE_BIT);
     glEnable (GL_CULL_FACE);
@@ -121,19 +112,10 @@ public:
 
     glUseProgram( _engine->gl_unicolor().program() );
     // Color of disc
-	glUniform3f( _engine->gl_unicolor().uniform_l_color(),
-				 fg_color.r, fg_color.g, fg_color.b );
-
-    // Scale
-    glm::mat4 scale_mtx = glm::scale( glm::mat4(1.0f),
-				      scale );
-    // Rotation
-    glm::mat4 rotation_mtx = glm::toMat4( rotation );
-
-    // Translation
-    glm::mat4 translation_mtx = glm::translate(  glm::mat4(1.0f),
-						 origin );
-    glm::mat4 mvp = projection * translation_mtx * rotation_mtx * scale_mtx;
+	set_color_to_gl();
+	// Matrix 
+    glm::mat4 mvp = set_projection_mtx( projection,
+										origin, rotation, scale );
     glUniformMatrix4fv(_engine->gl_unicolor().uniform_mvp(), 1, GL_FALSE,
      		       glm::value_ptr(mvp));
 
