@@ -32,6 +32,11 @@
 // #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include <sstream>
+#include <iomanip> // needed to use manipulators with parameters (precision, width)
+#include <chrono>                      // std::chrono
+#include <thread>                      // std::thread
+
 // ********************************************************** GL3DSimu::Global
 #define ZOOM_COEF  1.05f
 #define ZOOM_MAX  10.0f
@@ -62,7 +67,10 @@ public:
 	_viewer_disc( engine, 16 ),
 	_viewer_rect( engine ),
 	_gl_text( engine->gl_text() ),
-	_gui_rect( engine )
+    _gui_rect( engine ),
+    _physics_running( false),
+    _frame_time_cur(0.0), _frame_time_mean(0.0),
+    _phys_time_cur(0.0), _phys_time_mean(0.0)
   {
 	_viewer_disc.set_color( {1.f,0.f,0.f}, 1.0f );
 	_viewer_rect.set_color( {0,0,1}, 0.5f );
@@ -91,8 +99,26 @@ public:
     // Enable alpha
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+     auto frame_time = std::chrono::steady_clock::now();
+    std::stringstream fps_ss;
+    fps_ss << "FPS c/M : ";
+    fps_ss << _frame_time_cur.count() << "/";
+    fps_ss << _frame_time_mean.count();
+    fps_ss << " PHYS c/m : ";
+    fps_ss << _phys_time_cur.count() << "/";
+    fps_ss << _phys_time_mean.count();
     
     while (!glfwWindowShouldClose(_window) and not _finished) {
+      // clock
+      auto start_proc = std::chrono::steady_clock::now();
+
+      // Physics
+      if( _physics_running ) {
+	// do things
+      }
+      auto end_physics = std::chrono::steady_clock::now();
+      
       // update screen size
       glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
       
@@ -156,6 +182,7 @@ public:
 	  					  (2.f)/(float)_screen_height );
       _gl_text.set_color( {0.f, 0.f, 0.f, 1.f} );
       _gl_text.render( "Bouh", 0.05f, 0.95f );
+      _gl_text.render( fps_ss.str(), 0.05f, 0.05f );
       _gl_text.post_render();
 
       // Remove any programm so that glText can "work"
@@ -164,6 +191,37 @@ public:
       glfwSwapBuffers(_window);
       glfwPollEvents();
 
+       // clock
+      auto end_proc = std::chrono::steady_clock::now();
+      // wait period 
+      std::chrono::duration<double> elapsed_seconds = end_proc - start_proc;
+      std::this_thread::sleep_for(std::chrono::milliseconds(20)
+				  - elapsed_seconds );
+
+      // Physics time
+      _phys_time_cur = end_physics - start_proc;
+      _phys_time_mean = 0.9 * _phys_time_mean + 0.1 * _phys_time_cur;
+      // Frame time
+      _frame_time_cur = end_proc - start_proc;
+      _frame_time_mean = 0.9 * _frame_time_mean + 0.1 * _frame_time_cur;
+      // save the current settings
+      auto old_settings = fps_ss.flags(); //save previous format flags
+      auto old_precision = fps_ss.precision();
+
+      fps_ss << std::fixed;
+      fps_ss.str("");
+      fps_ss << "FPS c/M : ";
+      fps_ss << std::setprecision(1);
+      fps_ss << std::setw(5) <<_frame_time_cur.count() << "/";
+      fps_ss << std::setw(5)<< _frame_time_mean.count();
+      fps_ss << " PHYS c/m : ";
+      fps_ss << std::setprecision(1);
+      fps_ss << std::setw(5)<< (_phys_time_cur.count() / _frame_time_cur.count()) * 100.0 << "/";
+      fps_ss << std::setw(5)<< (_phys_time_mean.count() / _frame_time_mean.count()) * 100.0 << " %";
+      // restore output format flags and precision
+
+      std::cout.flags(old_settings);
+      std::cout.precision(old_precision);
     }
   }
   // **************************************************** GL3DSimu::final_state
@@ -189,6 +247,13 @@ private:
   GL3DTextShaders& _gl_text;
   /** GUI elements */
   GL3DRect _gui_rect;
+  /** Simulations state */
+  bool _physics_running;
+  /** FPS */
+  std::chrono::duration<double, std::milli> _frame_time_cur;
+  std::chrono::duration<double, std::milli> _frame_time_mean;
+  std::chrono::duration<double, std::milli> _phys_time_cur;
+  std::chrono::duration<double, std::milli> _phys_time_mean;
   // ****************************************************** GL3DSimu::callback
   static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {
