@@ -47,7 +47,7 @@ public:
     _zoom(1.0), _start(0,0), _pos{0,0}, _orient{0,0,0,1}, 
     _action(MouseAction::NOTHING),
     _finished(false),
-    _viewer_frame(engine), _viewer_ship(),
+    _viewer_frame(engine), _viewer_ship(engine),
     _viewer_traj(traj_viewer)
   {
   };

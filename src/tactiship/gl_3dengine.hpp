@@ -23,6 +23,7 @@
 #include <gl_texture.hpp>
 #include <gl_texture_fade.hpp>
 #include <gl_3dunicolor.hpp>
+#include <gl_3dmulticolor.hpp>
 #include <gl_3dtext_shaders.hpp>
 
 
@@ -32,6 +33,7 @@ using GL3DEnginePtr = std::shared_ptr<GL3DEngine>;
 using GLTexturePtr = std::shared_ptr<GLTexture>;
 using GLTextureFadePtr = std::shared_ptr<GLTextureFade>;
 using GL3DUnicolorPtr = std::shared_ptr<GL3DUnicolor>;
+using GL3DMulticolorPtr = std::shared_ptr<GL3DMulticolor>;
 using GL3DTextPtr = std::shared_ptr<GL3DTextShaders>;
 // ***************************************************************************
 // **************************************************************** GL3DEngine
@@ -71,8 +73,9 @@ public:
     // Shaders
     _gl_texture = GLTexturePtr (new GLTexture("src/shaders/sprite") );
     _gl_texture_fade = GLTextureFadePtr(new GLTextureFade("src/shaders/sprite_fade") );
-	_gl_unicolor = GL3DUnicolorPtr(new GL3DUnicolor("src/shaders/line3d"));
-	_gl_text = GL3DTextPtr(new GL3DTextShaders() );
+    _gl_unicolor = GL3DUnicolorPtr(new GL3DUnicolor("src/shaders/line3d"));
+    _gl_multicolor = GL3DMulticolorPtr(new GL3DMulticolor("src/shaders/line_tri_xyz_rgb_fade"));
+    _gl_text = GL3DTextPtr(new GL3DTextShaders() );
   }
   /** copy creation */
   GL3DEngine( const GL3DEngine& eng ) = delete;
@@ -139,6 +142,7 @@ public:
   const GLTexture& gl_texture() const { return *_gl_texture; };
   const GLTextureFade& gl_texture_fade() const { return *_gl_texture_fade; };
   const GL3DUnicolor& gl_unicolor() const { return *_gl_unicolor; }
+  const GL3DMulticolor& gl_multicolor() const { return *_gl_multicolor; }
   GL3DTextShaders& gl_text() const { return *_gl_text; }
   GLFWwindow* window() { return _window; };
 private:
@@ -149,6 +153,7 @@ private:
   GLTexturePtr    _gl_texture;
   GLTextureFadePtr _gl_texture_fade;
   GL3DUnicolorPtr  _gl_unicolor;
+  GL3DMulticolorPtr _gl_multicolor;
   GL3DTextPtr      _gl_text;
   // ****************************************************** GL3DEngine::callback
   /**
