@@ -32,6 +32,10 @@
 // #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+// Physics
+#include <physics/rigid_body.hpp>
+#include <physics/engine.hpp>
+
 #include <sstream>
 #include <iomanip> // needed to use manipulators with parameters (precision, width)
 #include <chrono>                      // std::chrono
@@ -68,13 +72,20 @@ public:
 	_viewer_rect( engine ),
 	_gl_text( engine->gl_text() ),
     _gui_rect( engine ),
-    _physics_running( false),
+    _physics_running( false), _physics_eng(nullptr), _physics_time(0.0),
     _frame_time_cur(0.0), _frame_time_mean(0.0),
     _phys_time_cur(0.0), _phys_time_mean(0.0)
   {
 	_viewer_disc.set_color( {1.f,0.f,0.f}, 1.0f );
 	_viewer_rect.set_color( {0,0,1}, 0.5f );
 	_gui_rect.set_color( {1.f, 1.f, 1.f}, 0.2f );
+
+	physics_init();
+  }
+  // **************************************************** GL3DSimu::destructor
+  virtual ~GL3DSimu()
+  {
+    if( _physics_eng ) delete _physics_eng;
   }
   // ********************************************************** GL3DSimu::init
   /** Callback pour touches et souris */
@@ -86,7 +97,23 @@ public:
     glfwSetMouseButtonCallback( _window, mouse_button_callback );
     glfwSetCursorPosCallback( _window, mouse_move_callback );
     glfwSetScrollCallback( _window, scroll_callback);
-  };
+  }
+  // *************************************************** GL3DSimu::physics_init
+  void physics_init()
+  {
+    _physics_eng = new physics::Engine( true /* with gravity */ );
+    auto pt = physics::RigidBodyPtr( new physics::RigidBody() );
+    _physics_eng->_bodies.push_back( pt );
+    physics_reset();
+  }
+  void physics_reset()
+  {
+    _physics_time = 0.0;
+    // First RB at 0,0,0 with speed along 0x
+    auto pt = _physics_eng->_bodies.front();
+    pt->_pos = physics::TVec3( 0,0,0 );
+    pt->_vel = physics::TVec3( 1,0,0 );
+  }  
   // *********************************************************** GLScreen::render
   /**
    * render() est bloquant, ne rendant la main que quand le GLSCreen 
@@ -99,8 +126,8 @@ public:
     // Enable alpha
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-     auto frame_time = std::chrono::steady_clock::now();
+    
+    auto frame_time = std::chrono::steady_clock::now();
     std::stringstream fps_ss;
     fps_ss << "FPS c/M : ";
     fps_ss << _frame_time_cur.count() << "/";
@@ -108,15 +135,28 @@ public:
     fps_ss << " PHYS c/m : ";
     fps_ss << _phys_time_cur.count() << "/";
     fps_ss << _phys_time_mean.count();
-    
+
+    // Physics status
+    std::stringstream phy_ss;
+
     while (!glfwWindowShouldClose(_window) and not _finished) {
       // clock
       auto start_proc = std::chrono::steady_clock::now();
 
       // Physics
+      phy_ss.str("");
       if( _physics_running ) {
+	phy_ss << "RUN";
+	_physics_eng->update( 0.02 );
+	_physics_time += 0.02;
 	// do things
       }
+      else {
+	phy_ss << "STOP";
+      }
+      phy_ss << " t=";
+      phy_ss << std::fixed << std::setprecision(2);
+      phy_ss << _physics_time;
       auto end_physics = std::chrono::steady_clock::now();
       
       // update screen size
@@ -160,6 +200,16 @@ public:
 						   {1.f,1.f,0.5f} );
 	  					
 	  _viewer_rect.render( vp, {0.f, 3.f, 1.f} );
+
+
+	  // Physics
+	  for (auto it = _physics_eng->_bodies.begin();
+	       it != _physics_eng->_bodies.end(); ++it) {
+	    // std::cout << (*it)->str_dump() << std::endl;
+	    _viewer_frame.render( vp, (*it)->_pos, (*it)->_rot );
+	  }
+
+	  
 	  _viewer_frame.render( vp /*projection*/ );
 
 	  // Some text, as GUI ?
@@ -181,7 +231,7 @@ public:
 	  _gl_text.set_scale( (2.f)/(float)_screen_width,
 	  					  (2.f)/(float)_screen_height );
       _gl_text.set_color( {0.f, 0.f, 0.f, 1.f} );
-      _gl_text.render( "Bouh", 0.05f, 0.95f );
+      _gl_text.render( phy_ss.str(), 0.05f, 0.95f );
       _gl_text.render( fps_ss.str(), 0.05f, 0.05f );
       _gl_text.post_render();
 
@@ -220,8 +270,8 @@ public:
       fps_ss << std::setw(5)<< (_phys_time_mean.count() / _frame_time_mean.count()) * 100.0 << " %";
       // restore output format flags and precision
 
-      std::cout.flags(old_settings);
-      std::cout.precision(old_precision);
+      fps_ss.flags(old_settings);
+      fps_ss.precision(old_precision);
     }
   }
   // **************************************************** GL3DSimu::final_state
@@ -249,6 +299,8 @@ private:
   GL3DRect _gui_rect;
   /** Simulations state */
   bool _physics_running;
+  physics::Engine *_physics_eng;
+  double _physics_time;
   /** FPS */
   std::chrono::duration<double, std::milli> _frame_time_cur;
   std::chrono::duration<double, std::milli> _frame_time_mean;
@@ -258,10 +310,15 @@ private:
   static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {
     // ESC
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
       glfwSetWindowShouldClose(window, GL_TRUE);
+    }
+    // else callback from Class
+    else if( action == GLFW_PRESS ) {
+      //std::cout << "key_callback = " << key << std::endl;
+      ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_key_pressed( key );
+    }
   }
-
   static void mouse_button_callback(GLFWwindow* window, int button,
 				    int action, int mods)
   {
@@ -281,6 +338,20 @@ private:
     ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_scroll( yoffset );
   }
 public:
+  // ************************************************ GL3DSimu::on_key_pressed
+  void on_key_pressed( int key ) 
+  {
+    std::cout << "GLWindow::key_pressed key=" << key << std::endl;
+    if( key == GLFW_KEY_R) {
+      // toggle _is_running
+      _physics_running = !_physics_running;
+    }
+    else if( key == GLFW_KEY_E) {
+      // stop and reset
+      _physics_running = false;
+      physics_reset();
+    }
+  }
   // *********************************************** GL3DSimu::on_mouse_button
   void on_mouse_button( int button, int action, int mods ) 
   {
