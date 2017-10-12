@@ -4,7 +4,7 @@
 ## Par défaut ./waf configure va utiliser buildir=wbuild et CXX=g++
 ## MAIS avec ./waf configure --out=cbuild --check-cxx-compiler=clang++
 ##      on peut utilise clang :o)
-
+## l'option --color permet de coloriser la sortie du compilo
 
 # wscript in $CHUCHU
 
@@ -54,6 +54,11 @@ def configure(conf):
     ##conf.env.includes = ['src']
     ##conf.check_tool('compiler_cxx')
     conf.env['CXXFLAGS'] = ['-D_REENTRANT','-Wall','-fPIC','-g','-std=c++11']
+    ## option --color le fair
+    # if '/usr/bin/clang++' in conf.env.CXX:
+    #     conf.env['CXXFLAGS'].append( '-fcolor-diagnostics' )
+    # else:
+    #     conf.env['CXXFLAGS'].append( '-fdiagnostics-color=always' )
     ##conf.env['INCLUDES'] = ['src']
 
     ## Check GLM
@@ -99,6 +104,7 @@ def configure(conf):
 
 def build(bld):
     print('→ build from ' + bld.path.abspath() + " with CXX=" + str(bld.env.CXX))
+    print('  CXXFLAGS=' + str(bld.env.CXXFLAGS) )
     bld.recurse('src')
     bld.recurse('src/tactiship')
     bld.recurse('test')    

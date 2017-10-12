@@ -4,6 +4,7 @@
 # waf related
 /build
 /wbuild
+/cbuild
 .waf-*
 .lock-waf*
 # GTAGS
