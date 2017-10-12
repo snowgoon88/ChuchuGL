@@ -18,6 +18,7 @@
 #include <gl_3dgrid.hpp>
 #include <gl_3ddisc.hpp>
 #include <gl_3drect.hpp>
+#include <gl_3dship.hpp>
 
 // OpenGL
 #define GL_GLEXT_PROTOTYPES
@@ -70,6 +71,7 @@ public:
 	_viewer_grid( engine, xmin, xmax, xgap, ymin, ymax, ygap ),
 	_viewer_disc( engine, 16 ),
 	_viewer_rect( engine ),
+    _viewer_ship( engine ),
 	_gl_text( engine->gl_text() ),
     _gui_rect( engine ),
     _physics_running( false), _physics_eng(nullptr), _physics_time(0.0),
@@ -101,7 +103,7 @@ public:
   // *************************************************** GL3DSimu::physics_init
   void physics_init()
   {
-    _physics_eng = new physics::Engine( true /* with gravity */ );
+    _physics_eng = new physics::Engine( false /* with gravity */ );
     auto pt = physics::RigidBodyPtr( new physics::RigidBody() );
     _physics_eng->_bodies.push_back( pt );
     physics_reset();
@@ -109,10 +111,11 @@ public:
   void physics_reset()
   {
     _physics_time = 0.0;
-    // First RB at 0,0,0 with speed along 0x
+    // First RigidBody at 0,0,0 with speed along 0x
     auto pt = _physics_eng->_bodies.front();
-    pt->_pos = physics::TVec3( 0,0,0 );
-    pt->_vel = physics::TVec3( 1,0,0 );
+    pt->_pos = physics::TVec3( -8,0,-5 );
+    pt->_rot = glm::quat(glm::vec3(0,-M_PI/6.0,0));
+    pt->_vel = physics::TVec3( 0.8,0,0.5 );
   }  
   // *********************************************************** GLScreen::render
   /**
@@ -191,6 +194,18 @@ public:
 							  0.f));
       // Projection-View
       glm::mat4 vp = projection * zoom * translation * rotation;
+
+      // Camera View
+      auto ship = _physics_eng->_bodies.front();
+      glm::mat4 t2ship = glm::translate( glm::mat4(1.0f), -ship->_pos );
+      glm::mat4 t2cam = glm::translate( glm::mat4(1.0f),
+				       glm::vec3(-5,0,2));
+      glm::mat4 r2ship = glm::toMat4( ship->_rot );
+      vp = glm::lookAt( ship->_pos+glm::vec3(-5,0,0), ship->_pos,
+       			glm::vec3(0,0,1) );
+      vp = vp * t2ship * t2cam;
+      //vp = projection * t2ship * t2cam;
+      
 	  _gl_text.set_scale( (10.f)/(float)_screen_width,
 	  					  (10.f)/(float)_screen_height );
 
@@ -206,7 +221,7 @@ public:
 	  for (auto it = _physics_eng->_bodies.begin();
 	       it != _physics_eng->_bodies.end(); ++it) {
 	    // std::cout << (*it)->str_dump() << std::endl;
-	    _viewer_frame.render( vp, (*it)->_pos, (*it)->_rot );
+	    _viewer_ship.render( vp, (*it)->_pos, (*it)->_rot );
 	  }
 
 	  
@@ -294,6 +309,7 @@ private:
   GL3DGrid _viewer_grid;
   GL3DDisc _viewer_disc;
   GL3DRect _viewer_rect;
+  GL3DShip _viewer_ship;
   GL3DTextShaders& _gl_text;
   /** GUI elements */
   GL3DRect _gui_rect;

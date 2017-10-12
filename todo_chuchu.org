@@ -1,8 +1,8 @@
 * Current => Camera
-* [1/3] Camera <2017-07-26 mer.>
+* [2/3] Camera <2017-07-26 mer.>
 ** DONE [1/1] ship to GL3DObject
 *** DONE add shaders to GL3DEngine
-** TODO make ship go circling in simulator
+** DONE make ship move
 ** TODO [0/2] attach camera
 *** TODO behind ship
 *** TODO in cockpit
