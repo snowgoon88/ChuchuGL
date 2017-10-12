@@ -6,17 +6,9 @@
 /** 
  * Une suite de Pose = {glm::vec3 pos, glm::quat rot}.
  */
-
+#include <gl_3dobject.hpp>
 #include <gl_3dship.hpp>
 #include <vector>                         // std::vector
-
-#define GLM_FORCE_RADIANS
-#include <glm/glm.hpp>
-// #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-// #include <glm/gtx/string_cast.hpp>
-#include <glm/gtc/quaternion.hpp>           // glm::quat 
-// #include <glm/gtx/quaternion.hpp>           // glm::quat toMat4
 
 // ********************************************************************* Types
 typedef glm::vec3 Position;
@@ -34,13 +26,14 @@ typedef std::vector<Pose> Trajectory;
 // ***************************************************************************
 // ************************************************************ GL3DTrajectory
 // ***************************************************************************
-class GL3DTrajectory
+class GL3DTrajectory : GL3DObject
 {
 public:
   // ************************************************ GL3DTrajectory::creation
-  GL3DTrajectory( const Trajectory& trajectory ) :
+  GL3DTrajectory( GL3DEnginePtr eng, const Trajectory& trajectory ) :
+    GL3DObject( eng ),
     _traj(trajectory),
-    _viewer_ship()
+    _viewer_ship( eng )
   {
     // VBO pour le ruban : les bords comme x,y,z + rgb_line + rgb_face_front
     GLfloat ribbon_vtx[ 2 * (3+6) * _traj.size() ];
@@ -99,72 +92,18 @@ public:
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ribbon_ets),
   		 ribbon_ets, GL_STATIC_DRAW);
 
-    // Charger les Shaders : LINE + TRIANGLE 3D, avec couleur
-    GLint link_ok = GL_FALSE;
-    GLuint vs, fs;
-    /** Vertex Shader */
-    if ((vs = GLUtils::create_shader("src/shaders/line_tri_xyz_rgb_fade.v.glsl",
-  				     GL_VERTEX_SHADER))   == 0)
-      exit( EXIT_FAILURE );
-    /** Fragment Shader */
-    if ((fs = GLUtils::create_shader("src/shaders/line_tri_xyz_rgb_fade.f.glsl",
-  				     GL_FRAGMENT_SHADER)) == 0)
-      exit( EXIT_FAILURE );
-    /** GLSL program */
-    // link Vertex et Fragment Shaders
-    // program est une variable GLOBALE
-    _program = glCreateProgram();
-    glAttachShader(_program, vs);
-    glAttachShader(_program, fs);
-    glLinkProgram(_program);
-    glGetProgramiv(_program, GL_LINK_STATUS, &link_ok);
-    if (!link_ok) {
-      std::cerr << "__GL3DShip: Pb avec glLinkProgam "<< std::endl;
-      std::cerr << GLUtils::str_compiler_log(_program) << std::endl;
-      exit( EXIT_FAILURE );
-    }
-
-    // Lier les variables des shaders
-    // coord3d : coordonnées du vertex
-    const char* attribute_name = "coord3d";
-    _attribute_coord3d= glGetAttribLocation(_program, attribute_name);
-    if (_attribute_coord3d == -1) {
-      std::cerr <<  "Pb pour lier l'attribut " << attribute_name << std::endl;
-      exit( EXIT_FAILURE );;
-    }
-    // la variable 'v_color' (RGB) du programme GLSL
-    attribute_name = "v_color";
-    _attribute_v_color = glGetAttribLocation(_program, attribute_name);
-    if (_attribute_v_color == -1) {
-      std::cerr <<  "Pb pour lier l'attribut " << attribute_name << std::endl;
-      exit( EXIT_FAILURE );;
-    }
-    // la variable uniform 'fade' (ALPHA) du programme GLSL
-    const char* uniform_name = "fade";
-    _uniform_fade = glGetUniformLocation(_program, uniform_name);
-    if (_uniform_fade == -1) {
-      std::cerr <<  "Pb pour lier l'uniform " << uniform_name << std::endl;
-      exit( EXIT_FAILURE );;
-    }
-    uniform_name = "mvp";
-    _uniform_mvp = glGetUniformLocation(_program, uniform_name);
-    if (_uniform_mvp == -1) {
-      std::cerr <<  "Pb pour lier l'uniform " << uniform_name << std::endl;
-      exit( EXIT_FAILURE );
-    }
-  };
+  }
   // ********************************************* GL3DTrajectory::destruction
   virtual ~GL3DTrajectory()
   {
-    // Détruit le programme GLSL
-    glDeleteProgram(_program);
     // Et les vbo, ibo
     glDeleteBuffers(1, &_vbo_ribbon);
   }
   // ************************************************** GL3DTrajectory::render
   void render( const glm::mat4& projection,
-  	       const glm::vec3& origin = {0,0,0},
-	       const glm::quat& rotation = {0,0,0,1}) const
+	       const glm::vec3& origin = {0,0,0},
+	       const glm::quat& rotation = glm::quat(glm::vec3(0,0,0)),
+	       const glm::vec3& scale = {1,1,1} ) const
   {
     // D'abord les bords du ruban
     glPushAttrib (GL_ENABLE_BIT);
@@ -173,21 +112,24 @@ public:
     glDepthMask (GL_TRUE);
     glEnable (GL_LINE_SMOOTH);
 
-    glUseProgram( _program );
-    
-    // Projection trans rot scale
-    glUniformMatrix4fv(_uniform_mvp, 1, GL_FALSE,
-     		       glm::value_ptr(projection));
-    // Fade
-    glUniform1f( _uniform_fade, 1.0 );
+    glUseProgram( _engine->gl_multicolor().program() );
 
+    // Matrix (from GL3DObject)
+    auto mvp = set_projection_mtx( projection,
+				   origin, rotation, scale );
+    glUniformMatrix4fv(_engine->gl_multicolor().uniform_mvp(), 1, GL_FALSE,
+		       glm::value_ptr(mvp));
+    
+    // Fade
+    glUniform1f( _engine->gl_multicolor().uniform_fade(), 1.0 );
+    
     // Ruban
     glBindBuffer( GL_ARRAY_BUFFER, _vbo_ribbon );
-    glEnableVertexAttribArray(_attribute_coord3d);
+    glEnableVertexAttribArray(_engine->gl_multicolor().attribute_coord3d());
     /* Describe Vertices Array to OpenGL */
     // Bord gauche
     glVertexAttribPointer(
-      _attribute_coord3d, // attribute
+      _engine->gl_multicolor().attribute_coord3d(), // attribute
       3,                 // number of elements per vertex, here (x,y,z)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
@@ -195,9 +137,9 @@ public:
       0                  // offset of first element
   			  );	   
     // Color
-    glEnableVertexAttribArray(_attribute_v_color);
+    glEnableVertexAttribArray(_engine->gl_multicolor().attribute_v_color());
     glVertexAttribPointer(
-      _attribute_v_color, // attribute
+      _engine->gl_multicolor().attribute_v_color(), // attribute
       3,                 // number of elements per vertex, here (r,g,b)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
@@ -214,11 +156,11 @@ public:
 
     // Bord du Ruban
     glBindBuffer( GL_ARRAY_BUFFER, _vbo_ribbon );
-    glEnableVertexAttribArray(_attribute_coord3d);
+    glEnableVertexAttribArray(_engine->gl_multicolor().attribute_coord3d());
     /* Describe Vertices Array to OpenGL */
     // Bord gauche
     glVertexAttribPointer(
-      _attribute_coord3d, // attribute
+      _engine->gl_multicolor().attribute_coord3d(), // attribute
       3,                 // number of elements per vertex, here (x,y,z)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
@@ -226,9 +168,9 @@ public:
       0                  // offset of first element
   			  );	   
     // Color
-    glEnableVertexAttribArray(_attribute_v_color);
+    glEnableVertexAttribArray(_engine->gl_multicolor().attribute_v_color());
     glVertexAttribPointer(
-      _attribute_v_color, // attribute
+      _engine->gl_multicolor().attribute_v_color(), // attribute
       3,                 // number of elements per vertex, here (r,g,b)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
@@ -240,7 +182,7 @@ public:
 
     // Bord droit
     glVertexAttribPointer(
-      _attribute_coord3d, // attribute
+      _engine->gl_multicolor().attribute_coord3d(), // attribute
       3,                 // number of elements per vertex, here (x,y,z)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
@@ -248,9 +190,9 @@ public:
       (GLvoid*) (9*sizeof(GLfloat)) // offset = 6 car deuxième pt
   			  );	   
     // Color
-    glEnableVertexAttribArray(_attribute_v_color);
+    glEnableVertexAttribArray(_engine->gl_multicolor().attribute_v_color());
     glVertexAttribPointer(
-      _attribute_v_color, // attribute
+      _engine->gl_multicolor().attribute_v_color(), // attribute
       3,                 // number of elements per vertex, here (r,g,b)
       GL_FLOAT,          // the type of each element
       GL_FALSE,          // take our values as-is
@@ -275,13 +217,6 @@ private:
   const Trajectory& _traj;
   /** Viewer */
   GL3DShip  _viewer_ship;
-  /** Program GLSL */
-  GLuint _program;
-  /** Variables globale du Programme GLSL */
-  GLint _attribute_coord3d, _attribute_v_color;
-  /** Uniform var */
-  GLint _uniform_fade;
-  GLint _uniform_mvp;
   /** Vertex Buffer Objects */
   GLuint _vbo_ribbon;
   GLuint _ibo_ribbon_elements;

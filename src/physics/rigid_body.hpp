@@ -40,7 +40,8 @@ public:
   // ***************************************************** RigidBody::creation
   RigidBody( const TMass mass = 1 ) :
 	_mass(mass), _pos( TVec3(0,0,0)),
-	_vel( TVec3(0,0,0)), _acc( TVec3(0,0,0))
+	_vel( TVec3(0,0,0)), _acc( TVec3(0,0,0)),
+	_rot( glm::quat(glm::vec3(0,0,0)) )
   {
   }
   /** copy creation */

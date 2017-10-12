@@ -87,10 +87,12 @@ public:
 
     // Copie le message dans string
     char* log = new char[log_length+1];
-    if (glIsShader(object))
-    glGetShaderInfoLog(object, log_length, NULL, log);
-  else if (glIsProgram(object))
-    glGetProgramInfoLog(object, log_length, NULL, log);
+    if (glIsShader(object)) {
+      glGetShaderInfoLog(object, log_length, NULL, log);
+    }
+    else if (glIsProgram(object)) {
+      glGetProgramInfoLog(object, log_length, NULL, log);
+    }
     log[log_length] = '\0';
 
     std::string str_log(log);

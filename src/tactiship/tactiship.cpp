@@ -40,7 +40,7 @@ int main( int argc, char *argv[] )
   GL3DEnginePtr app = GL3DEnginePtr(new GL3DEngine( "TactiShip", 640, 480));
   
   Trajectory traj = make_circle( {0,0,0}, 5.f );
-  GL3DTrajectory viewer_traj(traj);
+  GL3DTrajectory viewer_traj(app, traj);
 
   std::cout << "__START_SCREEN" << std::endl;
   GL3DScreen trid_screen( app, viewer_traj);
