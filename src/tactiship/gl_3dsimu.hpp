@@ -32,6 +32,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 // #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtc/quaternion.hpp>     // definition
+#include <glm/gtx/quaternion.hpp>     // rotation of vec3
 
 // Physics
 #include <physics/rigid_body.hpp>
@@ -52,6 +54,9 @@ using ScreenPos = glm::vec2;
 enum class         MouseAction {NOTHING,ZOOM,ROTATE,MOVE};
 using Quaternion = float[4];          // cf trackball.h
 using RotMatrix = float[16];          // cf trackball.h
+
+// Two camera mode : classic and follow
+enum class CameraMode {CLASSIC, FOLLOW};
 // ***************************************************************************
 // ****************************************************************** GL3DSimu
 // ***************************************************************************
@@ -76,7 +81,8 @@ public:
     _gui_rect( engine ),
     _physics_running( false), _physics_eng(nullptr), _physics_time(0.0),
     _frame_time_cur(0.0), _frame_time_mean(0.0),
-    _phys_time_cur(0.0), _phys_time_mean(0.0)
+    _phys_time_cur(0.0), _phys_time_mean(0.0),
+    _camera_mode(CameraMode::CLASSIC)
   {
 	_viewer_disc.set_color( {1.f,0.f,0.f}, 1.0f );
 	_viewer_rect.set_color( {0,0,1}, 0.5f );
@@ -123,7 +129,7 @@ public:
    * est terminé.
    * Pas de surprise : gère l'affichage en utilisant OpenGL.
    */
-  void render () 
+  void render ()
   {
     // Transparence
     // Enable alpha
@@ -148,14 +154,15 @@ public:
 
       // Physics
       phy_ss.str("");
+      phy_ss << "(R)un, r(E)set, (C)amera: ";
       if( _physics_running ) {
-	phy_ss << "RUN";
-	_physics_eng->update( 0.02 );
-	_physics_time += 0.02;
-	// do things
+        phy_ss << "RUN";
+        _physics_eng->update( 0.02 );
+        _physics_time += 0.02;
+        // do things
       }
       else {
-	phy_ss << "STOP";
+        phy_ss << "STOP";
       }
       phy_ss << " t=";
       phy_ss << std::fixed << std::setprecision(2);
@@ -171,43 +178,50 @@ public:
       glClearColor(1., 1., 1., 1.0);
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-      // Projection to screen
-      glm::mat4 projection = glm::ortho( -10.f, 10.f, // left;right
-					 -10.f, 10.f, // bottom,top
-					 -100.f, 100.f // near far
-					 );
-      
-      // Zoom
-      glm::mat4 zoom = glm::scale( glm::mat4(1.0f),
-				   glm::vec3( _zoom,
-					      _zoom,
-					      _zoom));
-      // Rotation
-      RotMatrix view_rotation;
-      build_rotmatrix( view_rotation, _orient );
-      glm::mat4 rotation = glm::make_mat4x4( view_rotation );
+      // Camera mode
+      glm::mat4 vp, proj;
+      glm::mat4 zoom, rotation, translation;
+      switch( _camera_mode ) {
+      case CameraMode::CLASSIC:
+        // Trackball view -----------------------------------------------------
+        // using a ortho view and using the mouse buttons as trackball.
+        // Projection to screen
+        proj = glm::ortho( -10.f, 10.f, // left;right
+                                     -10.f, 10.f, // bottom,top
+                                     -100.f, 100.f // near far
+                                     );
+        // Zoom
+        zoom = glm::scale( glm::mat4(1.0f),
+                                     glm::vec3( _zoom,
+                                                _zoom,
+                                                _zoom));
+        // Rotation
+        RotMatrix view_rotation;
+        build_rotmatrix( view_rotation, _orient );
+        rotation = glm::make_mat4x4( view_rotation );
+        // Translation
+        translation = glm::translate(  glm::mat4(1.0f),
+                                                 glm::vec3( _pos.x, _pos.y, 0.f));
+        // Projection-View
+        vp = proj * zoom * translation * rotation;
+        break;
 
-      // Translation
-      glm::mat4 translation = glm::translate(  glm::mat4(1.0f),
-					       glm::vec3( _pos.x,
-							  _pos.y,
-							  0.f));
-      // Projection-View
-      glm::mat4 vp = projection * zoom * translation * rotation;
-
-      // Camera View
-      auto ship = _physics_eng->_bodies.front();
-      glm::mat4 t2ship = glm::translate( glm::mat4(1.0f), -ship->_pos );
-      glm::mat4 t2cam = glm::translate( glm::mat4(1.0f),
-				       glm::vec3(-5,0,2));
-      glm::mat4 r2ship = glm::toMat4( ship->_rot );
-      vp = glm::lookAt( ship->_pos+glm::vec3(-5,0,0), ship->_pos,
-       			glm::vec3(0,0,1) );
-      vp = vp * t2ship * t2cam;
-      //vp = projection * t2ship * t2cam;
+      case CameraMode::FOLLOW:
+        // Camera View --------------------------------------------------------
+        float aspect = (float) _screen_width / (float) _screen_height;
+        proj = glm::perspective( glm::radians(45.f), // FoV
+                                                 aspect, 0.1f, 50.f );
+        // ship is the first physical bodies of physics engine
+        auto ship = _physics_eng->_bodies.front();
+        // compute eye position
+        auto eye_pos = glm::vec3( -8, 0, 4 ); // starting local coord
+        eye_pos = ship->to_global( eye_pos );
+        vp = glm::lookAt( eye_pos, ship->_pos, glm::vec3(0,0,1));
+        vp = proj * vp;
+      }
       
-	  _gl_text.set_scale( (10.f)/(float)_screen_width,
-	  					  (10.f)/(float)_screen_height );
+	  _gl_text.set_scale( (2.f)/(float)_screen_width,
+	  					  (2.f)/(float)_screen_height );
 
 	  _viewer_grid.render( vp, {0.f, 0.f, 0.f} );
 	  
@@ -229,20 +243,20 @@ public:
 
 	  // Some text, as GUI ?
 	  // Reset projection to 0,1 x 0,1
-	  projection = glm::ortho( 0.f, 1.f, // left;right
-					 0.f, 1.f, // bottom,top
-					 -1.f, 1.f // near far
-					 );
+	  proj = glm::ortho( 0.f, 1.f, // left;right
+                         0.f, 1.f, // bottom,top
+                         -1.f, 1.f // near far
+                         );
 	  //glm::quat rot_txt = glm::rotate({0,0,0,1},
 	  // 								  (float) -M_PI/2.f,
 	  // 								  glm::vec3(1,0,0));
 	  // rotation using euler vectors
 	  glm::quat rot_txt = glm::quat(glm::vec3(0,0,M_PI));
 	  // TODO BUT, strangely, need to rotate over Oz!!!
-	  _gui_rect.render( projection,
+	  _gui_rect.render( proj,
 						{0.5f,0.95f,1.0f}, glm::quat(glm::vec3(0,0,0)),
 						{1.0f,0.1f,1.0f} );
-	  _gl_text.pre_render( projection, {0,0,1.0f}, rot_txt );
+	  _gl_text.pre_render( proj, {0,0,1.0f}, rot_txt );
 	  _gl_text.set_scale( (2.f)/(float)_screen_width,
 	  					  (2.f)/(float)_screen_height );
       _gl_text.set_color( {0.f, 0.f, 0.f, 1.f} );
@@ -317,6 +331,8 @@ private:
   bool _physics_running;
   physics::Engine *_physics_eng;
   double _physics_time;
+  /** Camera */
+  CameraMode _camera_mode;
   /** FPS */
   std::chrono::duration<double, std::milli> _frame_time_cur;
   std::chrono::duration<double, std::milli> _frame_time_mean;
@@ -367,6 +383,17 @@ public:
       _physics_running = false;
       physics_reset();
     }
+    else if( key == GLFW_KEY_C) {
+      // Switch camera mode
+      switch( _camera_mode ) {
+      case CameraMode::CLASSIC:
+        _camera_mode = CameraMode::FOLLOW;
+        break;
+      case CameraMode::FOLLOW:
+        _camera_mode = CameraMode::CLASSIC;
+        break;
+      }
+    }
   }
   // *********************************************** GL3DSimu::on_mouse_button
   void on_mouse_button( int button, int action, int mods ) 
@@ -374,31 +401,34 @@ public:
     double x, y;
     glfwGetCursorPos( _window, &x, &y);
     //std::cout <<"Mouse Button at (" << x <<  ", " << y << ")\n";
-    
+
+    // only in CameraMode::CLASSIC
+    if( _camera_mode == CameraMode::FOLLOW )
+      return;
     if( action == GLFW_PRESS ) {
       if( button == GLFW_MOUSE_BUTTON_LEFT ) {
-	// With SHIFT ??
-	if( mods & GLFW_MOD_SHIFT ) {
-	  //_scene->mouse_action_start ("move-resize",x,y);
-	  std::cout << "move-resize at " << x << ", " << y  << std::endl;
-	  _start = ScreenPos(x,y);
-	  _action = MouseAction::MOVE;
-	}
-	else if( mods & GLFW_MOD_CONTROL ) {
-	  std::cout << "zoom at " << x << ", " << y  << std::endl;
-	}
-	else {
-	  //_scene->mouse_action_start ("rotate",x,y);
-	  _start = ScreenPos(x,y);
-	  _action = MouseAction::ROTATE;
-	  std::cout << "rotate at " << x << ", " << y  << std::endl;
-	}
+        // With SHIFT ??
+        if( mods & GLFW_MOD_SHIFT ) {
+          //_scene->mouse_action_start ("move-resize",x,y);
+          std::cout << "move-resize at " << x << ", " << y  << std::endl;
+          _start = ScreenPos(x,y);
+          _action = MouseAction::MOVE;
+        }
+        else if( mods & GLFW_MOD_CONTROL ) {
+          std::cout << "zoom at " << x << ", " << y  << std::endl;
+        }
+        else {
+          //_scene->mouse_action_start ("rotate",x,y);
+          _start = ScreenPos(x,y);
+          _action = MouseAction::ROTATE;
+          std::cout << "rotate at " << x << ", " << y  << std::endl;
+        }
       }
       else if( button == GLFW_MOUSE_BUTTON_RIGHT ) {
-	//_scene->mouse_action_start( "zoom", x, y);
-	_start = ScreenPos(x,y);
-	_action = MouseAction::ZOOM;
-	std::cout << "btn right " << x << ", " << y  << std::endl;
+        //_scene->mouse_action_start( "zoom", x, y);
+        _start = ScreenPos(x,y);
+        _action = MouseAction::ZOOM;
+        std::cout << "btn right " << x << ", " << y  << std::endl;
       }
     }
     else if( action == GLFW_RELEASE ) {
@@ -411,6 +441,9 @@ public:
   // ************************************************* GL3DSimu::on_mouse_move
   void on_mouse_move( double xpos, double ypos )
   {
+    // only in CameraMode::CLASSIC
+    if( _camera_mode == CameraMode::FOLLOW )
+      return;
     // En fonction des actions
     switch( _action ) {
     case MouseAction::ZOOM:
@@ -426,7 +459,7 @@ public:
 		 (_screen_height - 2.0 * _start.y) / _screen_height,
 		 (2.0 * xpos - _screen_width) / _screen_width,
 		 (_screen_height - 2.0 * ypos) / _screen_height);
-      add_quats( d_quat, _orient, _orient );
+            add_quats( d_quat, _orient, _orient );
       _start = ScreenPos(xpos,ypos);
       break;
     case MouseAction::MOVE:
@@ -443,7 +476,11 @@ public:
   /** yoffset vaut +/- 1 */
   void on_scroll( double yoffset ) 
   {
-    std::cout << "scroll_action yoffset=" << yoffset << std::endl;
+    //std::cout << "scroll_action yoffset=" << yoffset << std::endl;
+
+    // only in CameraMode::CLASSIC
+    if( _camera_mode == CameraMode::FOLLOW )
+      return;
     
     if( yoffset < 0 ) {
       _zoom *= ZOOM_COEF;

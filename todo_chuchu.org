@@ -3,14 +3,14 @@
 ** DONE [1/1] ship to GL3DObject
 *** DONE add shaders to GL3DEngine
 ** DONE make ship move
-** TODO [0/2] attach camera
-*** TODO behind ship
+** TODO [1/2] attach camera
+*** DONE behind ship
 *** TODO in cockpit
 * [0/2] Physics <2017-07-19 Wed>
-** TODO [2/3] Base transformation avec rotation
+** TODO [3/3] Base transformation avec rotation
 *** DONE glm::rotate( q, vec3)
 *** DONE glm::inverse( q )
-*** TODO Show in simu
+*** DONE Show in simu
 ** TODO Integration : apply speed_n to compute pos_{n+1} before computing speed_{n+1}
 ** 3D Forces
 ** 3D Rotation
