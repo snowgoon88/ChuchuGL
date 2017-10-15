@@ -178,6 +178,9 @@ public:
       glClearColor(1., 1., 1., 1.0);
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
+      // ship is the first physical bodies of physics engine
+      auto ship = _physics_eng->_bodies.front();
+      
       // Camera mode
       glm::mat4 vp, proj;
       glm::mat4 zoom, rotation, translation;
@@ -211,8 +214,6 @@ public:
         float aspect = (float) _screen_width / (float) _screen_height;
         proj = glm::perspective( glm::radians(45.f), // FoV
                                                  aspect, 0.1f, 50.f );
-        // ship is the first physical bodies of physics engine
-        auto ship = _physics_eng->_bodies.front();
         // compute eye position
         auto eye_pos = glm::vec3( -8, 0, 4 ); // starting local coord
         eye_pos = ship->to_global( eye_pos );
@@ -220,8 +221,8 @@ public:
         vp = proj * vp;
       }
       
-	  _gl_text.set_scale( (2.f)/(float)_screen_width,
-	  					  (2.f)/(float)_screen_height );
+	  //_gl_text.set_scale( (0.1f)/(float)_screen_width,
+	  //					  (0.1f)/(float)_screen_height );
 
 	  _viewer_grid.render( vp, {0.f, 0.f, 0.f} );
 	  
@@ -257,11 +258,12 @@ public:
 						{0.5f,0.95f,1.0f}, glm::quat(glm::vec3(0,0,0)),
 						{1.0f,0.1f,1.0f} );
 	  _gl_text.pre_render( proj, {0,0,1.0f}, rot_txt );
-	  _gl_text.set_scale( (2.f)/(float)_screen_width,
-	  					  (2.f)/(float)_screen_height );
+	  _gl_text.set_scale( (1.f)/(float)_screen_width,
+	  					  (1.f)/(float)_screen_height );
       _gl_text.set_color( {0.f, 0.f, 0.f, 1.f} );
       _gl_text.render( phy_ss.str(), 0.05f, 0.95f );
-      _gl_text.render( fps_ss.str(), 0.05f, 0.05f );
+      _gl_text.render( fps_ss.str(), 0.05f, 0.01f );
+      _gl_text.render( ship->str_display(), 0.05f, 0.05f );
       _gl_text.post_render();
 
       // Remove any programm so that glText can "work"

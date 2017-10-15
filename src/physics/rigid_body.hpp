@@ -14,6 +14,7 @@
  *
  * At every update, a Force can be applied to update its pos,vel,acc
  * - force : applied force for the given update interval
+ * - drag : drag force proportionnal to speed^2
  */
 #include <string>                     // std::string
 #include <sstream>                    // std::stringdtream
@@ -49,7 +50,8 @@ public:
 	_mass( rb._mass), _pos( rb._pos),
 	_vel( rb._vel), _acc( rb._acc ),
 	_rot( rb._rot )
-  {}
+  {
+  }
   /** assignment creation */
   RigidBody& operator=( const RigidBody& rb )
   {
@@ -69,21 +71,34 @@ public:
   {
 	_acc += force;
   }
+  void drag_force( const TNumber coef = 1 )
+  {
+    auto drag = glm::normalize( _vel );
+    drag *= -coef;
+    drag *= glm::length2( _vel );
+    add_force( drag );
+  }
   // ******************************************************* RigidBody::update
   void update( const TNumber& delta_time )
   {
-	// divide _acc by mass
-	_acc *= (delta_time / _mass);
-	_vel += _acc;
+    // take drag into account
+    drag_force( 0.01 );
+
+    // update
 	auto delta_pos = _vel;
 	delta_pos *= delta_time;
 	_pos += delta_pos;
+
+	_vel += _acc;
+
+    // divide _acc by mass
+	_acc *= (delta_time / _mass);
 
 	// Reset acceleration
 	_acc = {0,0,0};
   }
   // ********************************************************** RigidBody::str
-  std::string str_dump()
+  std::string str_dump() const
   {
 	std::stringstream ss;
 	ss << "m=" << _mass << std::endl;
@@ -97,13 +112,17 @@ public:
 	auto angles = glm::degrees(glm::eulerAngles(_rot));
 	ss << " [" << glm::to_string(angles) << "]";
 	
-	  
-
 	return ss.str();
+  }
+  std::string str_display() const
+  {
+    std::stringstream ss;
+    ss << "p=" << glm::to_string(_pos) << "v=" << glm::to_string(_vel );
+    return ss.str();
   }
   // ***************************************************** RigidBody::to_bases
   /** Express a global TVec3 to the local Base */
-  TVec3 to_local( const TVec3& global_pos )
+  TVec3 to_local( const TVec3& global_pos ) const
   {
 	// Substract base position
 	auto local_pos = global_pos - _pos;
@@ -112,7 +131,7 @@ public:
 	return local_pos;
   }
   /** Express a local TVec3 to the global Base */
-  TVec3 to_global( const TVec3& local_pos )
+  TVec3 to_global( const TVec3& local_pos ) const
   {
 	// Apply base rotation
 	auto global_pos = glm::rotate( _rot, local_pos );
