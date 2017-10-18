@@ -15,16 +15,23 @@
  * At every update, a Force can be applied to update its pos,vel,acc
  * - force : applied force for the given update interval
  * - drag : drag force proportionnal to speed^2
+ *
+ * As an "Interactive Object", some special force (thrust) can be applied
+ * only once during a step of the physique engine.
+ * - apply_thrust() + _thrust_applied
  */
 #include <string>                     // std::string
 #include <sstream>                    // std::stringdtream
-#include <memory>                        // std::*_ptr
+#include <memory>                     // std::*_ptr
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/quaternion.hpp>     // definition
 #include <glm/gtx/quaternion.hpp>     // rotation of vec3
+
+#define THRUST_VALUE 1.0
+
 // ***************************************************************************
 // ***************************************************************** RigidBody
 // ***************************************************************************
@@ -44,12 +51,14 @@ public:
 	_vel( TVec3(0,0,0)), _acc( TVec3(0,0,0)),
 	_rot( glm::quat(glm::vec3(0,0,0)) )
   {
+    clear_applied();
   }
   /** copy creation */
   RigidBody( const RigidBody& rb ) :
 	_mass( rb._mass), _pos( rb._pos),
 	_vel( rb._vel), _acc( rb._acc ),
-	_rot( rb._rot )
+	_rot( rb._rot ),
+    _thrust_applied( rb._thrust_applied )
   {
   }
   /** assignment creation */
@@ -61,6 +70,8 @@ public:
 	  _vel = rb._vel;
 	  _acc = rb._acc;
 	  _rot = rb._rot;
+
+      _thrust_applied = rb._thrust_applied;
     }
     return *this;
   }
@@ -96,6 +107,9 @@ public:
 
 	// Reset acceleration
 	_acc = {0,0,0};
+
+    // Clear Thrust
+    clear_applied();
   }
   // ********************************************************** RigidBody::str
   std::string str_dump() const
@@ -117,8 +131,25 @@ public:
   std::string str_display() const
   {
     std::stringstream ss;
+    auto speed = glm::length( _vel );
     ss << "p=" << glm::to_string(_pos) << "v=" << glm::to_string(_vel );
+    ss << " (" << speed << " m/s)";
     return ss.str();
+  }
+  // ******************************************************* RigidBody::thrust
+  void apply_thrust( const TNumber value )
+  {
+    if( not _thrust_applied) {
+      // vector aligned on local 0x
+      TVec3 v_thrust { value, 0.0, 0.0};
+      auto global_thrust = glm::rotate( _rot, v_thrust );
+      add_force( global_thrust );
+      _thrust_applied = true;
+    }
+  }
+  void clear_applied()
+  {
+    _thrust_applied = false;
   }
   // ***************************************************** RigidBody::to_bases
   /** Express a global TVec3 to the local Base */
@@ -146,6 +177,8 @@ public:
   TVec3 _pos;
   TVec3 _vel, _acc;
   TRot  _rot;
+  /* Specific for control */
+  bool _thrust_applied;
 };
 
 }; // namespace physics

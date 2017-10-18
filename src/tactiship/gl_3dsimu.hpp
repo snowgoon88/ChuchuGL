@@ -348,9 +348,9 @@ private:
       glfwSetWindowShouldClose(window, GL_TRUE);
     }
     // else callback from Class
-    else if( action == GLFW_PRESS ) {
+    else if( action == GLFW_PRESS or action == GLFW_REPEAT ) {
       //std::cout << "key_callback = " << key << std::endl;
-      ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_key_pressed( key );
+      ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_key_pressed( key, action );
     }
   }
   static void mouse_button_callback(GLFWwindow* window, int button,
@@ -373,19 +373,21 @@ private:
   }
 public:
   // ************************************************ GL3DSimu::on_key_pressed
-  void on_key_pressed( int key ) 
+  /** Called for GLFW_PRESSED and GLFW_REPEAT */
+  void on_key_pressed( int key, int action ) 
   {
-    std::cout << "GLWindow::key_pressed key=" << key << std::endl;
-    if( key == GLFW_KEY_R) {
+    
+    //std::cout << "GLWindow::key_pressed key=" << key << std::endl;
+    if( key == GLFW_KEY_R and action == GLFW_PRESS ) {
       // toggle _is_running
       _physics_running = !_physics_running;
     }
-    else if( key == GLFW_KEY_E) {
+    else if( key == GLFW_KEY_E and action == GLFW_PRESS ) {
       // stop and reset
       _physics_running = false;
       physics_reset();
     }
-    else if( key == GLFW_KEY_C) {
+    else if( key == GLFW_KEY_C and action == GLFW_PRESS ) {
       // Switch camera mode
       switch( _camera_mode ) {
       case CameraMode::CLASSIC:
@@ -395,6 +397,16 @@ public:
         _camera_mode = CameraMode::CLASSIC;
         break;
       }
+    }
+    // Control of ship
+    else if( key == GLFW_KEY_W ) { // accel forward
+      //std::cout << "  control +Thrust" << std::endl;
+      auto ship = _physics_eng->_bodies.front();
+      ship->apply_thrust( 1.0 );
+    }
+    else if( key == GLFW_KEY_S ) { // decel
+      auto ship = _physics_eng->_bodies.front();
+      ship->apply_thrust( -0.3 );
     }
   }
   // *********************************************** GL3DSimu::on_mouse_button

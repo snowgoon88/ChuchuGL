@@ -6,7 +6,7 @@
 ** TODO [1/2] attach camera
 *** DONE behind ship
 *** TODO in cockpit
-* [1/2] Physics <2017-07-19 Wed>
+* [3/5] Physics <2017-07-19 Wed>
 ** TODO [3/3] Base transformation avec rotation
 *** DONE glm::rotate( q, vec3)
 *** DONE glm::inverse( q )
@@ -14,8 +14,12 @@
 ** DONE Integration : apply speed_n to compute pos_{n+1} before computing speed_{n+1}
 ** DONE Add drag force with given coefficient.
 ** 3D Forces
-** 3D Rotation
-*** Quat tp 3x3 rotation matrix
+** DONE [1/1] Ship Controlx
+*** DONE Ensure that acceleration is only applied once for every physics step
+** TODO [0/2] 3D Rotation
+*** TODO Express Inertia Momentum of the ship in local base.
+*** TODO Why 3x3 better thah Quat for rotations ? => read article
+*** Quat to 3x3 rotation matrix
 *** from torque, derive new angular velocity
 *** from ang_vel 3x3 => quaternion
 *** apply (multply) to update rotation
