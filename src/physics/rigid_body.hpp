@@ -6,11 +6,12 @@
 /** 
  * Implementation of a 3D rigid body.
  * - mass
- * - pos : position of center of mass, vector
- * - vel :velocity vector
- * - acc :acceleration vector
+ * - pos : position [global] of center of mass, vector
+ * - vel :velocity [global] vector
+ * - acc :acceleration [global] vector
  *
- * - rot : rotation as quaternion
+ * - rot : rotation [global] as quaternion
+ * - rot_spd : rotation_speed [global] as quaternion
  *
  * At every update, a Force can be applied to update its pos,vel,acc
  * - force : applied force for the given update interval
@@ -49,7 +50,8 @@ public:
   RigidBody( const TMass mass = 1 ) :
 	_mass(mass), _pos( TVec3(0,0,0)),
 	_vel( TVec3(0,0,0)), _acc( TVec3(0,0,0)),
-	_rot( glm::quat(glm::vec3(0,0,0)) )
+	_rot( glm::quat(glm::vec3(0,0,0)) ),
+    _rot_spd( glm::quat(glm::vec3(0,0,0)) )
   {
     clear_applied();
   }
@@ -93,23 +95,27 @@ public:
   void update( const TNumber& delta_time )
   {
     // take drag into account
-    drag_force( 0.01 );
+    drag_force( 0.1 );
 
     // update
 	auto delta_pos = _vel;
 	delta_pos *= delta_time;
 	_pos += delta_pos;
-
-	_vel += _acc;
-
     // divide _acc by mass
 	_acc *= (delta_time / _mass);
+	_vel += _acc;
 
 	// Reset acceleration
 	_acc = {0,0,0};
 
     // Clear Thrust
     clear_applied();
+
+    // Rotation
+    // target quaternion after 1s
+    auto rot_target = _rot_spd * _rot;
+    // interpolate using slerp
+    _rot = glm::slerp( _rot, rot_target, (float)delta_time );
   }
   // ********************************************************** RigidBody::str
   std::string str_dump() const
@@ -176,7 +182,7 @@ public:
   TMass _mass;
   TVec3 _pos;
   TVec3 _vel, _acc;
-  TRot  _rot;
+  TRot  _rot, _rot_spd;
   /* Specific for control */
   bool _thrust_applied;
 };

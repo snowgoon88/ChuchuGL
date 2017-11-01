@@ -120,8 +120,15 @@ public:
     // First RigidBody at 0,0,0 with speed along 0x
     auto pt = _physics_eng->_bodies.front();
     pt->_pos = physics::TVec3( -8,0,-5 );
-    pt->_rot = glm::quat(glm::vec3(0,-M_PI/6.0,0));
     pt->_vel = physics::TVec3( 0.8,0,0.5 );
+
+    pt->_rot = glm::quat(glm::vec3(0,-M_PI/6.0,0));
+    // initial rotation around the 0x local axe of ship
+    auto u_loc = physics::TVec3( 1.0,0.0,0.0 );
+    std::cout << "  u_loc" << glm::to_string(u_loc) << std::endl;
+    auto u_glo = glm::rotate( pt->_rot, u_loc );
+    std::cout << "  u_glo" << glm::to_string(u_glo) << std::endl;
+    pt->_rot_spd = glm::angleAxis( (float) M_PI/4.0f, u_glo );
   }  
   // *********************************************************** GLScreen::render
   /**
@@ -217,7 +224,9 @@ public:
         // compute eye position
         auto eye_pos = glm::vec3( -8, 0, 4 ); // starting local coord
         eye_pos = ship->to_global( eye_pos );
-        vp = glm::lookAt( eye_pos, ship->_pos, glm::vec3(0,0,1));
+        auto vec_up = glm::vec3( 0, 0, 1 );
+        vec_up = glm::rotate( ship->_rot, vec_up );
+        vp = glm::lookAt( eye_pos, ship->_pos, vec_up );
         vp = proj * vp;
       }
       
@@ -402,11 +411,11 @@ public:
     else if( key == GLFW_KEY_W ) { // accel forward
       //std::cout << "  control +Thrust" << std::endl;
       auto ship = _physics_eng->_bodies.front();
-      ship->apply_thrust( 1.0 );
+      ship->apply_thrust( 2.0 );
     }
     else if( key == GLFW_KEY_S ) { // decel
       auto ship = _physics_eng->_bodies.front();
-      ship->apply_thrust( -0.3 );
+      ship->apply_thrust( -1.0 );
     }
   }
   // *********************************************** GL3DSimu::on_mouse_button
