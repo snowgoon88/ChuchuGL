@@ -107,6 +107,6 @@ def build(bld):
     print('  CXXFLAGS=' + str(bld.env.CXXFLAGS) )
     bld.recurse('src')
     bld.recurse('src/tactiship')
+    bld.recurse('src/boid')
     bld.recurse('test')    
-
 

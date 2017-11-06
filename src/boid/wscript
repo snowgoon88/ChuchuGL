@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
+def build(bld):
+    bld.program(
+        source=['boid.cpp', '../tactiship/trackball.cc'], target='boids',
+        includes=['.','..','../tactiship'],
+        libs=['m'],
+        use = ['OPENGL','GLFW3','FREETYPE2','FTGL']
+    )
+

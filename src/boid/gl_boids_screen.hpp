@@ -1,24 +1,25 @@
 /* -*- coding: utf-8 -*- */
 
-#ifndef GL_3DSIMU_HPP
-#define GL_3DSIMU_HPP
+#ifndef GL_BOIDS_SCREEN_HPP
+#define GL_BOIDS_SCREEN_HPP
 
 /** 
- * A Simulator 3D with
- *  - frame reference.
- *  - TODO grid
+ * A 2.5D env with :
+ *  - frame reference and grid
+ *  - list of orented tokens
  *
- * Implements a glconcept::GLScreen (see ...)
+ * TODO : remove trackball and set proper 2.5D controler
+ *
+ * Implements aglconcept::GLScreen (see TODO)
  */
 
 #include <trackball.h>
 
-#include <gl_3dengine.hpp>
-#include <gl_3dframe.hpp>
-#include <gl_3dgrid.hpp>
-#include <gl_3ddisc.hpp>
-#include <gl_3drect.hpp>
-#include <gl_3dship.hpp>
+#include <tactiship/gl_3dengine.hpp>
+#include <tactiship/gl_3dframe.hpp>
+#include <tactiship/gl_3dgrid.hpp>
+#include <tactiship/gl_3drect.hpp>
+#include <boid/gl_token.hpp>
 
 // OpenGL
 #define GL_GLEXT_PROTOTYPES
@@ -36,15 +37,14 @@
 #include <glm/gtx/quaternion.hpp>     // rotation of vec3
 
 // Physics
-#include <physics/rigid_body.hpp>
-#include <physics/engine.hpp>
+
 
 #include <sstream>
 #include <iomanip> // needed to use manipulators with parameters (precision, width)
 #include <chrono>                      // std::chrono
 #include <thread>                      // std::thread
 
-// ********************************************************** GL3DSimu::Global
+// ***************************************************** GLBoidsScreen::Global
 #define ZOOM_COEF  1.05f
 #define ZOOM_MAX  10.0f
 #define ZOOM_MIN   0.1f
@@ -55,47 +55,46 @@ enum class         MouseAction {NOTHING,ZOOM,ROTATE,MOVE};
 using Quaternion = float[4];          // cf trackball.h
 using RotMatrix = float[16];          // cf trackball.h
 
-// Two camera mode : classic and follow
-enum class CameraMode {CLASSIC, FOLLOW};
 // ***************************************************************************
-// ****************************************************************** GL3DSimu
+// ************************************************************* GLBoidsScreen
 // ***************************************************************************
-class GL3DSimu
+class GLBoidsScreen
 {
   using GL3DEnginePtr = std::shared_ptr<GL3DEngine>;
 public:
-  // ****************************************************** GL3DSimu::creation
-  GL3DSimu( GL3DEnginePtr engine,
-			float xmin=-10.f, float xmax=10.f, float xgap=1.f,
-			float ymin=-10.f, float ymax=10.f, float ygap=1.f ) :
+  // ************************************************* GLBoidsScreen::creation
+  GLBoidsScreen( GL3DEnginePtr engine,
+                 float xmin=-10.f, float xmax=10.f, float xgap=1.f,
+                 float ymin=-10.f, float ymax=10.f, float ygap=1.f ) :
     _window(engine->window()),
     _zoom(1.0), _start(0,0), _pos{0,0}, _orient{0,0,0,1}, 
     _action(MouseAction::NOTHING),
     _finished(false),
     _viewer_frame( engine ),
 	_viewer_grid( engine, xmin, xmax, xgap, ymin, ymax, ygap ),
-	_viewer_disc( engine, 16 ),
-	_viewer_rect( engine ),
-    _viewer_ship( engine ),
+	_viewer_token( engine, 8 ),
 	_gl_text( engine->gl_text() ),
     _gui_rect( engine ),
-    _physics_running( false), _physics_eng(nullptr), _physics_time(0.0),
+    _physics_time(0.0),
     _frame_time_cur(0.0), _frame_time_mean(0.0),
-    _phys_time_cur(0.0), _phys_time_mean(0.0),
-    _camera_mode(CameraMode::CLASSIC)
+    _phys_time_cur(0.0), _phys_time_mean(0.0)
   {
-	_viewer_disc.set_color( {1.f,0.f,0.f}, 1.0f );
-	_viewer_rect.set_color( {0,0,1}, 0.5f );
-	_gui_rect.set_color( {1.f, 1.f, 1.f}, 0.2f );
+	_gui_rect.set_color( {0.8f, 0.8f, 0.8f}, 0.2f );
 
-	physics_init();
+    // Create some Tokens to display
+    // 1, 0 + 0rad
+    glm::vec3 ori {1, 0, 0};
+    float orient {M_PI * 0.f};
+    glm::vec3 tok_color {1.f, 0.f, 0.f};
+    glm::vec3 arr_color {0.2f, 0.2f, 0.2f};
+    _token_l.push_back( GLToken::TToken{ ori, orient, tok_color, arr_color } );
+    
   }
-  // **************************************************** GL3DSimu::destructor
-  virtual ~GL3DSimu()
+  // *********************************************** GLBoidsScreen::destructor
+  virtual ~GLBoidsScreen()
   {
-    if( _physics_eng ) delete _physics_eng;
   }
-  // ********************************************************** GL3DSimu::init
+  // ***************************************************** GLBoidsscreen::init
   /** Callback pour touches et souris */
   void init() 
   {
@@ -106,35 +105,9 @@ public:
     glfwSetCursorPosCallback( _window, mouse_move_callback );
     glfwSetScrollCallback( _window, scroll_callback);
   }
-  // *************************************************** GL3DSimu::physics_init
-  void physics_init()
-  {
-    _physics_eng = new physics::Engine( false /* with gravity */ );
-    auto pt = physics::RigidBodyPtr( new physics::RigidBody() );
-    _physics_eng->_bodies.push_back( pt );
-    physics_reset();
-  }
-  void physics_reset()
-  {
-    _physics_time = 0.0;
-    // First RigidBody at 0,0,0 with speed along 0x
-    auto pt = _physics_eng->_bodies.front();
-    pt->_pos = physics::TVec3( -8,0,-5 );
-    pt->_vel = physics::TVec3( 0.8,0,0.5 );
-
-    pt->_rot = glm::quat(glm::vec3(0,-M_PI/6.0,0));
-    // initial rotation around the 0x local axe of ship
-    auto u_loc = physics::TVec3( 1.0,0.0,0.0 );
-    std::cout << "  u_loc" << glm::to_string(u_loc) << std::endl;
-    auto u_glo = glm::rotate( pt->_rot, u_loc );
-    std::cout << "  u_glo" << glm::to_string(u_glo) << std::endl;
-    pt->_rot_spd = glm::angleAxis( (float) M_PI/4.0f, u_glo );
-  }  
-  // *********************************************************** GLScreen::render
+  // *************************************************** GLBoidsScreen::render
   /**
-   * render() est bloquant, ne rendant la main que quand le GLSCreen 
-   * est terminé.
-   * Pas de surprise : gère l'affichage en utilisant OpenGL.
+   * render() blocks, returns only when GLScreen is finished.
    */
   void render ()
   {
@@ -152,35 +125,18 @@ public:
     fps_ss << _phys_time_cur.count() << "/";
     fps_ss << _phys_time_mean.count();
 
-    // Physics status
-    std::stringstream phy_ss;
-
     while (!glfwWindowShouldClose(_window) and not _finished) {
       // clock
       auto start_proc = std::chrono::steady_clock::now();
-
       // Physics
-      phy_ss.str("");
-      phy_ss << "(R)un, r(E)set, (C)amera: ";
-      if( _physics_running ) {
-        phy_ss << "RUN";
-        _physics_eng->update( 0.02 );
-        _physics_time += 0.02;
-        // do things
-      }
-      else {
-        phy_ss << "STOP";
-      }
-      phy_ss << " t=";
-      phy_ss << std::fixed << std::setprecision(2);
-      phy_ss << _physics_time;
       auto end_physics = std::chrono::steady_clock::now();
       
       // update screen size
       glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
 
-      _gl_text.set_scale( (10.f)/(float)_screen_width,
-                          (10.f)/(float)_screen_height );
+      _gl_text.set_scale( (20.f)/(float)_screen_width,
+                          (20.f)/(float)_screen_height );
+
       
       // TODO Vérifier ce que fait glViewport
       glViewport(0, 0, _screen_width, _screen_height);
@@ -188,94 +144,58 @@ public:
       glClearColor(1., 1., 1., 1.0);
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-      // ship is the first physical bodies of physics engine
-      auto ship = _physics_eng->_bodies.front();
-      
+    
       // Camera mode
       glm::mat4 vp, proj;
       glm::mat4 zoom, rotation, translation;
-      switch( _camera_mode ) {
-      case CameraMode::CLASSIC:
-        // Trackball view -----------------------------------------------------
-        // using a ortho view and using the mouse buttons as trackball.
-        // Projection to screen
-        proj = glm::ortho( -10.f, 10.f, // left;right
-                                     -10.f, 10.f, // bottom,top
-                                     -100.f, 100.f // near far
-                                     );
-        // Zoom
-        zoom = glm::scale( glm::mat4(1.0f),
-                                     glm::vec3( _zoom,
-                                                _zoom,
-                                                _zoom));
-        // Rotation
-        RotMatrix view_rotation;
-        build_rotmatrix( view_rotation, _orient );
-        rotation = glm::make_mat4x4( view_rotation );
-        // Translation
-        translation = glm::translate(  glm::mat4(1.0f),
-                                                 glm::vec3( _pos.x, _pos.y, 0.f));
-        // Projection-View
-        vp = proj * zoom * translation * rotation;
-        break;
-
-      case CameraMode::FOLLOW:
-        // Camera View --------------------------------------------------------
-        float aspect = (float) _screen_width / (float) _screen_height;
-        proj = glm::perspective( glm::radians(45.f), // FoV
-                                                 aspect, 0.1f, 50.f );
-        // compute eye position
-        auto eye_pos = glm::vec3( -8, 0, 4 ); // starting local coord
-        eye_pos = ship->to_global( eye_pos );
-        auto vec_up = glm::vec3( 0, 0, 1 );
-        vec_up = glm::rotate( ship->_rot, vec_up );
-        vp = glm::lookAt( eye_pos, ship->_pos, vec_up );
-        vp = proj * vp;
-      }
+      // Trackball view -----------------------------------------------------
+      // using a ortho view and using the mouse buttons as trackball.
+      // Projection to screen
+      proj = glm::ortho( -10.f, 10.f, // left;right
+                         -10.f, 10.f, // bottom,top
+                         -100.f, 100.f // near far
+                         );
+      // Zoom
+      zoom = glm::scale( glm::mat4(1.0f),
+                         glm::vec3( _zoom,
+                                    _zoom,
+                                    _zoom));
+      // Rotation
+      RotMatrix view_rotation;
+      build_rotmatrix( view_rotation, _orient );
+      rotation = glm::make_mat4x4( view_rotation );
+      // Translation
+      translation = glm::translate(  glm::mat4(1.0f),
+                                     glm::vec3( _pos.x, _pos.y, 0.f));
+      // Projection-View
+      vp = proj * zoom * translation * rotation;
       
-	  //_gl_text.set_scale( (0.1f)/(float)_screen_width,
-	  //					  (0.1f)/(float)_screen_height );
-
-	  _viewer_grid.render( vp, {0.f, 0.f, 0.f} );
+      _viewer_grid.render( vp, {0.f, 0.f, 0.f} );
 	  
-	  _viewer_disc.render( vp, {3.f, 0.f, 0.f}, glm::quat(glm::vec3(0,0,0)),
-						   {1.f,1.f,0.5f} );
-	  					
-	  _viewer_rect.render( vp, {0.f, 3.f, 1.f} );
+      _viewer_frame.render( vp /*projection*/ );
 
+      _viewer_token.render_list( vp, _token_l );
 
-	  // Physics
-	  for (auto it = _physics_eng->_bodies.begin();
-	       it != _physics_eng->_bodies.end(); ++it) {
-	    // std::cout << (*it)->str_dump() << std::endl;
-	    _viewer_ship.render( vp, (*it)->_pos, (*it)->_rot );
-	  }
-
-	  
-	  _viewer_frame.render( vp /*projection*/ );
-
-	  // Some text, as GUI ?
-	  // Reset projection to 0,1 x 0,1
-	  proj = glm::ortho( 0.f, 1.f, // left;right
+      // Some text, as GUI ?
+      // Reset projection to 0,1 x 0,1
+      proj = glm::ortho( 0.f, 1.f, // left;right
                          0.f, 1.f, // bottom,top
                          -1.f, 1.f // near far
                          );
-	  //glm::quat rot_txt = glm::rotate({0,0,0,1},
-	  // 								  (float) -M_PI/2.f,
-	  // 								  glm::vec3(1,0,0));
-	  // rotation using euler vectors
-	  glm::quat rot_txt = glm::quat(glm::vec3(0,0,M_PI));
-	  // TODO BUT, strangely, need to rotate over Oz!!!
-	  _gui_rect.render( proj,
-						{0.5f,0.95f,1.0f}, glm::quat(glm::vec3(0,0,0)),
-						{1.0f,0.1f,1.0f} );
-	  _gl_text.pre_render( proj, {0,0,1.0f}, rot_txt );
-	  _gl_text.set_scale( (1.f)/(float)_screen_width,
-	  					  (1.f)/(float)_screen_height );
+      //glm::quat rot_txt = glm::rotate({0,0,0,1},
+      // 								  (float) -M_PI/2.f,
+      // 								  glm::vec3(1,0,0));
+      // rotation using euler vectors
+      glm::quat rot_txt = glm::quat(glm::vec3(0,0,M_PI));
+      // TODO BUT, strangely, need to rotate over Oz!!!
+      _gui_rect.render( proj,
+                        {0.5f,0.95f,1.0f}, glm::quat(glm::vec3(0,0,0)),
+                        {1.0f,0.1f,1.0f} );
+      _gl_text.pre_render( proj, {0,0,1.0f}, rot_txt );
+      _gl_text.set_scale( (1.f)/(float)_screen_width,
+                          (1.f)/(float)_screen_height );
       _gl_text.set_color( {0.f, 0.f, 0.f, 1.f} );
-      _gl_text.render( phy_ss.str(), 0.05f, 0.95f );
       _gl_text.render( fps_ss.str(), 0.05f, 0.01f );
-      _gl_text.render( ship->str_display(), 0.05f, 0.05f );
       _gl_text.post_render();
 
       // Remove any programm so that glText can "work"
@@ -284,12 +204,12 @@ public:
       glfwSwapBuffers(_window);
       glfwPollEvents();
 
-       // clock
+      // clock
       auto end_proc = std::chrono::steady_clock::now();
       // wait period 
       std::chrono::duration<double> elapsed_seconds = end_proc - start_proc;
       std::this_thread::sleep_for(std::chrono::milliseconds(20)
-				  - elapsed_seconds );
+                                  - elapsed_seconds );
 
       // Physics time
       _phys_time_cur = end_physics - start_proc;
@@ -300,7 +220,7 @@ public:
       // save the current settings
       auto old_settings = fps_ss.flags(); //save previous format flags
       auto old_precision = fps_ss.precision();
-
+    
       fps_ss << std::fixed;
       fps_ss.str("");
       fps_ss << "FPS c/M : ";
@@ -319,7 +239,7 @@ public:
   }
   // **************************************************** GL3DSimu::final_state
   bool final_state() const { return _finished; };
-  // ***************************************************** GL3DSimu::attributs
+  // ************************************************ GLBoidsScreen::attributs
   GLFWwindow* window() { return _window; };
 private:
   /** Ptr sur la Fenetre */
@@ -335,24 +255,21 @@ private:
   /** Viewer */
   GL3DFrame _viewer_frame;
   GL3DGrid _viewer_grid;
-  GL3DDisc _viewer_disc;
-  GL3DRect _viewer_rect;
-  GL3DShip _viewer_ship;
-  GL3DTextShaders& _gl_text;
+  GLToken _viewer_token;
   /** GUI elements */
+  GL3DTextShaders& _gl_text;
   GL3DRect _gui_rect;
   /** Simulations state */
-  bool _physics_running;
-  physics::Engine *_physics_eng;
+  GLToken::TListToken _token_l;
   double _physics_time;
   /** Camera */
-  CameraMode _camera_mode;
   /** FPS */
   std::chrono::duration<double, std::milli> _frame_time_cur;
   std::chrono::duration<double, std::milli> _frame_time_mean;
   std::chrono::duration<double, std::milli> _phys_time_cur;
   std::chrono::duration<double, std::milli> _phys_time_mean;
   // ****************************************************** GL3DSimu::callback
+  // ************************************************* GLBoidsScreen::callback
   static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {
     // ESC
@@ -362,75 +279,46 @@ private:
     // else callback from Class
     else if( action == GLFW_PRESS or action == GLFW_REPEAT ) {
       //std::cout << "key_callback = " << key << std::endl;
-      ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_key_pressed( key, action );
+      ((GLBoidsScreen *)glfwGetWindowUserPointer(window))->on_key_pressed( key, action );
     }
   }
   static void mouse_button_callback(GLFWwindow* window, int button,
 				    int action, int mods)
   {
-    // callback de la Classe
-    ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_mouse_button( button, action, mods );
+    // callback from Classe
+    ((GLBoidsScreen *)glfwGetWindowUserPointer(window))->on_mouse_button( button, action, mods );
   }
   static void mouse_move_callback( GLFWwindow* window, 
 				   double xpos, double ypos) 
   {
-    // callback de la Classe
-    ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_mouse_move( xpos, ypos);
+    // callback from Classe
+    ((GLBoidsScreen *)glfwGetWindowUserPointer(window))->on_mouse_move( xpos, ypos);
   }
   static void scroll_callback(GLFWwindow* window,
 			      double xoffset, double yoffset)
   {
-    // callback de la Classe
-    ((GL3DSimu *)glfwGetWindowUserPointer(window))->on_scroll( yoffset );
+    // callback from Classe
+    ((GLBoidsScreen *)glfwGetWindowUserPointer(window))->on_scroll( yoffset );
   }
 public:
-  // ************************************************ GL3DSimu::on_key_pressed
+  // ******************************************* GLBoidsScreen::on_key_pressed
   /** Called for GLFW_PRESSED and GLFW_REPEAT */
   void on_key_pressed( int key, int action ) 
   {
     
     //std::cout << "GLWindow::key_pressed key=" << key << std::endl;
-    if( key == GLFW_KEY_R and action == GLFW_PRESS ) {
-      // toggle _is_running
-      _physics_running = !_physics_running;
-    }
-    else if( key == GLFW_KEY_E and action == GLFW_PRESS ) {
-      // stop and reset
-      _physics_running = false;
-      physics_reset();
-    }
-    else if( key == GLFW_KEY_C and action == GLFW_PRESS ) {
-      // Switch camera mode
-      switch( _camera_mode ) {
-      case CameraMode::CLASSIC:
-        _camera_mode = CameraMode::FOLLOW;
-        break;
-      case CameraMode::FOLLOW:
-        _camera_mode = CameraMode::CLASSIC;
-        break;
-      }
-    }
-    // Control of ship
-    else if( key == GLFW_KEY_W ) { // accel forward
-      //std::cout << "  control +Thrust" << std::endl;
-      auto ship = _physics_eng->_bodies.front();
-      ship->apply_thrust( 2.0 );
-    }
-    else if( key == GLFW_KEY_S ) { // decel
-      auto ship = _physics_eng->_bodies.front();
-      ship->apply_thrust( -1.0 );
-    }
+    // if( key == GLFW_KEY_R and action == GLFW_PRESS ) {
+    //   // toggle _is_running
+    //   _physics_running = !_physics_running;
+    // }
   }
-  // *********************************************** GL3DSimu::on_mouse_button
+  // ****************************************** GLBoidsScreen::on_mouse_button
   void on_mouse_button( int button, int action, int mods ) 
   {
     double x, y;
     glfwGetCursorPos( _window, &x, &y);
     //std::cout <<"Mouse Button at (" << x <<  ", " << y << ")\n";
 
-    // only in CameraMode::CLASSIC
-    if( _camera_mode == CameraMode::FOLLOW )
-      return;
     if( action == GLFW_PRESS ) {
       if( button == GLFW_MOUSE_BUTTON_LEFT ) {
         // With SHIFT ??
@@ -464,12 +352,9 @@ public:
       std::cout << "           start= " << glm::to_string(_start) << std::endl;
     }
   }
-  // ************************************************* GL3DSimu::on_mouse_move
+  // ******************************************** GLBoidsScreen::on_mouse_move
   void on_mouse_move( double xpos, double ypos )
   {
-    // only in CameraMode::CLASSIC
-    if( _camera_mode == CameraMode::FOLLOW )
-      return;
     // En fonction des actions
     switch( _action ) {
     case MouseAction::ZOOM:
@@ -498,16 +383,12 @@ public:
       break;
     }
   }
-  // ***************************************************** GL3DSimu::on_scroll
+  // ************************************************ GLBoidsScreen::on_scroll
   /** yoffset vaut +/- 1 */
   void on_scroll( double yoffset ) 
   {
     //std::cout << "scroll_action yoffset=" << yoffset << std::endl;
 
-    // only in CameraMode::CLASSIC
-    if( _camera_mode == CameraMode::FOLLOW )
-      return;
-    
     if( yoffset < 0 ) {
       _zoom *= ZOOM_COEF;
       if( _zoom > ZOOM_MAX ) _zoom = ZOOM_MAX;
@@ -519,4 +400,4 @@ public:
   }
 };
 
-#endif // GL_3DSIMU_HPP
+#endif // GL_BOIDS_SCREEN_HPP

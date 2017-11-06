@@ -1,4 +1,9 @@
 * Current => Camera
+* [0/4] Boids
+** TODO Changer taille = 1 de DIAMETRE
+** TODO Ajouter couleur
+** TODO Ajoute arrow orientation
+** TODO Ajouter couleur arrow
 * [2/3] Camera <2017-07-26 mer.>
 ** DONE [1/1] ship to GL3DObject
 *** DONE add shaders to GL3DEngine
