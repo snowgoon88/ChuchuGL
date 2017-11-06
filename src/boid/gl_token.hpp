@@ -30,25 +30,38 @@ public:
     GL3DObject(eng)
   {
     // VBO with 3d coord for volume, but z=0.0.
-	unsigned int nb_vertex = disk_segment_nb + 1;
+    // 1 vertex by segment + center + arrow
+	unsigned int nb_vertex = disk_segment_nb + 1 + 3;
     GLfloat disk_vtx[nb_vertex*3];
 	for( unsigned int i = 0; i < disk_segment_nb; ++i) {
 	  float x = cos( i * 2.f * M_PI / (float) disk_segment_nb );
 	  float y = sin( i * 2.f * M_PI / (float) disk_segment_nb );
-	  disk_vtx[i*3+0] = x;
-	  disk_vtx[i*3+1] = y;
+	  disk_vtx[i*3+0] = 0.5*x;
+	  disk_vtx[i*3+1] = 0.5*y;
 	  disk_vtx[i*3+2] = 0.0f;
 	}
     // center
 	disk_vtx[3 * disk_segment_nb + 0] = 0.f;
 	disk_vtx[3 * disk_segment_nb + 1] = 0.f;
 	disk_vtx[3 * disk_segment_nb + 2] = 0.f;
+    // Arrow
+	disk_vtx[3 * (disk_segment_nb+1) + 0] = 0.4f;
+    disk_vtx[3 * (disk_segment_nb+1) + 1] = 0.f;
+    disk_vtx[3 * (disk_segment_nb+1) + 2] = 0.01f;
+	disk_vtx[3 * (disk_segment_nb+2) + 0] = 0.2f;
+    disk_vtx[3 * (disk_segment_nb+2) + 1] = 0.2f;
+    disk_vtx[3 * (disk_segment_nb+2) + 2] = 0.01f;
+	disk_vtx[3 * (disk_segment_nb+3) + 0] = 0.2f;
+    disk_vtx[3 * (disk_segment_nb+3) + 1] = -0.2f;
+    disk_vtx[3 * (disk_segment_nb+3) + 2] = 0.01f;
+    
     // VBO
     glGenBuffers(1, &_vbo_disk);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_disk);
     // Push points into VBO
     glBufferData(GL_ARRAY_BUFFER, sizeof( disk_vtx ),
   		 disk_vtx, GL_STATIC_DRAW);
+
     glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
     // Indexes for faces
@@ -63,6 +76,17 @@ public:
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo_disk_elements);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(disk_ets),
   		 disk_ets, GL_STATIC_DRAW);
+    // Indexes for arrows
+    GLushort arrow_ets[3];
+    unsigned idx = 0;
+    arrow_ets[0] = disk_segment_nb+1;
+    arrow_ets[1] = disk_segment_nb+2;
+    arrow_ets[2] = disk_segment_nb+3;
+    glGenBuffers(1, &_ibo_arrow_elements);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo_arrow_elements);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(arrow_ets),
+  		 arrow_ets, GL_STATIC_DRAW);
+    
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   }
   // **************************************************** GLToken::destruction
@@ -97,22 +121,48 @@ public:
     int size;
     glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
     for (auto it = list_token.begin(); it != list_token.end(); ++it) {
-      //set color
+      //set position
       auto mvp = set_projection_mtx( projection,
                                      it->origin,
                                      glm::angleAxis( it->orient,
                                                      glm::vec3{0,0,1} ),
                                      scale );
-      glUniformMatrix4fv(_engine->gl_multicolor().uniform_mvp(), 1, GL_FALSE,
+      glUniformMatrix4fv(_engine->gl_unicolor().uniform_mvp(), 1, GL_FALSE,
                          glm::value_ptr(mvp));
+      // Color using OpenGL shaders
+      glUniform3f( _engine->gl_unicolor().uniform_l_color(),
+                   it->token_color.r,
+                   it->token_color.g,
+                   it->token_color.b );
+      glUniform1f( _engine->gl_unicolor().uniform_fade(), 1.f );
+      glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+    }
 
+    // And now the arrows...
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo_arrow_elements);
+    glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+    for (auto it = list_token.begin(); it != list_token.end(); ++it) {
+      //set position
+      auto mvp = set_projection_mtx( projection,
+                                     it->origin,
+                                     glm::angleAxis( it->orient,
+                                                     glm::vec3{0,0,1} ),
+                                     scale );
+      glUniformMatrix4fv(_engine->gl_unicolor().uniform_mvp(), 1, GL_FALSE,
+                         glm::value_ptr(mvp));
+      // Color using OpenGL shaders
+      glUniform3f( _engine->gl_unicolor().uniform_l_color(),
+                   it->arrow_color.r,
+                   it->arrow_color.g,
+                   it->arrow_color.b );
+      glUniform1f( _engine->gl_unicolor().uniform_fade(), 1.f );
       glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
     }
   }
   void pre_render()
   {
     glPushAttrib (GL_ENABLE_BIT);
-    glEnable (GL_CULL_FACE);
+    glEnable (GL_CULL_FACE); //see only one face
     glEnable (GL_DEPTH_TEST);
     glDepthMask (GL_TRUE);
     glEnable (GL_LINE_SMOOTH);
@@ -127,7 +177,7 @@ public:
 private:
   /** Vertex Buffer Objects */
   GLuint _vbo_disk;
-  GLuint _ibo_disk_elements;
+  GLuint _ibo_disk_elements, _ibo_arrow_elements;
 };
 
 

@@ -72,7 +72,7 @@ public:
     _finished(false),
     _viewer_frame( engine ),
 	_viewer_grid( engine, xmin, xmax, xgap, ymin, ymax, ygap ),
-	_viewer_token( engine, 8 ),
+	_viewer_token( engine, 32 ),
 	_gl_text( engine->gl_text() ),
     _gui_rect( engine ),
     _physics_time(0.0),
@@ -88,7 +88,12 @@ public:
     glm::vec3 tok_color {1.f, 0.f, 0.f};
     glm::vec3 arr_color {0.2f, 0.2f, 0.2f};
     _token_l.push_back( GLToken::TToken{ ori, orient, tok_color, arr_color } );
-    
+    ori = glm::vec3{1.5, 2, 0};
+    orient = M_PI / 4.f;
+    tok_color = glm::vec3{0.f, 1.f, 0.f};
+    arr_color = glm::vec3{0.2f, 0.2f, 0.9f};
+    _token_l.push_back( GLToken::TToken{ ori, orient, tok_color, arr_color } );
+    std::cout << "__BOIDS : " << _token_l.size() << std::endl;
   }
   // *********************************************** GLBoidsScreen::destructor
   virtual ~GLBoidsScreen()
@@ -173,9 +178,9 @@ public:
       _viewer_grid.render( vp, {0.f, 0.f, 0.f} );
 	  
       _viewer_frame.render( vp /*projection*/ );
-
+      _viewer_token.pre_render();
       _viewer_token.render_list( vp, _token_l );
-
+      _viewer_token.post_render();
       // Some text, as GUI ?
       // Reset projection to 0,1 x 0,1
       proj = glm::ortho( 0.f, 1.f, // left;right
