@@ -1,10 +1,12 @@
 * Current => Camera
-* [4/5] Boids
+* [5/6] Boids
 ** DONE Changer taille = 1 de DIAMETRE
 ** DONE Ajouter couleur
 ** DONE Ajoute arrow orientation*
 ** DONE Ajouter couleur arrow
 ** TODO Tester deux boucle vs boucle (disk,arrow)
+** DONE [1/1] Position de la souris => position dans le modèle
+*** DONE Relire le calcul matriciel des projections 3D opengl
 * [2/3] Camera <2017-07-26 mer.>
 ** DONE [1/1] ship to GL3DObject
 *** DONE add shaders to GL3DEngine

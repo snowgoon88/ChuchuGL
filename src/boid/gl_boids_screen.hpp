@@ -151,12 +151,12 @@ public:
 
     
       // Camera mode
-      glm::mat4 vp, proj;
+      glm::mat4 vp;
       glm::mat4 zoom, rotation, translation;
       // Trackball view -----------------------------------------------------
       // using a ortho view and using the mouse buttons as trackball.
       // Projection to screen
-      proj = glm::ortho( -10.f, 10.f, // left;right
+      _proj = glm::ortho( -10.f, 10.f, // left;right
                          -10.f, 10.f, // bottom,top
                          -100.f, 100.f // near far
                          );
@@ -173,7 +173,8 @@ public:
       translation = glm::translate(  glm::mat4(1.0f),
                                      glm::vec3( _pos.x, _pos.y, 0.f));
       // Projection-View
-      vp = proj * zoom * translation * rotation;
+      _view = zoom * translation * rotation;
+      vp = _proj * _view;
       
       _viewer_grid.render( vp, {0.f, 0.f, 0.f} );
 	  
@@ -183,6 +184,7 @@ public:
       _viewer_token.post_render();
       // Some text, as GUI ?
       // Reset projection to 0,1 x 0,1
+      glm::mat4 proj;
       proj = glm::ortho( 0.f, 1.f, // left;right
                          0.f, 1.f, // bottom,top
                          -1.f, 1.f // near far
@@ -242,6 +244,40 @@ public:
       fps_ss.precision(old_precision);
     }
   }
+  // *********************************************** GLBoidsSceen::get_clicked
+  /**
+   * Compute the pt clicked by the mouse which is on the Oxy plane in World 
+   * coordinate
+   *
+   * Param: pt_mouse = (x,y,*,*) in Screen Coordinate
+   * Return:
+   *  - pt_mouse = (x,y,z,1) in World Coordinate
+   *  - true if intersection, false otherwise.
+   */
+  bool get_mouse_horizontal( glm::vec4& pt_mouse ) const
+  {
+    // Normalised in [-1;1],[-1;1],z,w
+    pt_mouse.x = 2.f * pt_mouse.x / _screen_width - 1.f;
+    pt_mouse.y = -2.f * pt_mouse.y / _screen_height + 1.f;
+    pt_mouse.z = 0.f;
+    pt_mouse.w = 1.f;
+    // Camera coordinate, unprojected
+    pt_mouse = glm::inverse( _proj ) * pt_mouse;
+    // World coordinate, unviewed
+    pt_mouse = glm::inverse( _view ) * pt_mouse;
+
+     // As we use orthogonal projection, need only the World coordinate of 0,0,1
+    auto vec_w = glm::vec4(0.f,0.f, 1.f, 0.f);
+    vec_w = glm::inverse( _view ) * vec_w;
+    
+    // Then compute the projection of pt_mouse on 0xy
+    if (fabs(vec_w.z) > 0.001) {
+      auto t0 = pt_mouse.z / vec_w.z;
+      pt_mouse = pt_mouse - vec_w * t0;
+      return true;
+    }
+    return false;
+  }
   // **************************************************** GL3DSimu::final_state
   bool final_state() const { return _finished; };
   // ************************************************ GLBoidsScreen::attributs
@@ -255,6 +291,7 @@ private:
   ScreenPos _pos;
   Quaternion _orient;
   MouseAction _action;
+  glm::mat4 _proj, _view;
   /** ready */
   bool _finished;
   /** Viewer */
@@ -326,35 +363,42 @@ public:
 
     if( action == GLFW_PRESS ) {
       if( button == GLFW_MOUSE_BUTTON_LEFT ) {
+        // Infer the model that has been clicked.
+        auto pt = glm::vec4{ (float)x, (float)y, 0.f, 1.f };
+        if( get_mouse_horizontal( pt )){
+          std::cout << " cliked on " << glm::to_string(pt) << std::endl;
+        }
+      }
+      else if( button == GLFW_MOUSE_BUTTON_MIDDLE ) {
         // With SHIFT ??
         if( mods & GLFW_MOD_SHIFT ) {
           //_scene->mouse_action_start ("move-resize",x,y);
-          std::cout << "move-resize at " << x << ", " << y  << std::endl;
+          //std::cout << "move-resize at " << x << ", " << y  << std::endl;
           _start = ScreenPos(x,y);
           _action = MouseAction::MOVE;
         }
         else if( mods & GLFW_MOD_CONTROL ) {
-          std::cout << "zoom at " << x << ", " << y  << std::endl;
+          //std::cout << "zoom at " << x << ", " << y  << std::endl;
         }
         else {
           //_scene->mouse_action_start ("rotate",x,y);
           _start = ScreenPos(x,y);
           _action = MouseAction::ROTATE;
-          std::cout << "rotate at " << x << ", " << y  << std::endl;
+          //std::cout << "rotate at " << x << ", " << y  << std::endl;
         }
       }
       else if( button == GLFW_MOUSE_BUTTON_RIGHT ) {
         //_scene->mouse_action_start( "zoom", x, y);
         _start = ScreenPos(x,y);
         _action = MouseAction::ZOOM;
-        std::cout << "btn right " << x << ", " << y  << std::endl;
+        //std::cout << "btn right " << x << ", " << y  << std::endl;
       }
     }
     else if( action == GLFW_RELEASE ) {
       //_scene->mouse_action_end( x, y);
       _action = MouseAction::NOTHING;
-      std::cout << "end_action " << x << ", " << y  << std::endl;
-      std::cout << "           start= " << glm::to_string(_start) << std::endl;
+      //std::cout << "end_action " << x << ", " << y  << std::endl;
+      //std::cout << "           start= " << glm::to_string(_start) << std::endl;
     }
   }
   // ******************************************** GLBoidsScreen::on_mouse_move
