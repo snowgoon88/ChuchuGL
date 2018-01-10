@@ -1,5 +1,8 @@
-* Current => Camera
+* Current => add physics to gl_boids_screen
 * [5/7] Boids
+** [0/2] adding Physics
+*** TODO Orientation of BoidBody is not aligned to speed
+*** TODO change color according to speed ?
 ** DONE Changer taille = 1 de DIAMETRE
 ** DONE Ajouter couleur
 ** DONE Ajoute arrow orientation*

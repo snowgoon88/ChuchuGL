@@ -20,6 +20,7 @@
 #include <tactiship/gl_3dgrid.hpp>
 #include <tactiship/gl_3drect.hpp>
 #include <boid/gl_token.hpp>
+#include <list>
 
 // OpenGL
 #define GL_GLEXT_PROTOTYPES
@@ -37,7 +38,8 @@
 #include <glm/gtx/quaternion.hpp>     // rotation of vec3
 
 // Physics
-
+#include <physics/engine.hpp>
+#include <boid_body.hpp>
 
 #include <sstream>
 #include <iomanip> // needed to use manipulators with parameters (precision, width)
@@ -75,29 +77,40 @@ public:
 	_viewer_token( engine, 32 ),
 	_gl_text( engine->gl_text() ),
     _gui_rect( engine ),
-    _physics_time(0.0),
+    _physics_running(false), _physics_eng(nullptr), _physics_time(0.0),
     _frame_time_cur(0.0), _frame_time_mean(0.0),
     _phys_time_cur(0.0), _phys_time_mean(0.0)
   {
 	_gui_rect.set_color( {0.8f, 0.8f, 0.8f}, 0.2f );
 
-    // Create some Tokens to display
-    // 1, 0 + 0rad
-    glm::vec3 ori {1, 0, 0};
-    float orient {M_PI * 0.f};
-    glm::vec3 tok_color {1.f, 0.f, 0.f};
-    glm::vec3 arr_color {0.2f, 0.2f, 0.2f};
-    _token_l.push_back( GLToken::TToken{ ori, orient, tok_color, arr_color } );
-    ori = glm::vec3{1.5, 2, 0};
-    orient = M_PI / 4.f;
-    tok_color = glm::vec3{0.f, 1.f, 0.f};
-    arr_color = glm::vec3{0.2f, 0.2f, 0.9f};
-    _token_l.push_back( GLToken::TToken{ ori, orient, tok_color, arr_color } );
+    physics_init();
+    
+    // // Create some Tokens to display
+    // // 1, 0 + 0rad
+    // glm::vec3 ori {1, 0, 0};
+    // float orient {M_PI * 0.f};
+    // glm::vec3 tok_color {1.f, 0.f, 0.f};
+    // glm::vec3 arr_color {0.2f, 0.2f, 0.2f};
+    // _token_l.push_back( GLToken::TToken{ ori, orient, tok_color, arr_color } );
+    // ori = glm::vec3{1.5, 2, 0};
+    // orient = M_PI / 4.f;
+    // tok_color = glm::vec3{0.f, 1.f, 0.f};
+    // arr_color = glm::vec3{0.2f, 0.2f, 0.9f};
+    // _token_l.push_back( GLToken::TToken{ ori, orient, tok_color, arr_color } );
     std::cout << "__BOIDS : " << _token_l.size() << std::endl;
+  }
+  GLToken::TToken token_from_boid( BoidBodyPtr boid )
+  {
+    return GLToken::TToken {
+      boid->_pos,
+      glm::angle( boid->_rot ),
+      {1.f, 0.f, 0.f},
+      {0.2f, 0.2f, 0.2f}};
   }
   // *********************************************** GLBoidsScreen::destructor
   virtual ~GLBoidsScreen()
   {
+    if( _physics_eng ) delete _physics_eng;
   }
   // ***************************************************** GLBoidsscreen::init
   /** Callback pour touches et souris */
@@ -109,6 +122,37 @@ public:
     glfwSetMouseButtonCallback( _window, mouse_button_callback );
     glfwSetCursorPosCallback( _window, mouse_move_callback );
     glfwSetScrollCallback( _window, scroll_callback);
+  }
+  // ********************************************* GLBoidsScreen::physics_init
+  void physics_init()
+  {
+    _physics_eng = new physics::Engine( false /* no gravity */ );
+
+    _boid_list.clear();
+    auto pt = BoidBodyPtr( new BoidBody() );
+    _physics_eng->_bodies.push_back( pt );
+    _boid_list.push_back( pt );
+
+    pt = BoidBodyPtr( new BoidBody() );
+    _physics_eng->_bodies.push_back( pt );
+    _boid_list.push_back( pt );
+
+    physics_reset();
+  }
+  void physics_reset()
+  {
+    // TODO: not clean !!
+    auto it = _boid_list.begin(); 
+    // First boid
+    auto pt = *it++;
+    pt->_pos = physics::TVec3{1,0,0};
+    pt->_rot = glm::angleAxis( 0.f, physics::TVec3(0,0,1));
+    pt->_vel = physics::TVec3{1,0,0};
+    // second
+    pt = *it++;
+    pt->_pos = physics::TVec3{1.5,2,0};
+    pt->_rot = glm::angleAxis( (float) M_PI, physics::TVec3(0,0,1));
+    pt->_vel = physics::TVec3{0,0.5,0};
   }
   // *************************************************** GLBoidsScreen::render
   /**
@@ -130,10 +174,27 @@ public:
     fps_ss << _phys_time_cur.count() << "/";
     fps_ss << _phys_time_mean.count();
 
+    // Physics status
+    std::stringstream phy_ss;
+
     while (!glfwWindowShouldClose(_window) and not _finished) {
       // clock
       auto start_proc = std::chrono::steady_clock::now();
       // Physics
+      phy_ss.str("");
+      phy_ss << "(R)un, r(E)set : ";
+      if( _physics_running ) {
+        phy_ss << "RUN";
+        _physics_eng->update( 0.02 );
+        _physics_time += 0.02;
+        // do things
+      }
+      else {
+        phy_ss << "STOP";
+      }
+      phy_ss << " t=";
+      phy_ss << std::fixed << std::setprecision(2);
+      phy_ss << _physics_time;
       auto end_physics = std::chrono::steady_clock::now();
       
       // update screen size
@@ -177,7 +238,13 @@ public:
       vp = _proj * _view;
       
       _viewer_grid.render( vp, {0.f, 0.f, 0.f} );
-	  
+
+      // update token list
+      _token_l.clear();
+      for( auto& ptb: _boid_list) {
+        _token_l.push_back( token_from_boid(ptb) );
+      }
+      
       _viewer_frame.render( vp /*projection*/ );
       _viewer_token.pre_render();
       _viewer_token.render_list( vp, _token_l );
@@ -202,6 +269,7 @@ public:
       _gl_text.set_scale( (1.f)/(float)_screen_width,
                           (1.f)/(float)_screen_height );
       _gl_text.set_color( {0.f, 0.f, 0.f, 1.f} );
+      _gl_text.render( phy_ss.str(), 0.05f, 0.95f );
       _gl_text.render( fps_ss.str(), 0.05f, 0.01f );
       _gl_text.post_render();
 
@@ -303,6 +371,9 @@ private:
   GL3DRect _gui_rect;
   /** Simulations state */
   GLToken::TListToken _token_l;
+  std::list<BoidBodyPtr> _boid_list;
+  bool _physics_running;
+  physics::Engine *_physics_eng;
   double _physics_time;
   /** Camera */
   /** FPS */
@@ -349,10 +420,15 @@ public:
   {
     
     //std::cout << "GLWindow::key_pressed key=" << key << std::endl;
-    // if( key == GLFW_KEY_R and action == GLFW_PRESS ) {
-    //   // toggle _is_running
-    //   _physics_running = !_physics_running;
-    // }
+    if( key == GLFW_KEY_R and action == GLFW_PRESS ) {
+      // toggle _is_running
+      _physics_running = !_physics_running;
+    }
+    else if( key == GLFW_KEY_E and action == GLFW_PRESS ) {
+      // stop and reset
+      _physics_running = false;
+      physics_reset();
+    }
   }
   // ****************************************** GLBoidsScreen::on_mouse_button
   void on_mouse_button( int button, int action, int mods ) 
