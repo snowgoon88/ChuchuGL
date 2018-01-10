@@ -69,7 +69,7 @@ public:
   // *************************************************** BoidBody::destruction
   virtual ~BoidBody() {}
   // *********************************************************BoidBody::update
-  void update( const physics::TNumber& delta_time )
+  virtual void update( const physics::TNumber& delta_time )
   {
     // truncate force
     auto ratio_force = glm::max( 1.0, glm::length( _acc ) / _max_force);
@@ -94,8 +94,8 @@ public:
 
     // Rotation
     // align to speed vector
-    physics::TVec3 ox{1.f, 0.f, 0.f};
-    _rot = quad_from_two_vectors( ox, _vel );    
+        physics::TVec3 ox{1.f, 0.f, 0.f};
+    _rot = quad_from_two_vectors( ox, _vel );
   }
 
 public:

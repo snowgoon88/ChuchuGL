@@ -92,7 +92,7 @@ public:
     add_force( drag );
   }
   // ******************************************************* RigidBody::update
-  void update( const TNumber& delta_time )
+  virtual void update( const TNumber& delta_time )
   {
     // take drag into account
     drag_force( 0.1 );
