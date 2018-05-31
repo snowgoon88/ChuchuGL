@@ -108,5 +108,6 @@ def build(bld):
     bld.recurse('src')
     bld.recurse('src/tactiship')
     bld.recurse('src/boid')
+    bld.recurse('src/corewar')
     bld.recurse('test')    
 
