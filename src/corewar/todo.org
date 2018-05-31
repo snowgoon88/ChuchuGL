@@ -1,12 +1,12 @@
 * CURRENT: finished imp
-* TODO Instruction: copy creator
+* DONE Instruction: copy creator
 * TODO Program with exec_ptr
-* TODO [0/3] implement DWARF
+* TODO [1/3] implement DWARF
   ADD #4, 3        ; execution begins here
   MOV 2, @2
   JMP -2
   DAT #0, #0
-** TODO ADD
+** DONE ADD
 ** TODO MOV x,@2
 ** TODO JMP -2
 ** DAT x,x
