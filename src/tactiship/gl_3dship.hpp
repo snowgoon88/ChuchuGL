@@ -18,7 +18,7 @@ public:
   GL3DShip( GL3DEnginePtr eng) :
     GL3DObject( eng)
   {
-    // VBO avec 3d coord et rgb color pour les points du Ship
+    // VBO avec 3d coord et RGB color pour les points du Ship
     GLfloat ship_vtx[] = {
       -1, 0, 1,         0.2,0.2,1.0, // A - b
       0, -2, 0,         0.2,0.2,1.0, // B - b

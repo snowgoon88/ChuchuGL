@@ -43,6 +43,7 @@ class GL3DScreen
 public:
   // **************************************************** GL3DScreen::creation
   GL3DScreen( GL3DEnginePtr engine, const GL3DTrajectory& traj_viewer ) :
+    _engine(engine),
     _window(engine->window()),
     _zoom(1.0), _start(0,0), _pos{0,0}, _orient{0,0,0,1}, 
     _action(MouseAction::NOTHING),
@@ -62,7 +63,7 @@ public:
     glfwSetCursorPosCallback( _window, mouse_move_callback );
     glfwSetScrollCallback( _window, scroll_callback);
   };
-  // ********************************************************* GLScreen::render
+  // ******************************************************** GLScreen::render
   /**
    * render() est bloquant, ne rendant la main que quand le GLSCreen 
    * est terminé.
@@ -74,11 +75,14 @@ public:
     // Enable alpha
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
+
     while (!glfwWindowShouldClose(_window) and not _finished) {
       // update screen size
       glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
-      
+
+      _engine->gl_text().set_scale( (10.f)/(float)_screen_width,
+                                    (10.f)/(float)_screen_height );
+          
       // TODO Vérifier ce que fait glViewport
       glViewport(0, 0, _screen_width, _screen_height);
       /* Clear the background as white */
@@ -136,6 +140,7 @@ public:
   // *************************************************** GL3DScreen::attributs
   GLFWwindow* window() { return _window; };
 private:
+  GL3DEnginePtr _engine;
   /** Ptr sur la Fenetre */
   GLFWwindow* _window;
   int _screen_width=800, _screen_height=600;
