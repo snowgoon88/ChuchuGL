@@ -18,3 +18,16 @@ def build( bld ):
         source  = l_chuchu,
         includes = ['.','../include'],
         target  = 'chuchu_objs')
+
+    # link: create bld link to 'shader'
+    def link_data(bld):
+        # link if not exists already
+        if not os.access(  bld.bldnode.abspath()+'/src/shaders', os.F_OK ) :
+            print( "link source",bld.srcnode.abspath()+'/src/shaders' )
+            print( "link name",bld.bldnode.abspath()+'/src/shaders' )
+            os.symlink( bld.srcnode.abspath()+'/src/shaders',
+                     bld.bldnode.abspath()+'/src/shaders' )
+        
+    bld.add_post_fun( link_data )
+
+
