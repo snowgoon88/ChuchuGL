@@ -1,9 +1,9 @@
 #version 330 core
-out vec4 frag_color;
+out vec4 color_frag;
 
-in vec4 geom_color;              //output of vertex shader
+in vec4 color_geom;              //output of vertex shader
 
 void main()
 {
-  frag_color = geom_color;
+  color_frag = color_geom;
 }

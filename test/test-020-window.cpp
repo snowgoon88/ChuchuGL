@@ -84,10 +84,8 @@ int main( int argc, char *argv[] )
   // ------------------------------------------------------------------------
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
-  
-  // glfw: terminate, clearing all previously allocated GLFW resources.
-  // ------------------------------------------------------------------
-  glfwTerminate();
+
+  // tidy shaders
   delete base_shader;
   
   return 0;

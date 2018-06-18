@@ -3,10 +3,11 @@ layout (points) in;
 layout (line_strip, max_vertices=4) out;
 
 in VS_OUT {
-    vec4 vertex_color;
+  vec3 pos_vertex;
+  vec4 color_vertex;
 } gs_in[];
 
-out vec4 geom_color;
+out vec4 color_geom;
 
 // internally, we have the equivalent of
 /* in gl_Vertex */
@@ -20,7 +21,7 @@ out vec4 geom_color;
 
 void build_triangle( vec4 pos )
 {
-  geom_color = gs_in[0].vertex_color;
+  color_geom = gs_in[0].color_vertex;
   gl_Position = pos + vec4( 0.1, 0.0, 0.0, 0.0);
   EmitVertex();
   gl_Position = pos + vec4( 0.0, +0.2, 0.0, 0.0);
