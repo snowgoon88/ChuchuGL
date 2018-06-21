@@ -1,4 +1,11 @@
-* Current => add physics to gl_boids_screen
+* Current => working with new shaders
+* [2/3] New Shaders
+** DONE init of glm::mat ??
+** DONE [/] cube with MVP
+** make slow rotation => model
+** new trackball
+** line width
+** TODO 2D cell viewer with geometry shader
 * [5/7] Boids
 ** [0/2] adding Physics
 *** TODO Orientation of BoidBody is not aligned to speed
@@ -57,7 +64,7 @@
 ** TODO vecteur vitesse angulaire ?
 ** lien entre 2 pts
 ** click pour avoir info
-* [6/6] Model
+* [6/6] Chuchu Model
 ** DONE [2/2] leaving Cell
 *** DONE _arrow => prend dir de _arrow
 *** DONE si mur

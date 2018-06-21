@@ -2,6 +2,7 @@
 
 /** 
  * Test basic GLWindow.
+ * Display a rotating cube with different triangle colors.
  */
 
 #include <iostream>                       // std::cout
@@ -9,10 +10,62 @@
 #include <gl_window.hpp>
 #include <gl_shader.hpp>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
+
 // load shaders
 GLShader* base_shader;
+GLWindow* _win;
 
-  // set up data to draw
+// set up data to draw
+float cube_vertices[] = {
+  // positions            // color
+  0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, // face x+ RG
+  0.5f, 0.5f, 0.5f,       1.0f, 0.0f, 0.0f,
+  0.5f, -0.5f, 0.5f,      1.0f, 0.0f, 0.0f,
+  0.5f, -0.5f, -0.5f,     0.0f, 1.0f, 0.0f,
+  0.5f, 0.5f, -0.5f,      0.0f, 1.0f, 0.0f,
+  0.5f, 0.5f, 0.5f,       0.0f, 1.0f, 0.0f,
+
+  0.5f, 0.5f, -0.5f,      0.0f, 0.0f, 1.0f, // face y+ GB
+  -0.5f, 0.5f, 0.5f,      0.0f, 0.0f, 1.0f,
+  0.5f, 0.5f, 0.5f,       0.0f, 0.0f, 1.0f,
+  0.5f, 0.5f, -0.5f,      1.0f, 1.0f, 0.0f,
+  -0.5f, 0.5f, -0.5f,     1.0f, 1.0f, 0.0f,
+  -0.5f, 0.5f, 0.5f,      1.0f, 1.0f, 0.0f,
+
+  -0.5f, 0.5f, -0.5f,      1.0f, 0.0f, 1.0f, // face x- GR
+  -0.5f, -0.5f, 0.5f,     1.0f, 0.0f, 1.0f,
+  -0.5f, 0.5f, 0.5f,      1.0f, 0.0f, 1.0f,
+  -0.5f, 0.5f, -0.5f,     0.0f, 1.0f, 1.0f,
+  -0.5f, -0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
+  -0.5f, -0.5f, 0.5f,     0.0f, 1.0f, 1.0f,
+
+  -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 1.0f, // face y- BG
+  0.5f, -0.5f, 0.5f,      0.0f, 0.0f, 1.0f,
+  -0.5f,- 0.5f, 0.5f,     0.0f, 0.0f, 1.0f,
+  -0.5f, -0.5f, -0.5f,    0.0f, 1.0f, 0.0f,
+  0.5f, -0.5f, -0.5f,     0.0f, 1.0f, 0.0f,
+  0.5f, -0.5f, 0.5f,      0.0f, 1.0f, 0.0f,
+
+  0.5f, -0.5f, 0.5f,      0.0f, 0.0f, 1.0f, // face z+ BR
+  0.5f, 0.5f, 0.5f,       0.0f, 0.0f, 1.0f,
+  -0.5f, 0.5f, 0.5f,      0.0f, 0.0f, 1.0f,
+  0.5f, -0.5f, 0.5f,      1.0f, 0.0f, 0.0f,
+  -0.5f, 0.5f, 0.5f,      1.0f, 0.0f, 0.0f,
+  -0.5f, -0.5f, 0.5f,     1.0f, 0.0f, 0.0f,
+
+  0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, // face z- RB
+  -0.5f, -0.5f, -0.5f,    1.0f, 0.0f, 0.0f,
+  -0.5f, 0.5f, -0.5f,     1.0f, 0.0f, 0.0f,
+  0.5f, -0.5f, -0.5f,     1.0f, 0.5f, 1.0f,
+  -0.5f, 0.5f, -0.5f,     1.0f, 0.5f, 1.0f,
+  0.5f, 0.5f, -0.5f,      1.0f, 0.5f, 1.0f
+};
+  
+  
 float vertices[] = {
   // positions         // colors
   0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // bottom right
@@ -21,25 +74,59 @@ float vertices[] = {
 };
 
 unsigned int VBO, VAO;
+
+GLuint view_loc, proj_loc, model_loc;
   
 void render()
 {
   // render triangles on every point
   base_shader->use();
+
+  // create transformations
+  glm::mat4 view;
+  glm::mat4 projection;
+  glm::mat4 model;
+  projection = glm::perspective(glm::radians(45.0f),
+                                (float) _win->_screen_width / (float) _win->_screen_height,
+                                0.1f, 100.0f);
+  view       = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+  // rotation
+  model = glm::rotate( model,
+                       (float) glfwGetTime() * glm::radians(50.0f),
+                       glm::vec3( 0.5f, 1.0f, 0.0f) );
+  
+  // pass transformation matrices to the shader
+  glUniformMatrix4fv( view_loc, 1, GL_FALSE, glm::value_ptr(view) );
+  glUniformMatrix4fv( proj_loc, 1, GL_FALSE, glm::value_ptr(projection) );
+  glUniformMatrix4fv( model_loc, 1, GL_FALSE, glm::value_ptr(model) );
+  
+  // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
+    
   glBindVertexArray(VAO);
-  glDrawArrays(GL_POINTS, 0, 3); // ??
+  glDrawArrays(GL_TRIANGLES, 0, 36); // mode, first, count
 }
 
 
 //******************************************************************************
 int main( int argc, char *argv[] )
 {
+  // tmp
+  glm::mat4 glm_tmp; // default is identity
+  std::cout << "GLM init matrix" << std::endl;
+  std::cout << glm::to_string( glm_tmp) << std::endl;
+  
+  
   std::cout << "__WINDOW" << std::endl;
-  GLWindow win( "GL Window", 1128, 752);
+  _win = new GLWindow( "GL Window", 1128, 752);
 
-  base_shader = new GLShader( "src/shaders/base.v330.glsl",
-                              "src/shaders/base.f330.glsl",
-                              "src/shaders/triangle.g330.glsl" );
+  // base_shader = new GLShader( "src/shaders/base.v330.glsl",
+  //                             "src/shaders/base.f330.glsl",
+  //                             "src/shaders/triangle.g330.glsl" );
+  base_shader = new GLShader( "src/shaders/base3D.vert330.glsl",
+                              "src/shaders/base3D.frag330.glsl" );
+  view_loc = base_shader->getUniformLocation( "view" );
+  proj_loc = base_shader->getUniformLocation( "projection" );
+  model_loc = base_shader->getUniformLocation( "model" );
   
   // Create VAO, VBO
   glGenVertexArrays(1, &VAO);
@@ -48,7 +135,8 @@ int main( int argc, char *argv[] )
   glBindVertexArray(VAO);
   
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices,
+               GL_STATIC_DRAW);
 
   // position attribute of shader
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -61,7 +149,13 @@ int main( int argc, char *argv[] )
   // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
   // glBindVertexArray(0);
 
-  win.run( render );
+  // configure global opengl state
+  glEnable(GL_DEPTH_TEST);
+
+  // init timer
+  glfwSetTime( 0.0 );
+  _win->run( render );
+  
   
   // // render window
   // while (!glfwWindowShouldClose(win._window)) {
@@ -87,6 +181,7 @@ int main( int argc, char *argv[] )
 
   // tidy shaders
   delete base_shader;
+  delete _win;
   
   return 0;
 }
