@@ -1,15 +1,17 @@
 * Current => working with new shaders
-* [2/3] New Shaders
+* [4/6] New Shaders
 - test-020-window : cube en rotation
 - test-021-cells : geom pour tracer cell => NON, FAIL
 ** DONE init of glm::mat ??
 ** DONE [/] cube with MVP
 ** make slow rotation => model
-** new trackball
+** TODO new trackball
+** TODO affichage fps
+** billboard ??
 ** line width
-** TODO 2D cell viewer with geometry shader
-** [0/1] Comprendre
-*** TODO sans MVP, tracer axes avec geom
+** DONE 2D cell viewer with geometry shader
+** DONE [1/1] Comprendre
+*** DONE sans MVP, tracer axes avec geom
 **** faire varier (x,y,z), puis w
 * [5/7] Boids
 ** [0/2] adding Physics

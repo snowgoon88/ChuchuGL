@@ -2,7 +2,7 @@
 // pass through
 
 layout (points) in;
-layout (line_strip, max_vertices=16) out;
+layout (line_strip, max_vertices=32) out;
 
 in VS_OUT {
   vec3 pos_vertex;
@@ -12,8 +12,52 @@ in VS_OUT {
 out vec4 color_geom;
 
 uniform float c_length;  // between 0 and 0.5
+uniform float c_width = 0.1f;
 uniform mat4 model;
 uniform mat4 proj_view;
+
+
+void corner_mvp( vec3 pos, vec3 u, vec3 v )
+{
+  vec3 ori = pos + (u-v) * c_width/2.0;
+
+  // up origin
+  gl_Position = proj_view * model * vec4(ori + v * c_width, 1.0);
+  EmitVertex();
+  // origin
+  gl_Position = proj_view * model * vec4(ori, 1.0);
+  EmitVertex();
+  // up right
+  gl_Position = proj_view * model * vec4(ori + u * (c_length-c_width/2.0) + v * c_width, 1.0);
+  EmitVertex();
+  // low right
+  gl_Position = proj_view * model * vec4(ori + u * (c_length-c_width/2.0), 1.0);;
+  EmitVertex();
+  EndPrimitive();
+
+  // low left
+  gl_Position = proj_view * model * vec4(ori -  u *c_width, 1.0);
+  EmitVertex();  
+  // origin
+  gl_Position = proj_view * model * vec4(ori, 1.0);
+  EmitVertex();
+  // upper left
+  gl_Position = proj_view * model * vec4(ori + v * (c_length+c_width/2.0) - u *c_width, 1.0);
+  EmitVertex();
+  // upper middle
+  gl_Position = proj_view * model * vec4(ori + v * (c_length+c_width/2.0), 1.0);
+  EmitVertex();
+  EndPrimitive();
+}
+void cell_mvp( vec3 src )
+{
+  vec3 dir_x = vec3(1.0, 0.0, 0.0)/2.0;
+  vec3 dir_y = vec3(0.0, 1.0, 0.0)/2.0;
+  corner_mvp( src, dir_x, dir_y);
+  corner_mvp( src+dir_x, dir_y, -dir_x);
+  corner_mvp( src+dir_x+dir_y, -dir_x, -dir_y );
+  corner_mvp( src+dir_y, -dir_y, dir_x );
+}
 
 void segment_mvp( vec3 src, vec3 dest)
 {
@@ -78,5 +122,6 @@ void main()
   color_geom = gs_in[0].color_vertex;
   //pass_through();
   //one_third();
-  one_third_mvp( gs_in[0].pos_vertex );
+  //one_third_mvp( gs_in[0].pos_vertex );
+  cell_mvp( gs_in[0].pos_vertex );
 }

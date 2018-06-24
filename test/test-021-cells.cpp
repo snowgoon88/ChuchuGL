@@ -45,8 +45,10 @@ float cell_vertices[] = {
   
 float vertices[] = {
   // positions         // colors
-  0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,
-  -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 1.0f,
+  0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 1.0f,
+  -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 1.0f,
+  0.5f, 0.5f, 0.0f,    0.0f, 1.0f, 1.0f,
+  -0.5f, 0.5f, 0.0f,   1.0f, 0.0f, 1.0f,
 };
 
 unsigned int cell_vbo, cell_vao;
@@ -79,11 +81,11 @@ void render()
   glUniformMatrix4fv( model_loc, 1, GL_FALSE, glm::value_ptr(model) );
   
   // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
-  double cell_length = sin( glfwGetTime() ) * 0.2 + 0.3; 
+  double cell_length = sin( glfwGetTime()*5.0 ) * 0.1 + 0.25; 
   glUniform1f( c_length_loc, (float) cell_length );
   
   glBindVertexArray(cell_vao);
-  glDrawArrays(GL_POINTS, 0, 2); // mode, first, count
+  glDrawArrays(GL_POINTS, 0, 4); // mode, first, count
   //glDrawArrays(GL_LINES, 0, 8); // mode, first, count
 
   // and now axes
