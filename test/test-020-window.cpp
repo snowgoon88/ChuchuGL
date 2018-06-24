@@ -75,7 +75,7 @@ float vertices[] = {
 
 unsigned int VBO, VAO;
 
-GLuint view_loc, proj_loc, model_loc;
+GLuint proj_view_loc, proj_loc, model_loc;
   
 void render()
 {
@@ -96,8 +96,8 @@ void render()
                        glm::vec3( 0.5f, 1.0f, 0.0f) );
   
   // pass transformation matrices to the shader
-  glUniformMatrix4fv( view_loc, 1, GL_FALSE, glm::value_ptr(view) );
-  glUniformMatrix4fv( proj_loc, 1, GL_FALSE, glm::value_ptr(projection) );
+  glUniformMatrix4fv( proj_view_loc, 1, GL_FALSE, glm::value_ptr(projection*view) );
+  //glUniformMatrix4fv( proj_loc, 1, GL_FALSE, glm::value_ptr(projection) );
   glUniformMatrix4fv( model_loc, 1, GL_FALSE, glm::value_ptr(model) );
   
   // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
@@ -124,8 +124,8 @@ int main( int argc, char *argv[] )
   //                             "src/shaders/triangle.g330.glsl" );
   base_shader = new GLShader( "src/shaders/base3D.vert330.glsl",
                               "src/shaders/base3D.frag330.glsl" );
-  view_loc = base_shader->getUniformLocation( "view" );
-  proj_loc = base_shader->getUniformLocation( "projection" );
+  proj_view_loc = base_shader->getUniformLocation( "proj_view" );
+  //proj_loc = base_shader->getUniformLocation( "projection" );
   model_loc = base_shader->getUniformLocation( "model" );
   
   // Create VAO, VBO

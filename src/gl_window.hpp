@@ -72,6 +72,17 @@ public:
     glfwDestroyWindow(_window);
     glfwTerminate();
   }
+  // ********************************************************** GLWindow::init
+  /**
+   * give some info
+   */
+  void init()
+  {
+    double gl_data[4];
+    glGetDoublev( GL_DEPTH_RANGE, gl_data );
+    std::cout << "GL_DEPTH_RANGE: " << gl_data[0] << ", " << gl_data[1];
+    std::cout << std::endl;
+  }
   // *********************************************************** GLWindow::run
   /** 
    * call render() every frame
