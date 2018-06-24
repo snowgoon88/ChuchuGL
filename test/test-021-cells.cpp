@@ -2,7 +2,7 @@
 
 /** 
  * Test basic GLWindow.
- * Display a rotating cube with different triangle colors.
+ * Display two rotating square with dynamic sides (geometry)
  * and an "axes" in red before, in user field of view
  */
 
@@ -17,7 +17,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 // load shaders
-GLShader* base_shader;
+GLShader* cell_shader;
 GLShader* axes_shader;
 GLWindow* _win;
 
@@ -27,68 +27,38 @@ float axes_vertices[] = {
 };
 
 // set up data to draw
-float cube_vertices[] = {
+float cell_vertices[] = {
   // positions            // color
-  0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, // face x+ RG
-  0.5f, 0.5f, 0.5f,       1.0f, 0.0f, 0.0f,
-  0.5f, -0.5f, 0.5f,      1.0f, 0.0f, 0.0f,
-  0.5f, -0.5f, -0.5f,     0.0f, 1.0f, 0.0f,
-  0.5f, 0.5f, -0.5f,      0.0f, 1.0f, 0.0f,
-  0.5f, 0.5f, 0.5f,       0.0f, 1.0f, 0.0f,
+  0.5f, -0.5f, 0.0f,      1.0f, 0.0f, 0.0f, // face x+ RG
+  0.5f, 0.5f, 0.0f,       1.0f, 0.0f, 0.0f,
 
-  0.5f, 0.5f, -0.5f,      0.0f, 0.0f, 1.0f, // face y+ GB
-  -0.5f, 0.5f, 0.5f,      0.0f, 0.0f, 1.0f,
-  0.5f, 0.5f, 0.5f,       0.0f, 0.0f, 1.0f,
-  0.5f, 0.5f, -0.5f,      1.0f, 1.0f, 0.0f,
-  -0.5f, 0.5f, -0.5f,     1.0f, 1.0f, 0.0f,
-  -0.5f, 0.5f, 0.5f,      1.0f, 1.0f, 0.0f,
+  0.5f, 0.5f, 0.0f,       0.0f, 1.0f, 0.0f,
+  -0.5f, 0.5f, 0.0f,      0.0f, 1.0f, 0.0f,
 
-  -0.5f, 0.5f, -0.5f,      1.0f, 0.0f, 1.0f, // face x- GR
-  -0.5f, -0.5f, 0.5f,     1.0f, 0.0f, 1.0f,
-  -0.5f, 0.5f, 0.5f,      1.0f, 0.0f, 1.0f,
-  -0.5f, 0.5f, -0.5f,     0.0f, 1.0f, 1.0f,
-  -0.5f, -0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
-  -0.5f, -0.5f, 0.5f,     0.0f, 1.0f, 1.0f,
+  -0.5f, 0.5f, 0.0f,      0.0f, 0.0f, 1.0f,
+  -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f,
 
-  -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 1.0f, // face y- BG
-  0.5f, -0.5f, 0.5f,      0.0f, 0.0f, 1.0f,
-  -0.5f,- 0.5f, 0.5f,     0.0f, 0.0f, 1.0f,
-  -0.5f, -0.5f, -0.5f,    0.0f, 1.0f, 0.0f,
-  0.5f, -0.5f, -0.5f,     0.0f, 1.0f, 0.0f,
-  0.5f, -0.5f, 0.5f,      0.0f, 1.0f, 0.0f,
-
-  0.5f, -0.5f, 0.5f,      0.0f, 0.0f, 1.0f, // face z+ BR
-  0.5f, 0.5f, 0.5f,       0.0f, 0.0f, 1.0f,
-  -0.5f, 0.5f, 0.5f,      0.0f, 0.0f, 1.0f,
-  0.5f, -0.5f, 0.5f,      1.0f, 0.0f, 0.0f,
-  -0.5f, 0.5f, 0.5f,      1.0f, 0.0f, 0.0f,
-  -0.5f, -0.5f, 0.5f,     1.0f, 0.0f, 0.0f,
-
-  0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, // face z- RB
-  -0.5f, -0.5f, -0.5f,    1.0f, 0.0f, 0.0f,
-  -0.5f, 0.5f, -0.5f,     1.0f, 0.0f, 0.0f,
-  0.5f, -0.5f, -0.5f,     1.0f, 0.5f, 1.0f,
-  -0.5f, 0.5f, -0.5f,     1.0f, 0.5f, 1.0f,
-  0.5f, 0.5f, -0.5f,      1.0f, 0.5f, 1.0f
+  -0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 1.0f,
+  0.5f, -0.5f, 0.0f,      1.0f, 0.0f, 1.0f,
 };
   
   
 float vertices[] = {
   // positions         // colors
-  0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // bottom right
-  -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // bottom left
-  0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // top 
+  0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,
+  -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 1.0f,
 };
 
-unsigned int cube_vbo, cube_vao;
+unsigned int cell_vbo, cell_vao;
 unsigned int axe_vbo, axe_vao;
 
 GLuint proj_view_loc, proj_loc, model_loc;
-  
+GLuint c_length_loc;
+
 void render()
 {
-  // render triangles on every point
-  base_shader->use();
+  // render cell
+  cell_shader->use();
 
   // create transformations
   glm::mat4 view;
@@ -109,9 +79,12 @@ void render()
   glUniformMatrix4fv( model_loc, 1, GL_FALSE, glm::value_ptr(model) );
   
   // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
-    
-  glBindVertexArray(cube_vao);
-  glDrawArrays(GL_TRIANGLES, 0, 36); // mode, first, count
+  double cell_length = sin( glfwGetTime() ) * 0.2 + 0.3; 
+  glUniform1f( c_length_loc, (float) cell_length );
+  
+  glBindVertexArray(cell_vao);
+  glDrawArrays(GL_POINTS, 0, 2); // mode, first, count
+  //glDrawArrays(GL_LINES, 0, 8); // mode, first, count
 
   // and now axes
   axes_shader->use();
@@ -133,27 +106,26 @@ int main( int argc, char *argv[] )
   std::cout << "__WINDOW" << std::endl;
   _win = new GLWindow( "GL Window", 1128, 752);
 
-  // base_shader = new GLShader( "src/shaders/base.v330.glsl",
-  //                             "src/shaders/base.f330.glsl",
-  //                             "src/shaders/triangle.g330.glsl" );
-  base_shader = new GLShader( "src/shaders/base3D.vert330.glsl",
-                              "src/shaders/base3D.frag330.glsl" );
-  proj_view_loc = base_shader->getUniformLocation( "proj_view" );
-  //proj_loc = base_shader->getUniformLocation( "projection" );
-  model_loc = base_shader->getUniformLocation( "model" );
-
+  cell_shader = new GLShader( "src/shaders/cell.v330.glsl",
+                              "src/shaders/base.f330.glsl",
+                              "src/shaders/cell.g330.glsl" );
+  proj_view_loc = cell_shader->getUniformLocation( "proj_view" );
+  model_loc = cell_shader->getUniformLocation( "model" );
+  c_length_loc = cell_shader->getUniformLocation( "c_length" );
+  
   axes_shader = new GLShader( "src/shaders/base.v330.glsl",
                              "src/shaders/base.f330.glsl",
                              "src/shaders/axes.g330.glsl" );
-  
+
   // Create VAO, VBO
-  glGenVertexArrays(1, &cube_vao);
-  glGenBuffers(1, &cube_vbo);
+  glGenVertexArrays(1, &cell_vao);
+  glGenBuffers(1, &cell_vbo);
   // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-  glBindVertexArray(cube_vao);
+  glBindVertexArray(cell_vao);
   
-  glBindBuffer(GL_ARRAY_BUFFER, cube_vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices,
+  glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
+  //glBufferData(GL_ARRAY_BUFFER, sizeof(cell_vertices), cell_vertices,
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
                GL_STATIC_DRAW);
 
   // position attribute of shader
@@ -210,13 +182,13 @@ int main( int argc, char *argv[] )
 
   // optional: de-allocate all resources once they've outlived their purpose:
   // ------------------------------------------------------------------------
-  glDeleteVertexArrays(1, &cube_vao);
-  glDeleteBuffers(1, &cube_vbo);
+  glDeleteVertexArrays(1, &cell_vao);
+  glDeleteBuffers(1, &cell_vbo);
   glDeleteVertexArrays(1, &axe_vao);
   glDeleteBuffers(1, &axe_vbo);
 
   // tidy shaders
-  delete base_shader;
+  delete cell_shader;
   delete axes_shader;
   delete _win;
   
