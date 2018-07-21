@@ -23,7 +23,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 // #include <glm/gtx/string_cast.hpp>
-#include <glm/gtc/quaternion.hpp>           // glm::quat 
+#include <glm/gtc/quaternion.hpp>           // glm::quat
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>           // glm::quat toMat4
 
 #include <ft2build.h>
