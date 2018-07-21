@@ -1,4 +1,9 @@
 * Current => working with new shaders
+* [2/4] GN2020
+** DONE lire monde txt
+** DONE afficher monde txt
+** TODO faire texture hachure et point
+** TODO afficher monde GL avec textures
 * [4/6] New Shaders
 - test-020-window : cube en rotation
 - test-021-cells : geom pour tracer cell => NON, FAIL
