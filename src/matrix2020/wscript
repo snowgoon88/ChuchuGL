@@ -1,0 +1,32 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# wscript in ./src/matrix2020
+
+import os
+
+def build( bld ):
+    print('→ build from ' + bld.path.abspath())
+    
+    ## List of *.cpp files to add to matrox2020_objs
+    l_matrix2020 = []
+    for file in os.listdir( bld.path.abspath() ):
+        if file.endswith(".cpp"):
+            l_matrix2020.append( file )
+
+    bld.objects(
+        source  = l_matrix2020,
+        includes = ['.','..','../../include'],
+        target  = 'matrix2020_objs')
+
+    # link: create bld link to 'shader'
+    def link_data(bld):
+        # link if not exists already
+        if not os.access(  bld.bldnode.abspath()+'/data', os.F_OK ) :
+            print( "link source",bld.srcnode.abspath()+'/data' )
+            print( "link name",bld.bldnode.abspath()+'/data' )
+            os.symlink( bld.srcnode.abspath()+'/data',
+                     bld.bldnode.abspath()+'/data' )
+
+    ## TODO waf clean also clean data !!!!!!
+    ##bld.add_post_fun( link_data )

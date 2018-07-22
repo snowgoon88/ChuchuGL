@@ -64,9 +64,9 @@ void render()
   cell_shader->use();
 
   // create transformations
-  glm::mat4 view;
-  glm::mat4 projection;
-  glm::mat4 model;
+  glm::mat4 view(1.0f);
+  glm::mat4 projection(1.0f);
+  glm::mat4 model(1.0f);
   projection = glm::perspective(glm::radians(45.0f),
                                 (float) _win->_screen_width / (float) _win->_screen_height,
                                 0.1f, 100.0f);
@@ -101,7 +101,7 @@ void render()
 int main( int argc, char *argv[] )
 {
   // tmp
-  glm::mat4 glm_tmp; // default is identity
+  glm::mat4 glm_tmp(1.0f); // default is identity
   std::cout << "GLM init matrix" << std::endl;
   std::cout << glm::to_string( glm_tmp) << std::endl;
   

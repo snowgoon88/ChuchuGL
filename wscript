@@ -11,6 +11,10 @@
 ## Pour avoir accès au CORE de WAF
 import waflib.Options as wo
 
+## Pour copier les dir
+import os
+import shutil
+
 VERSION='0.0.2'
 APPNAME='chuchu'
 
@@ -105,9 +109,49 @@ def configure(conf):
 def build(bld):
     print('→ build from ' + bld.path.abspath() + " with CXX=" + str(bld.env.CXX))
     print('  CXXFLAGS=' + str(bld.env.CXXFLAGS) )
+
     bld.recurse('src')
     bld.recurse('src/tactiship')
     bld.recurse('src/boid')
+    bld.recurse('src/matrix2020')
     bld.recurse('test')
-    bld.recurse('test/matrix2020')    
+    bld.recurse('test/matrix2020')
 
+    def copy_data(bld):
+        src = bld.srcnode.abspath()+'/data'
+        tgt = bld.bldnode.abspath()+'/data'
+        copydir_ifneeded( src, tgt )
+        
+    def copy_shaders(bld):
+        src = bld.srcnode.abspath()+'/src/shaders'
+        tgt = bld.bldnode.abspath()+'/src/shaders'
+        copydir_ifneeded( src, tgt )
+    
+    bld.add_post_fun( copy_data )
+    bld.add_post_fun( copy_shaders )
+
+
+def copydir_ifneeded( src, tgt ):
+    # tgt does not exists => copy
+    if not os.access( tgt, os.F_OK ):
+        print( "__copy "+src+" to "+tgt )
+        shutil.copytree(src, tgt, symlinks=True)
+    else:
+        print( "__check each file of "+src )
+        names = os.listdir(src)
+        for name in names:
+            srcname = os.path.join(src, name)
+            tgtname = os.path.join(tgt, name)
+
+            if not os.access( tgtname, os.F_OK ):
+                print( "  copy "+name )
+                shutil.copy2(srcname, tgtname)
+            else:
+                st_src = os.stat(srcname)
+                st_tgt = os.stat(tgtname)
+
+                # same size and identical timestamps -> make no copy
+                if st_tgt.st_mtime + 2 < st_src.st_mtime or st_src.st_size != st_tgt.st_size:
+                    print( "  copy "+name )
+                    shutil.copy2(srcname, tgtname)
+    

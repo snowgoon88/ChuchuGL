@@ -9,11 +9,18 @@
  */
 
 #include <iostream>       // std::cout
-#include <fstream>
 #include <sstream>                        // std::stringstream
 #include <string.h>       // strcpy
+#include <list>
 
 namespace matrix2020 {
+
+using Pos = struct s_Pos {
+  unsigned int x;
+  unsigned int y;
+};
+using PosList = std::list<Pos>;
+
 // ***************************************************************************
 // *************************************************************** Environment
 // ***************************************************************************
@@ -26,74 +33,46 @@ public:
   {
   }
   // **************************************************** Environment::destroy
-  void free_env()
-  {
-    if( _env != nullptr ) {
-      for( unsigned int i = 0; i < _nb_row; ++i) {
-        delete _env[i];
-      }
-      delete _env;
-    }
-    _nb_row = 0; _nb_col = 0;
-  }
+  void free_env();
   ~Environment()
   {
     free_env();
   }
   // ********************************************** Environment::load_from_txt
-  void load_from_txt( const std::string& filename )
-  {
-    // stream
-    std::ifstream is( filename );
-    std::string line;
-    bool not_finished = true;
-
-    // free previous environment
-    free_env();
-    
-    // read nb_row nb_col
-    while( not_finished ) { 
-      std::getline( is, line);
-      std::cout << "DEB-" << line << std::endl;
-      // Ignore if begin with '#'
-      if( line.front() != '#' ) {
-	std::istringstream iss(line);
-	iss >> _nb_row >> _nb_col;
-        not_finished = false;
-      }
-    }
-    
-    // organise memory
-    _env = new char*[_nb_row];
-    // read envorinment data
-    not_finished = true;
-    unsigned int row = 0;
-    while( not_finished ) {
-      std::getline( is, line);
-      // Ignore if begin with '#'
-      if( line.front() != '#' ) {
-        _env[row] = new char[_nb_col+1];
-        strcpy( _env[row], line.c_str() );
-        row++;
-        if( row >= _nb_row ) not_finished = false;
-      }
-    }
-  }
+  void load_from_txt( const std::string& filename );
   // ******************************************************** Environment::str
   std::string str_dump() const
   {
     std::stringstream dump;
     dump << "ENV: " << _nb_row << "x" << _nb_col << std::endl;
     
-    for( unsigned int i = 0; i < _nb_row; ++i) {
-      dump << _env[i] << std::endl;
+    for( unsigned int i = _nb_row; i > 0; i -= 1 ) {
+      dump << _env[i-1] << std::endl;
     }
 
+    dump << str_walls();
+    
     return dump.str();
   }
+  std::string str_walls() const
+  {
+    std::stringstream wall;
+    wall << "W: ";
+    for( auto& w: _wall_list) {
+      wall << "(" << w.x << ", " << w.y << ") ";
+    }
+
+    return wall.str();
+  }
+  // ************************************************* Environment::build_info
+  void build_info();
+
   // ************************************************** Environment::attributs
+  PosList get_wall_list() const { return _wall_list; }
+  
   char** _env;
   unsigned int _nb_row, _nb_col;
+  PosList _wall_list;
   
 }; // class Environment
 }; // namespace matrix2020

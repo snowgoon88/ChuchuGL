@@ -27,7 +27,8 @@ def build( bld ):
             print( "link name",bld.bldnode.abspath()+'/src/shaders' )
             os.symlink( bld.srcnode.abspath()+'/src/shaders',
                      bld.bldnode.abspath()+'/src/shaders' )
-        
-    bld.add_post_fun( link_data )
+
+    ## WARN when waf clean, also clean shaders !!!
+    ##bld.add_post_fun( link_data )
 
 
