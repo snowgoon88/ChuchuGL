@@ -126,9 +126,15 @@ def build(bld):
         src = bld.srcnode.abspath()+'/src/shaders'
         tgt = bld.bldnode.abspath()+'/src/shaders'
         copydir_ifneeded( src, tgt )
+
+    def copy_ressources(bld):
+        src = bld.srcnode.abspath()+'/ressources'
+        tgt = bld.bldnode.abspath()+'/ressources'
+        copydir_ifneeded( src, tgt )
     
     bld.add_post_fun( copy_data )
     bld.add_post_fun( copy_shaders )
+    bld.add_post_fun( copy_ressources )
 
 
 def copydir_ifneeded( src, tgt ):

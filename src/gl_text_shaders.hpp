@@ -25,7 +25,7 @@
 #include FT_FREETYPE_H
 
 // ******************************************************************** GLOBAL
-#define FONT_PATH std::string("/home/dutech/Fonts/Consolas.ttf")
+#define FONT_PATH std::string("ressources/Consolas.ttf")
 #define FONT_SIZE 12
 #define SHADERS_PATH std::string( "src/shaders/text_fade" )
 // ***************************************************************************
