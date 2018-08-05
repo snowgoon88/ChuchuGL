@@ -132,14 +132,17 @@ public:
     // glBindVertexArray( 0 );
     
     // load and create texture
-    std::string filename{"data/stripe_yel_80x80.png"};
+    //std::string filename{"data/stripe_yel_80x80.png"};
+    //std::string filename{"/home/alain/Projets/ChuchuGL/data/stripe_yel_80x80.png"};
+    std::string filename{"/home/alain/Projets/ChuchuGL/Images/tex_titlerocket.png"};
     std::cout << "__SOIL with " << filename  << std::endl;
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE0);
     std::cout << "  active texture" << std::endl;
     _texture_id = SOIL_load_OGL_texture
       (
-       //filename.c_str(),                         // pathfile
-       "Images/tex_titlerocket.png",
+       filename.c_str(),                         // pathfile
+       //"Images/tex_titlerocket.png",
+       //"/home/alain/Projets/ChuchuGL/data/stripe_yel_80x80.png",
        SOIL_LOAD_AUTO,                           // 
        SOIL_CREATE_NEW_ID,                       //
        SOIL_FLAG_INVERT_Y                        // Corrige les Y upside/down

@@ -12,6 +12,7 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 
+#include <iostream>                  // std::cout
 #include <fstream>                   // std::ifstream 
 
 // ***************************************************************************

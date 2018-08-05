@@ -94,7 +94,7 @@ public:
 
 
     // Charger la texture
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE0);
     _texture_id = SOIL_load_OGL_texture
       (
        filename.c_str(),                         // pathfile
