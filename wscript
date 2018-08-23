@@ -105,7 +105,12 @@ def configure(conf):
     conf.env.LIBPATH_BOOST = ['/usr/lib/x86_64-linux-gnu','/usr/lib/i386-linux-gnu']
     print "Checking for 'BOOST::program_options'"
     conf.find_file( 'lib'+conf.env.LIB_BOOST[0]+'.so', conf.env.LIBPATH_BOOST )
-
+    ## Require STB library
+    stb_path = "/home/dutech/Projets/stb"
+    conf.env.INCLUDES_STB = [stb_path]
+    print "Checking for 'stb' Library"
+    conf.find_file( 'stb_image.h', conf.env.INCLUDES_STB )
+    
 def build(bld):
     print('→ build from ' + bld.path.abspath() + " with CXX=" + str(bld.env.CXX))
     print('  CXXFLAGS=' + str(bld.env.CXXFLAGS) )

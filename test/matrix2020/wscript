@@ -17,7 +17,7 @@ def build(bld):
                 target = file[:-4],
                 includes=['.', '../../include', '../../src'],
                 libs = ['m'],
-                use = [ 'matrix2020_objs', 'SOIL','PA',
+                use = [ 'matrix2020_objs', 'SOIL', 'STB','PA',
                        'VORBIS','FTGL','OPENGL','GLFW3',
                        'FREETYPE2','BOOST'
                 ]

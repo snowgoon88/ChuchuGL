@@ -11,7 +11,8 @@
 #include <matrix2020/m_environment.hpp>
 
 #include <gl_shader.hpp>
-#include <SOIL/SOIL.h>               // Load images
+//#include <SOIL/SOIL.h>               // Load images
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>               // alt to load images
 
 #include <glm/glm.hpp>
@@ -152,14 +153,15 @@ public:
     // if(_texture_id == 0)
     //   std::cerr << "GLSprite: SOIL loading error: '" << SOIL_last_result() << "' (" << filename << ")" << std::endl;
 
-    glGenTexture( 1, &_texture_id);
+    std::string filename{"data/stripe_yel_80x80.png"};
+    glGenTextures( 1, &_texture_id);
     glBindTexture( GL_TEXTURE_2D, _texture_id );
     // set wrapping parameters (repeat, usual default)
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
     // set filtering
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTERING, GL_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTERING, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
     // load image, create texture and generate mipmap
     int img_w, img_h, img_nb_channels;
     stbi_set_flip_vertically_on_load( true ); // flip image on y-axis
@@ -178,10 +180,10 @@ public:
     stbi_image_free(img_data);
 
     // tell OpenGl for each sampler to which texture it belongs to
-    XXX.use();
-    glUniformli( glGetUniformLocation( ourShader.ID, "texture1"), 0);
-    ou
-      ourShader(.setInt( "texture1", 0 );
+    // XXX.use();
+    // glUniformli( glGetUniformLocation( ourShader.ID, "texture1"), 0);
+    // ou
+    //   ourShader(.setInt( "texture1", 0 );
                                          
   }
   // *************************************************** GLEnvironment::render
@@ -200,7 +202,7 @@ public:
                         glm::value_ptr(projection*view) );
     // tell what texture => TEXTURE0
     // TODO could be done once, before
-    glUniform1i( _texture_loc, 0);
+    glUniform1i( _texture_loc, _texture_id );
 
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
