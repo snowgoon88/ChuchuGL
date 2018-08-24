@@ -11,15 +11,15 @@
 #include <matrix2020/m_environment.hpp>
 
 #include <gl_shader.hpp>
-//#include <SOIL/SOIL.h>               // Load images
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>               // alt to load images
+#include <SOIL/SOIL.h>               // Load images
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
+
+#define HALF_SIZE (0.5f)
 
 namespace matrix2020 {
 // ***************************************************************************
@@ -32,92 +32,93 @@ public:
   GLEnvironment( const Environment& env ) :
     _env(env)
   {
+    
     _texture_shader = new GLShader( "src/shaders/texture.v330.glsl",
                                     "src/shaders/texture.f330.glsl" );
-    _proj_view_loc = _texture_shader->getUniformLocation( "proj_view" );
-    _texture_loc = _texture_shader->getUniformLocation( "texture_id" );
+    _proj_view_loc_tex = _texture_shader->getUniformLocation( "proj_view" );
+    _texture_loc_tex = _texture_shader->getUniformLocation( "texture_id" );
 
-    build_vba();
+    _cell_shader = new GLShader( "src/shaders/cell.v330.glsl",
+                                "src/shaders/base.f330.glsl",
+                                "src/shaders/cell.g330.glsl" );
+    _proj_view_loc_cell = _cell_shader->getUniformLocation( "proj_view" );
+    _model_loc_cell = _cell_shader->getUniformLocation( "model" );
+    _c_length_loc_cell = _cell_shader->getUniformLocation( "c_length" );
+    
+    build_wall_data();
+    build_cell_data();
   }
   // ************************************************** GLEnvironment::destroy
   ~GLEnvironment()
   {
-    glDeleteVertexArrays( 1, &_vao);
-    glDeleteBuffers( 1, &_vbo);
+    glDeleteVertexArrays( 1, &_wall_vao);
+    glDeleteBuffers( 1, &_wall_vbo);
     glDeleteTextures( 1, &_texture_id);
     delete _texture_shader;
+
+    glDeleteVertexArrays( 1, &_cell_vao);
+    glDeleteBuffers( 1, &_cell_vbo);
+    delete _cell_shader;    
   }
-  // ************************************************ GLEnvironment::build_vba
+  // ****************************************** GLEnvironment::build_wall_data
   /**
    * Use the model to build a VBA with
    * - VBO : vertex x xyzst (xyz:pos vertex, st:coord texture)
    */
-  void build_vba()
+  void build_wall_data()
   {
     // seek position of the 'X' in the Environment
     auto wall_list = _env.get_wall_list();
     
     // set up vertex data, each vertex has x,y,z,s,t 
-    float vertices[wall_list.size() * 6*(3+2)];
+    float wall_vtx[wall_list.size() * 6*(3+2)];
     unsigned int idx = 0;
     for( auto& wall: wall_list) {
       // First triangle. bottom left
       // x,y,z
-      vertices[idx++] = (float) wall.x - 0.5f;
-      vertices[idx++] = (float) wall.y - 0.5f;
-      vertices[idx++] = 0.f;
+      bottom_left_corner(wall_vtx, idx, wall);
       // s,t
-      vertices[idx++] = (float) 0.0f;
-      vertices[idx++] = (float) 0.0f;
+      wall_vtx[idx++] = (float) 0.0f;
+      wall_vtx[idx++] = (float) 0.0f;
       // First triangle. bottom right
       // x,y,z
-      vertices[idx++] = (float) wall.x + 0.5f;
-      vertices[idx++] = (float) wall.y - 0.5f;
-      vertices[idx++] = 0.f;
+      bottom_right_corner(wall_vtx, idx, wall);
       // s,t
-      vertices[idx++] = (float) 1.0f;
-      vertices[idx++] = (float) 0.0f;
+      wall_vtx[idx++] = (float) 1.0f;
+      wall_vtx[idx++] = (float) 0.0f;
       // First triangle. top right
       // x,y,z
-      vertices[idx++] = (float) wall.x + 0.5f;
-      vertices[idx++] = (float) wall.y + 0.5f;
-      vertices[idx++] = 0.f;
+      top_right_corner(wall_vtx, idx, wall);
       // s,t
-      vertices[idx++] = (float) 1.0f;
-      vertices[idx++] = (float) 1.0f;
+      wall_vtx[idx++] = (float) 1.0f;
+      wall_vtx[idx++] = (float) 1.0f;
       // Second triangle, top right
       // x,y,z
-      vertices[idx++] = (float) wall.x + 0.5f;
-      vertices[idx++] = (float) wall.y + 0.5f;
-      vertices[idx++] = 0.f;
+      top_right_corner( wall_vtx, idx, wall);
       // s,t
-      vertices[idx++] = (float) 1.0f;
-      vertices[idx++] = (float) 1.0f;
+      wall_vtx[idx++] = (float) 1.0f;
+      wall_vtx[idx++] = (float) 1.0f;
       // Second triangle, top left
       // x,y,z
-      vertices[idx++] = (float) wall.x - 0.5f;
-      vertices[idx++] = (float) wall.y + 0.5f;
-      vertices[idx++] = 0.f;
+      top_left_corner( wall_vtx, idx, wall );
       // s,t
-      vertices[idx++] = (float) 0.0f;
-      vertices[idx++] = (float) 1.0f;
+      wall_vtx[idx++] = (float) 0.0f;
+      wall_vtx[idx++] = (float) 1.0f;
       // Second triangle, bottom left
       // x,y,z
-      vertices[idx++] = (float) wall.x - 0.5f;
-      vertices[idx++] = (float) wall.y - 0.5f;
-      vertices[idx++] = 0.f;
+      bottom_left_corner( wall_vtx, idx, wall );
       // s,t
-      vertices[idx++] = (float) 0.0f;
-      vertices[idx++] = (float) 0.0f;
+      wall_vtx[idx++] = (float) 0.0f;
+      wall_vtx[idx++] = (float) 0.0f;
     }
 
-    glGenVertexArrays( 1, &_vao );
-    glGenBuffers( 1, &_vbo );
+    glGenVertexArrays( 1, &_wall_vao );
+    glGenBuffers( 1, &_wall_vbo );
 
-    glBindVertexArray( _vao );
+    glBindVertexArray( _wall_vao );
 
-    glBindBuffer( GL_ARRAY_BUFFER, _vbo );
-    glBufferData( GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW );
+    glBindBuffer( GL_ARRAY_BUFFER, _wall_vbo );
+    glBufferData( GL_ARRAY_BUFFER, sizeof(wall_vtx), wall_vtx, GL_STATIC_DRAW );
 
     // position attribute
     glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE,
@@ -134,50 +135,20 @@ public:
     // glBindVertexArray( 0 );
     
     // load and create texture
-    // //std::string filename{"data/stripe_yel_80x80.png"};
-    // //std::string filename{"/home/alain/Projets/ChuchuGL/data/stripe_yel_80x80.png"};
-    // std::string filename{"/home/alain/Projets/ChuchuGL/Images/tex_titlerocket.png"};
-    // std::cout << "__SOIL with " << filename  << std::endl;
-    // //glActiveTexture(GL_TEXTURE0);
-    // std::cout << "  active texture" << std::endl;
-    // _texture_id = SOIL_load_OGL_texture
-    //   (
-    //    filename.c_str(),                         // pathfile
-    //    //"Images/tex_titlerocket.png",
-    //    //"/home/alain/Projets/ChuchuGL/data/stripe_yel_80x80.png",
-    //    SOIL_LOAD_AUTO,                           // 
-    //    SOIL_CREATE_NEW_ID,                       //
-    //    SOIL_FLAG_INVERT_Y                        // Corrige les Y upside/down
-    //    );
-    // std::cout << "  soil finished" << std::endl;
-    // if(_texture_id == 0)
-    //   std::cerr << "GLSprite: SOIL loading error: '" << SOIL_last_result() << "' (" << filename << ")" << std::endl;
-
     std::string filename{"data/stripe_yel_80x80.png"};
-    glGenTextures( 1, &_texture_id);
-    glBindTexture( GL_TEXTURE_2D, _texture_id );
-    // set wrapping parameters (repeat, usual default)
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-    // set filtering
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    // load image, create texture and generate mipmap
-    int img_w, img_h, img_nb_channels;
-    stbi_set_flip_vertically_on_load( true ); // flip image on y-axis
-    unsigned char *img_data = stbi_load( filename.c_str(),
-                                         &img_w, &img_h, &img_nb_channels, 0 );
-    if (img_data) {
-      glTexImage2D( GL_TEXTURE_2D, 0,
-                    GL_RGB, img_w, img_h, 0,
-                    GL_RGB, GL_UNSIGNED_BYTE, img_data );
-      glGenerateMipmap( GL_TEXTURE_2D );
-    }
-    else {
-      std::cerr << "GLSprite: STB loading error:  (" << filename << ")" << std::endl;
-    }
-
-    stbi_image_free(img_data);
+    std::cout << "__SOIL with " << filename  << std::endl;
+    //glActiveTexture(GL_TEXTURE0);
+    std::cout << "  active texture" << std::endl;
+    _texture_id = SOIL_load_OGL_texture
+      (
+       filename.c_str(),                         // pathfile
+       SOIL_LOAD_AUTO,                           // 
+       SOIL_CREATE_NEW_ID,                       //
+       SOIL_FLAG_INVERT_Y                        // Corrige les Y upside/down
+       );
+    std::cout << "  soil finished" << std::endl;
+    if(_texture_id == 0)
+      std::cerr << "GLSprite: SOIL loading error: '" << SOIL_last_result() << "' (" << filename << ")" << std::endl;
 
     // tell OpenGl for each sampler to which texture it belongs to
     // XXX.use();
@@ -186,40 +157,132 @@ public:
     //   ourShader(.setInt( "texture1", 0 );
                                          
   }
+  void build_cell_data()
+  {
+    // seek position of the '.' in the Environment
+    auto cell_list = _env.get_cell_list();
+    
+    // set up vertex data, each vertex has x,y,z, r,g,b 
+    float cell_vtx[cell_list.size() * 2*(3+3)];
+    unsigned int idx = 0;
+    for( auto& cell: cell_list) {
+      // bottom left
+      bottom_left_corner( cell_vtx, idx, cell );
+      // r,g,b
+      cell_vtx[idx++] = (float) 1.0f;
+      cell_vtx[idx++] = (float) 219.0 / 255.0f;
+      cell_vtx[idx++] = (float) 0.0f;
+
+      // // Then bottom right
+      // bottom_right_corner( cell_vtx, idx, cell );
+      // // r,g,b
+      // cell_vtx[idx++] = (float) 0.0f;
+      // cell_vtx[idx++] = (float) 1.0f;
+      // cell_vtx[idx++] = (float) 1.0f;
+    }
+
+    glGenVertexArrays( 1, &_cell_vao );
+    glGenBuffers( 1, &_cell_vbo );
+
+    glBindVertexArray( _cell_vao );
+
+    glBindBuffer( GL_ARRAY_BUFFER, _cell_vbo );
+    glBufferData( GL_ARRAY_BUFFER, sizeof(cell_vtx), cell_vtx, GL_STATIC_DRAW );
+
+    // position attribute
+    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE,
+                           (3+3) * sizeof(float), // stride
+                           (void*)0); // offset
+    glEnableVertexAttribArray(0);
+    // color coordinate
+    glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE,
+                           (3+3) * sizeof(float), // stride
+                           (void*)(3 * sizeof(float)) ); // offset
+    glEnableVertexAttribArray(1);
+  }
   // *************************************************** GLEnvironment::render
   void render()
   {
     // create transformations
-    glm::mat4 view;
-    glm::mat4 projection;
-    projection = glm::ortho( -10.f, 10.f, -10.f, 10.0f, 0.1f, 100.0f );
+    glm::mat4 view(1.0f);
+    glm::mat4 projection(1.0f);
+    glm::mat4 model( 1.0f );
+    projection = glm::ortho( -1.f, 10.f, -1.f, 10.0f, 0.1f, 100.0f );
     view       = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
     
     // activate program
     _texture_shader->use();
     // pass transformation matrices to the shader
-    glUniformMatrix4fv( _proj_view_loc, 1, GL_FALSE,
+    glUniformMatrix4fv( _proj_view_loc_tex, 1, GL_FALSE,
                         glm::value_ptr(projection*view) );
     // tell what texture => TEXTURE0
     // TODO could be done once, before
-    glUniform1i( _texture_loc, _texture_id );
+    // glUniform1i( _texture_loc_tex, 0 ); //car GL_TEXTURE0 ) and not _texture_id );
 
     // bind textures on corresponding texture units
-    glActiveTexture(GL_TEXTURE0);
+    // glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _texture_id);
 
     // draw
-    glBindVertexArray( _vao );
-    glDrawArrays( GL_TRIANGLES, 0, _env.get_wall_list().size()); // mode, first, count
+    glBindVertexArray( _wall_vao );
+    glDrawArrays( GL_TRIANGLES, 0, _env.get_wall_list().size() * 6); // mode, first, count
+
+    // and now the cells
+    _cell_shader->use();
+    // pass transformation matrices to the shader
+    glUniformMatrix4fv( _proj_view_loc_cell, 1, GL_FALSE,
+                        glm::value_ptr(projection*view) );
+    glUniformMatrix4fv( _model_loc_cell, 1, GL_FALSE,
+                        glm::value_ptr(model) );
+
+    //double cell_length = sin( glfwGetTime()*5.0 ) * 0.1 + 0.25;
+    double cell_length = 0.15f;
+    glUniform1f( _c_length_loc_cell, (float) cell_length );
+  
+    glBindVertexArray(_cell_vao);
+    glDrawArrays(GL_POINTS, 0, _env.get_cell_list().size() * 1 ); // mode, first, count
+    
   }
   // ************************************************ GLEnvironment::attributs
   const Environment& _env;
   GLShader* _texture_shader;
-  GLuint _texture_loc;
-  GLuint _proj_view_loc;
+  GLuint _texture_loc_tex;
+  GLuint _proj_view_loc_tex;
   GLuint _texture_id;
-  GLuint _vao, _vbo;
-  
+  GLuint _wall_vao, _wall_vbo;
+
+  GLShader* _cell_shader;
+  GLuint _proj_view_loc_cell;
+  GLuint _model_loc_cell;
+  GLuint _c_length_loc_cell;
+  GLuint _cell_vao, _cell_vbo;
+
+private:
+  // ************************************************** GLEnvironment::corners
+  void bottom_left_corner( float *vtx, unsigned int& idx, const Pos& pos )
+  {
+    vtx[idx++] = (float) pos.x - HALF_SIZE;
+    vtx[idx++] = (float) pos.y - HALF_SIZE;
+    vtx[idx++] = 0.f;
+  }
+  void bottom_right_corner( float *vtx, unsigned int& idx, const Pos& pos )
+  {
+    vtx[idx++] = (float) pos.x + HALF_SIZE;
+    vtx[idx++] = (float) pos.y - HALF_SIZE;
+    vtx[idx++] = 0.f;
+  }
+  void top_left_corner( float *vtx, unsigned int& idx, const Pos& pos )
+  {
+    vtx[idx++] = (float) pos.x - HALF_SIZE;
+    vtx[idx++] = (float) pos.y + HALF_SIZE;
+    vtx[idx++] = 0.f;
+  }
+  void top_right_corner( float *vtx, unsigned int& idx, const Pos& pos )
+  {
+    vtx[idx++] = (float) pos.x + HALF_SIZE;
+    vtx[idx++] = (float) pos.y + HALF_SIZE;
+    vtx[idx++] = 0.f;
+  }
 }; // class GLEnvironment
 
 }; // namespace matrix2020

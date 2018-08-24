@@ -50,10 +50,16 @@ void matrix2020::Environment::build_info()
 {
   // a list of wall ('X') position
   _wall_list.clear();
+  // a list of cell ('.') position
+  _cell_list.clear();
+  
   for( unsigned int row = 0; row < _nb_row; ++row) {
     for( unsigned int col = 0; col < _nb_col; ++col) {
       if( _env[row][col] == 'X' ) {
         _wall_list.push_back( {col,row} );
+      }
+      else if( _env[row][col] == '.' ) {
+        _cell_list.push_back( {col,row} );
       }
     }
   }

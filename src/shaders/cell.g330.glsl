@@ -2,7 +2,7 @@
 // pass through
 
 layout (points) in;
-layout (line_strip, max_vertices=32) out;
+layout (triangle_strip, max_vertices=32) out;
 
 in VS_OUT {
   vec3 pos_vertex;
@@ -51,8 +51,8 @@ void corner_mvp( vec3 pos, vec3 u, vec3 v )
 }
 void cell_mvp( vec3 src )
 {
-  vec3 dir_x = vec3(1.0, 0.0, 0.0)/2.0;
-  vec3 dir_y = vec3(0.0, 1.0, 0.0)/2.0;
+  vec3 dir_x = vec3(1.0, 0.0, 0.0);
+  vec3 dir_y = vec3(0.0, 1.0, 0.0);
   corner_mvp( src, dir_x, dir_y);
   corner_mvp( src+dir_x, dir_y, -dir_x);
   corner_mvp( src+dir_x+dir_y, -dir_x, -dir_y );

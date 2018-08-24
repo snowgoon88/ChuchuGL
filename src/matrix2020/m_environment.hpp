@@ -6,6 +6,8 @@
 /** 
  * Load one "level" of the matrix, i.e: environement.
  * From .txt file (see data/matrix00.txt)
+ *
+ * Read 'X', '.'
  */
 
 #include <iostream>       // std::cout
@@ -50,7 +52,8 @@ public:
       dump << _env[i-1] << std::endl;
     }
 
-    dump << str_walls();
+    dump << str_walls() << std::endl;
+    dump << str_cells() << std::endl;
     
     return dump.str();
   }
@@ -64,15 +67,27 @@ public:
 
     return wall.str();
   }
+  std::string str_cells() const
+  {
+    std::stringstream cell;
+    cell << "C: ";
+    for( auto& c: _cell_list) {
+      cell << "(" << c.x << ", " << c.y << ") ";
+    }
+
+    return cell.str();
+  }
   // ************************************************* Environment::build_info
   void build_info();
 
   // ************************************************** Environment::attributs
   PosList get_wall_list() const { return _wall_list; }
+  PosList get_cell_list() const { return _cell_list; }
   
   char** _env;
   unsigned int _nb_row, _nb_col;
   PosList _wall_list;
+  PosList _cell_list;
   
 }; // class Environment
 }; // namespace matrix2020
