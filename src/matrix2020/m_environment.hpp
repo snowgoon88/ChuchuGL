@@ -15,12 +15,10 @@
 #include <string.h>       // strcpy
 #include <list>
 
+#include <matrix2020/m_def.hpp>
+
 namespace matrix2020 {
 
-using Pos = struct s_Pos {
-  unsigned int x;
-  unsigned int y;
-};
 using PosList = std::list<Pos>;
 
 // ***************************************************************************
@@ -46,16 +44,23 @@ public:
   std::string str_dump() const
   {
     std::stringstream dump;
-    dump << "ENV: " << _nb_row << "x" << _nb_col << std::endl;
-    
-    for( unsigned int i = _nb_row; i > 0; i -= 1 ) {
-      dump << _env[i-1] << std::endl;
-    }
+    dump << str_display();
 
     dump << str_walls() << std::endl;
     dump << str_cells() << std::endl;
     
     return dump.str();
+  }
+  std::string str_display() const
+  {
+    std::stringstream disp;
+    disp << "ENV: " << _nb_row << "x" << _nb_col << std::endl;
+    
+    for( unsigned int i = _nb_row; i > 0; i -= 1 ) {
+      disp << _env[i-1] << std::endl;
+    }
+    
+    return disp.str();
   }
   std::string str_walls() const
   {
@@ -76,6 +81,11 @@ public:
     }
 
     return cell.str();
+  }
+  // *************************************************** Environment::get_info
+  bool is_cell( const Pos& pos )
+  {
+    return (_env[pos.y][pos.x] == '.' );
   }
   // ************************************************* Environment::build_info
   void build_info();
