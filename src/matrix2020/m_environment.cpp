@@ -2,7 +2,7 @@
 
 #include <matrix2020/m_environment.hpp>
 #include <fstream>
-
+#include <limits>    // for std::numeric_limits
 // ************************************************ Environment::load_from_txt
 void matrix2020::Environment::load_from_txt( const std::string& filename )
 {
@@ -52,14 +52,21 @@ void matrix2020::Environment::build_info()
   _wall_list.clear();
   // a list of cell ('.') position
   _cell_list.clear();
+
+  // Before turning unsigned int index to Pos(int,int) we must be sure
+  // that index are not bigger than max vaue of int
+  if ( (_nb_col > static_cast<unsigned int>(std::numeric_limits<int>::max())) ||
+       (_nb_row > static_cast<unsigned int>(std::numeric_limits<int>::max())) ) {
+    throw std::overflow_error( "env to big to be stored in Pos" );
+  }
   
   for( unsigned int row = 0; row < _nb_row; ++row) {
     for( unsigned int col = 0; col < _nb_col; ++col) {
       if( _env[row][col] == 'X' ) {
-        _wall_list.push_back( {col,row} );
+        _wall_list.push_back( {static_cast<int>(col),static_cast<int>(row)} );
       }
       else if( _env[row][col] == '.' ) {
-        _cell_list.push_back( {col,row} );
+        _cell_list.push_back( {static_cast<int>(col),static_cast<int>(row)} );
       }
     }
   }

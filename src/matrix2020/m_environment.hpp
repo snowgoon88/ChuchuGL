@@ -14,17 +14,19 @@
 #include <sstream>                        // std::stringstream
 #include <string.h>       // strcpy
 #include <list>
+#include <stdexcept>      // std::out_of_range
 
 #include <matrix2020/m_def.hpp>
 
 namespace matrix2020 {
 
 using PosList = std::list<Pos>;
-
+  
 // ***************************************************************************
 // *************************************************************** Environment
 // ***************************************************************************
 class Environment
+// TODO add copy, assigment !!
 {
 public:
   // *************************************************** Environment::creation
@@ -67,7 +69,7 @@ public:
     std::stringstream wall;
     wall << "W: ";
     for( auto& w: _wall_list) {
-      wall << "(" << w.x << ", " << w.y << ") ";
+      wall << w << " ";
     }
 
     return wall.str();
@@ -77,7 +79,7 @@ public:
     std::stringstream cell;
     cell << "C: ";
     for( auto& c: _cell_list) {
-      cell << "(" << c.x << ", " << c.y << ") ";
+      cell << c << " ";
     }
 
     return cell.str();
@@ -85,10 +87,13 @@ public:
   // *************************************************** Environment::get_info
   bool is_cell( const Pos& pos )
   {
-    return (_env[pos.y][pos.x] == '.' );
+    if (pos >= Pos(0,0) || pos < Pos(_nb_col, _nb_row)) {
+      return (_env[(unsigned int)pos.y][(unsigned int)pos.x] == '.' );
+    }
+    else {
+      throw std::out_of_range( "pos="+pos.str_display()+" is not valid" );
+    }
   }
-  // ************************************************* Environment::build_info
-  void build_info();
 
   // ************************************************** Environment::attributs
   PosList get_wall_list() const { return _wall_list; }
@@ -98,6 +103,12 @@ public:
   unsigned int _nb_row, _nb_col;
   PosList _wall_list;
   PosList _cell_list;
+
+private:
+  // ************************************************* Environment::build_info
+  /** Builds _wall_list, _cell_list */
+  void build_info();
+  
   
 }; // class Environment
 }; // namespace matrix2020

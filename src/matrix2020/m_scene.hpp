@@ -74,19 +74,18 @@ public:
   // ************************************************************* Scene::move
   /** If possible, move hacker in 'dir'
    */
-  void move( const Dir& dir )
+  void move( const Pos& dir )
   {
-    Dir dest( {_hacker->pos().x + dir.x, _hacker->pos().y + dir.y } );
+    Pos dest( _hacker->pos() + dir );
     if (dest.x < 0) dest.x = 0;
     if (dest.y < 0) dest.y = 0;
     
-    Pos final_dest( {dest.x, dest.y} );
+    Pos final_dest = dest; 
     if (_env.is_cell( final_dest )) {
       _hacker->_pos = final_dest;
     }
     else {
-      std::cerr << "Game::move Invalid move to ";
-      std::cerr << "( " << final_dest.x << ", " << final_dest.y << ")";
+      std::cerr << "Game::move Invalid move to " << final_dest;
       std::cerr << std::endl;
     }
   }

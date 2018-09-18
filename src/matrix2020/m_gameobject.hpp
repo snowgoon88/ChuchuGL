@@ -43,7 +43,7 @@ public:
   std::string str_dump() const
   {
     std::stringstream dump;
-    dump << "GO: " << _name << " Pos=( " << pos().x << ", " << pos().y << ")";
+    dump << "GO: " << _name << " Pos= " << _pos;
 
     return dump.str();
   }
