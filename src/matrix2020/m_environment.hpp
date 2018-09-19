@@ -21,7 +21,7 @@
 namespace matrix2020 {
 
 using PosList = std::list<Pos>;
-  
+using Index = struct s_Index { unsigned int col; unsigned int row; };  
 // ***************************************************************************
 // *************************************************************** Environment
 // ***************************************************************************
@@ -85,14 +85,15 @@ public:
     return cell.str();
   }
   // *************************************************** Environment::get_info
-  bool is_cell( const Pos& pos )
+  bool is_cell( const Pos& pos ) const
   {
-    if (pos >= Pos(0,0) || pos < Pos(_nb_col, _nb_row)) {
-      return (_env[(unsigned int)pos.y][(unsigned int)pos.x] == '.' );
-    }
-    else {
-      throw std::out_of_range( "pos="+pos.str_display()+" is not valid" );
-    }
+    Index ind = get_index( pos );
+    return (_env[ind.row][ind.col] == '.' );
+  }
+  bool is_obstacle( const Pos& pos ) const
+  {
+    Index ind = get_index( pos );
+    return (_env[ind.row][ind.col] == 'X' );
   }
 
   // ************************************************** Environment::attributs
@@ -108,8 +109,16 @@ private:
   // ************************************************* Environment::build_info
   /** Builds _wall_list, _cell_list */
   void build_info();
-  
-  
+  // ************************************************** Environment::get_index
+  Index get_index( const Pos& pos ) const
+  {
+    // check validity and convert
+    if ((pos.x < 0) or (pos.x >= (int)_nb_col) or
+        (pos.y < 0) or (pos.y >= (int)_nb_row)){
+      throw std::out_of_range( "pos="+pos.str_display()+" is not valid" );
+    }
+    return Index( {(unsigned int) pos.x, (unsigned int) pos.y} );
+  }
 }; // class Environment
 }; // namespace matrix2020
 

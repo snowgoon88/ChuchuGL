@@ -18,7 +18,7 @@ static const Pos D_UP( {0,1});
 static const Pos D_DOWN( {0,-1});
 static const Pos D_RIGHT( {1,0});
 static const Pos D_LEFT( {-1,0});
-
+static const Pos AllDir[] = {D_UP, D_RIGHT, D_DOWN, D_LEFT};
 // ************************************************************* Environment
 class Environment;
 // ************************************************************** GameObject

@@ -81,8 +81,13 @@ inline bool operator!=(const Pos& lhs, const Pos& rhs)
 {return !operator==(lhs,rhs);}
 inline bool operator< (const Pos& lhs, const Pos& rhs)
 {
-  /* do actual comparison */
-  return (lhs.x < rhs.x ) || (lhs.y < rhs.y);
+  // To get Complete order p1 < p2 <=>
+  //  x1+y1 < x2+y2 OR (x1+y1==x2+y2 AND y1<y2)
+  // open semi-line from pos with dir 1,-1
+  // plus close semi-ine from pos-(0,1) with direction -1,1
+  
+  return (lhs.x+lhs.y < rhs.x+rhs.y ) ||
+    ((lhs.x + lhs.y == rhs.x+rhs.y) && (lhs.y < rhs.y));
 }
 inline bool operator> (const Pos& lhs, const Pos& rhs)
 {return  operator< (rhs,lhs);}
