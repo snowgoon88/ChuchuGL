@@ -17,6 +17,7 @@
 
 #include <map>
 #include <sstream>
+#include <stdexcept>      // std::out_of_range
 
 namespace matrix2020
 {
@@ -88,14 +89,26 @@ public:
         if (res == _status.end()) {
           view << '?'; 
         }
-        else if (_env->is_obstacle( res->first )) {
-          view << 'X';
-        }
-        else if (_env->is_cell( res->first )) {
-          view << '.';
-        }
         else {
-          view << '@';
+          try {
+            if (_env->is_obstacle( res->first )) {
+              view << 'X';
+            }
+            else if (_env->is_cell( res->first )) {
+              view << '.';
+            }
+            else {
+              view << '@';
+            }
+          }
+          catch (std::out_of_range& e) {
+            std::cout << "caught " << e.what() << std::endl;
+            view << '_';
+          }
+          catch (...) {
+            std::cerr << "Unknown exception" << std::endl;
+            view << '$';
+          }
         }
       }
       view << std::endl;
@@ -119,26 +132,34 @@ public:
   void expand( const Pos& pos, int distance )
   {
     //DEBUG std::cout << "  at " << pos;
-    // if current pos has no _status (i.e : never visited ) then
-    // set its new status 
-    if (_status.count( pos) == 0) {
-      _status[pos] = distance;
-    }
-    // else if current_distance is lower, change it
-    else if (_status[pos] > distance) {
-      _status[pos] = distance;
-      // and expand
-    }
-    //DEBUG std::cout << " " << str_dump() << std::endl;
-    // expand if not already at _max_distance
-    // AND current pos is not an obstacle
-    //DEBUG std::cout << "  Obstacle=" << (_env->is_obstacle( pos ) ? "true" : "false") << std::endl;
-    if (( distance < _max_distance ) and not _env->is_obstacle( pos )) {
-      for( auto& dir: AllDir) {
-        expand( pos+dir, distance+1 );
+    try {
+      // if current pos has no _status (i.e : never visited ) then
+      // set its new status 
+      if (_status.count( pos) == 0) {
+        _status[pos] = distance;
+      }
+      // else if current_distance is lower, change it
+      else if (_status[pos] > distance) {
+        _status[pos] = distance;
+        // and expand
+      }
+      //DEBUG std::cout << " " << str_dump() << std::endl;
+      // expand if not already at _max_distance
+      // AND current pos is not an obstacle
+      //DEBUG std::cout << "  Obstacle=" << (_env->is_obstacle( pos ) ? "true" : "false") << std::endl;
+      if (( distance < _max_distance ) and not _env->is_obstacle( pos )) {
+        for( auto& dir: AllDir) {
+          expand( pos+dir, distance+1 );
+        }
       }
     }
-
+    catch (std::out_of_range& e) {
+      std::cout << "caught " << e.what() << std::endl;
+    }
+    catch (...) {
+      std::cerr << "Unknown exception" << std::endl;
+    }
+    
     return;
   }
 

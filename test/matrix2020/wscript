@@ -19,6 +19,6 @@ def build(bld):
                 libs = ['m'],
                 use = [ 'matrix2020_objs', 'SOIL', 'STB','PA',
                        'VORBIS','FTGL','OPENGL','GLFW3',
-                       'FREETYPE2','BOOST'
+                        'FREETYPE2','BOOST', 'NCURSES'
                 ]
             )

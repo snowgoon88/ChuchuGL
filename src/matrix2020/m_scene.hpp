@@ -23,15 +23,12 @@ using GameObjectPtrC = std::list<GameObjectPtr>;
 class Scene
 {
 public:
+  //TODO maybe copy, assign, etc
   // ********************************************************* Scene::creation
   Scene( Environment& env ) :
     _env(env)
   {
     _gobjects.clear();
-  }
-  // ****************************************************** Scene::destruction
-  virtual ~Scene()
-  {
   }
   // ************************************************************ Scene::setup
   void init()
@@ -54,6 +51,44 @@ public:
     }
 
     return dump.str();
+  }
+  /** str_view 
+   * display a view of the scene with Environment and GameObject
+   */
+  std::string str_view () const
+  {
+    std::stringstream view;
+
+    // every possible Pos in Environment
+    for( int row = (int)_env._nb_row-1; row >= 0; --row) {
+      for( int col = 0; col < (int) _env._nb_col; ++col) {
+        Pos pos( col, row );
+        bool displayed = false;
+        
+        // Check GameObject
+        for( auto& go: _gobjects) {
+          if ( go->pos() == pos ) {
+            view << '+';
+            displayed = true;
+          }
+        }
+
+        // Check environement
+        if (not displayed) {
+          if (_env.is_obstacle( pos )) {
+            view << 'X';
+          }
+          else if (_env.is_cell( pos )) {
+            view << '.';
+          }
+          else {
+            view << ' ';
+          }
+        }
+      }
+      view << std::endl;
+    }
+    return view.str();
   }
   // ******************************************************* Scene::add_object
   /** add only if GameObject on a cell
@@ -116,6 +151,8 @@ public:
   GameObjectPtr _hacker;
   
 }; // Scene
+// *************************************************************** Scene - END
+
 }; // namespace matrix2020
 
 

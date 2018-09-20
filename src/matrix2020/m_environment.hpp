@@ -26,7 +26,7 @@ using Index = struct s_Index { unsigned int col; unsigned int row; };
 // *************************************************************** Environment
 // ***************************************************************************
 class Environment
-// TODO add copy, assigment !!
+// TODO add copy, assigment as uses char** ressource
 {
 public:
   // *************************************************** Environment::creation

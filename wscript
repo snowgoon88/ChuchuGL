@@ -100,6 +100,16 @@ def configure(conf):
                    uselib_store='FREETYPE2',
                    args=['--cflags', '--libs']
     )
+    ## Require/Check libncurses
+    conf.check_cfg(package='ncurses',
+                   uselib_store='NCURSES',
+                   args=['--cflags', '--libs']
+    )
+    ## Required LIBRARIES freetype2 using wrapper around pkg-config
+    conf.check_cfg(package='freetype2',
+                   uselib_store='FREETYPE2',
+                   args=['--cflags', '--libs']
+    ) 
     ## Require/Check libboost
     conf.env.LIB_BOOST = ['boost_program_options']
     conf.env.LIBPATH_BOOST = ['/usr/lib/x86_64-linux-gnu','/usr/lib/i386-linux-gnu']

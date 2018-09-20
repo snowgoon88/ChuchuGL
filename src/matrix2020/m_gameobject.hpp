@@ -23,22 +23,6 @@ public:
     _pos({0,0}), _name(name)
   {
   }
-  GameObject( const GameObject& other ) :
-    _pos(other._pos), _name(other._name)
-  {
-  }
-  GameObject& operator=( const GameObject& other )
-  {
-    if (this != &other ) { // protect against invalid self-assignment
-      _pos = other._pos;
-      _name = other._name;
-    }
-    return *this;
-  }
-  // ************************************************* GameObject::destruction
-  virtual ~GameObject()
-  {
-  }
   // ********************************************************* GameObject::str
   std::string str_dump() const
   {
@@ -53,7 +37,8 @@ public:
   Pos _pos;
   std::string _name;
 };
+// ********************************************************** GameObject - END
 
-};
+}; // namespace matrix2020
 
 #endif // M_GAMEOBJECT_HPP
