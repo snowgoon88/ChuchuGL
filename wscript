@@ -116,7 +116,7 @@ def configure(conf):
     print "Checking for 'BOOST::program_options'"
     conf.find_file( 'lib'+conf.env.LIB_BOOST[0]+'.so', conf.env.LIBPATH_BOOST )
     ## Require STB library
-    stb_path = "/home/dutech/Projets/stb"
+    stb_path = conf.srcnode.parent.abspath()+"/stb"
     conf.env.INCLUDES_STB = [stb_path]
     print "Checking for 'stb' Library"
     conf.find_file( 'stb_image.h', conf.env.INCLUDES_STB )
