@@ -1,3 +1,4 @@
+
 #version 330 core
 // pass through
 
@@ -49,6 +50,10 @@ void corner_mvp( vec3 pos, vec3 u, vec3 v )
   EmitVertex();
   EndPrimitive();
 }
+/** cell_mvp
+ * Draw cell starting at src (lower left corner) and
+ * expanding to (1,0,0)
+ */
 void cell_mvp( vec3 src )
 {
   vec3 dir_x = vec3(1.0, 0.0, 0.0);

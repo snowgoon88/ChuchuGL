@@ -15,5 +15,40 @@ https://www.opengl.org/discussion_boards/showthread.php/178828-VBO-with-dynamica
 http://www.songho.ca/opengl/gl_vbo.html#example3
 */
 
+#include <iostream>                       // std::cout
 
-#endif // CLASS_HPP
+#include <gl_window.hpp>
+#include <matrix2020/gl_fovhamming.hpp>
+using namespace matrix2020;
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
+GLWindow* _win = nullptr;
+GLFovHamming* _gl_fov = nullptr;
+
+void render()
+{
+  _gl_fov->render();
+}
+
+
+int main(int argc, char *argv[])
+{
+  std::cout << "__WINDOW" << std::endl;
+  _win = new GLWindow( "GL Window", 640, 480);
+
+  std::cout << "__GL_FOV" << std::endl;
+  _gl_fov = new GLFovHamming();
+
+  _win->run( render );
+
+  delete _gl_fov;
+  delete _win;
+  
+  return 0;
+}
+
