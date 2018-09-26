@@ -32,6 +32,11 @@ GLFovHamming* _gl_fov = nullptr;
 
 void render()
 {
+  auto now = glfwGetTime();
+  if (now > 5.0) {
+    glfwSetTime( 0.0 );
+  }
+  _gl_fov->update_data( now );
   _gl_fov->render();
 }
 
@@ -44,6 +49,8 @@ int main(int argc, char *argv[])
   std::cout << "__GL_FOV" << std::endl;
   _gl_fov = new GLFovHamming();
 
+  // start timer
+  glfwSetTime( 0.0 );
   _win->run( render );
 
   delete _gl_fov;

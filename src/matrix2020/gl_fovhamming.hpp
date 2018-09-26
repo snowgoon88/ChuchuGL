@@ -59,12 +59,6 @@ public:
     _square_vtx.push_back( {1.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f});
     _square_vtx.push_back( {2.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f});
     _square_vtx.push_back( {2.5f, 4.5f, 0.0f,    1.0f, 1.0f, 0.0f});    
-    float square_vtx[] = {
-      0.5f, 0.5f, 0.0f,    1.0f, 1.0f, 0.0f,
-        1.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f,
-        2.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f,
-        2.5f, 4.5f, 0.0f,    1.0f, 1.0f, 0.0f
-    };
     
     glGenVertexArrays( 1, &_square_vao );
     glGenBuffers( 1, &_square_vbo );
@@ -77,7 +71,7 @@ public:
     glBufferData( GL_ARRAY_BUFFER,
                   _square_vtx.size() * sizeof(Vertex),
                   _square_vtx.data(),
-                  GL_STATIC_DRAW );
+                  GL_DYNAMIC_DRAW );
 
     // position attribute
     glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE,
@@ -91,19 +85,24 @@ public:
     glEnableVertexAttribArray(1);
   }
   // *********************************************** GLFovHamming::update_data
-  void update_data()
+  void update_data( float time )
   {
+    // update 2nd square
+    _square_vtx[2].x = time;
+
     // use std::vector to store data ?
     // ask for reallocation, glBufferData with NULL and same parameters
     // see https://www.khronos.org/opengl/wiki/Buffer_Object_Streaming)
-    /* glBufferData( GL_ARRAY_BUFFER, sizeof(_square_vtx), NULL, 
+    glBufferData( GL_ARRAY_BUFFER,
+                  _square_vtx.size() * sizeof(Vertex),
+                  NULL, 
                   GL_DYNAMIC_DRAW );
-    */
+    
     // will call glBufferSubData on the entire buffer
-    /* glBufferSubData( GL_ARRAY_BUFFER, 0, //start of sub
-                                         sizeof(_square_vtx), //length sub
-                                         _square_vtx=>Data ); // data
-    */
+    glBufferSubData( GL_ARRAY_BUFFER,
+                     0,                                   //start of sub
+                     _square_vtx.size() * sizeof(Vertex), //length sub
+                     _square_vtx.data() );                // data
   }
   // **************************************************** GLFovHamming::render
   void render()
