@@ -2,7 +2,7 @@
 
 /** transform pts into square (2 triangles) */
 layout (points) in;
-layout (triangle_strip, max_vertices=5) out;
+layout (triangle_strip, max_vertices=6) out;
 
 in VS_OUT {
   vec3 pos_vertex;
@@ -29,9 +29,12 @@ void square_mvp( vec3 src )
   EmitVertex();
   gl_Position = pvm * (ori+u+v);
   EmitVertex();
+  EndPrimitive();
 
   // second triangle
   gl_Position = pvm * ori;
+  EmitVertex();
+  gl_Position = pvm * (ori+u+v);
   EmitVertex();
   gl_Position = pvm * (ori+v);
   EmitVertex();

@@ -10,6 +10,8 @@
 
 #include <gl_shader.hpp>
 
+#include <vector>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -23,16 +25,21 @@ namespace matrix2020 {
 // ***************************************************************************
 class GLFovHamming
 {
+  using Vertex = struct s_Vertex {
+    GLfloat x, y, z; // pos
+    GLfloat r, g, b; // color
+  };
 public:
   // *********************************************** GLFovHamming::constructor
-  GLFovHamming()
+  GLFovHamming() : _square_vtx()
   {
     _square_shader = new GLShader( "src/shaders/cell.v330.glsl",
-                                    "src/shaders/base.f330.glsl",
+                                    "src/shaders/base_fade.f330.glsl",
                                    "src/shaders/square.g330.glsl" );
     _proj_view_loc_square = _square_shader->getUniformLocation( "proj_view" );
     _model_loc_square = _square_shader->getUniformLocation( "model" );
     _c_length_loc_square = _square_shader->getUniformLocation( "c_length" );
+    _fade_square = _square_shader->getUniformLocation( "fade" );
 
     build_list_square();
   }
@@ -47,10 +54,16 @@ public:
   void build_list_square()
   {
     // set up vertex data, each vertex has x,y,z r,g,b
+    _square_vtx.clear();
+    _square_vtx.push_back( {0.5f, 0.5f, 0.0f,    1.0f, 1.0f, 0.0f});
+    _square_vtx.push_back( {1.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f});
+    _square_vtx.push_back( {2.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f});
+    _square_vtx.push_back( {2.5f, 4.5f, 0.0f,    1.0f, 1.0f, 0.0f});    
     float square_vtx[] = {
       0.5f, 0.5f, 0.0f,    1.0f, 1.0f, 0.0f,
         1.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f,
-        2.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f
+        2.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f,
+        2.5f, 4.5f, 0.0f,    1.0f, 1.0f, 0.0f
     };
     
     glGenVertexArrays( 1, &_square_vao );
@@ -59,7 +72,11 @@ public:
     glBindVertexArray( _square_vao );
 
     glBindBuffer( GL_ARRAY_BUFFER, _square_vbo );
-    glBufferData( GL_ARRAY_BUFFER, sizeof(square_vtx), square_vtx,
+    // glBufferData( GL_ARRAY_BUFFER, sizeof(square_vtx), square_vtx,
+    //               GL_STATIC_DRAW );
+    glBufferData( GL_ARRAY_BUFFER,
+                  _square_vtx.size() * sizeof(Vertex),
+                  _square_vtx.data(),
                   GL_STATIC_DRAW );
 
     // position attribute
@@ -73,9 +90,29 @@ public:
                            (void*)(3 * sizeof(float)) ); // offset
     glEnableVertexAttribArray(1);
   }
+  // *********************************************** GLFovHamming::update_data
+  void update_data()
+  {
+    // use std::vector to store data ?
+    // ask for reallocation, glBufferData with NULL and same parameters
+    // see https://www.khronos.org/opengl/wiki/Buffer_Object_Streaming)
+    /* glBufferData( GL_ARRAY_BUFFER, sizeof(_square_vtx), NULL, 
+                  GL_DYNAMIC_DRAW );
+    */
+    // will call glBufferSubData on the entire buffer
+    /* glBufferSubData( GL_ARRAY_BUFFER, 0, //start of sub
+                                         sizeof(_square_vtx), //length sub
+                                         _square_vtx=>Data ); // data
+    */
+  }
   // **************************************************** GLFovHamming::render
   void render()
   {
+    // Transparence
+    // Enable alpha
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
     // create transformations
     glm::mat4 view(1.0f);
     glm::mat4 projection(1.0f);
@@ -91,18 +128,22 @@ public:
     glUniformMatrix4fv( _model_loc_square, 1, GL_FALSE,
                         glm::value_ptr(model) );
 
-    double square_length = 0.33f;
-    glUniform1f( _c_length_loc_square, (float) square_length );
+    float square_length = 1.5f;
+    glUniform1f( _c_length_loc_square, square_length );
+    float square_fade = 0.75f;
+    glUniform1f( _fade_square, square_fade );
   
     glBindVertexArray(_square_vao);
-    glDrawArrays(GL_POINTS, 0, 3 ); // mode, first, count
+    glDrawArrays(GL_POINTS, 0, 4 ); // mode, first, count
     
   }
   // ************************************************* GLFovHamming::attributs
+  std::vector<Vertex> _square_vtx;
   GLShader* _square_shader;
   GLuint _proj_view_loc_square;
   GLuint _model_loc_square;
   GLuint _c_length_loc_square;
+  GLuint _fade_square;
   GLuint _square_vao, _square_vbo;
 };
 // ******************************************************** GLFovHamming - END
