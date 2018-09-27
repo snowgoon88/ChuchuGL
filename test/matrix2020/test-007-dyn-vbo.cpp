@@ -18,6 +18,8 @@ http://www.songho.ca/opengl/gl_vbo.html#example3
 #include <iostream>                       // std::cout
 
 #include <gl_window.hpp>
+#include <matrix2020/m_scene.hpp>
+#include <matrix2020/fov_hamming.hpp>
 #include <matrix2020/gl_fovhamming.hpp>
 using namespace matrix2020;
 
@@ -36,7 +38,7 @@ void render()
   if (now > 5.0) {
     glfwSetTime( 0.0 );
   }
-  _gl_fov->update_data( now );
+  _gl_fov->update_data();
   _gl_fov->render();
 }
 
@@ -46,8 +48,17 @@ int main(int argc, char *argv[])
   std::cout << "__WINDOW" << std::endl;
   _win = new GLWindow( "GL Window", 640, 480);
 
+  std::cout << "__MODELS" << std::endl;
+  Environment env;
+  env.load_from_txt( "data/matrix00.txt" );
+  Scene scene( env );
+  scene.init();
+  scene._hacker->_pos = {5,5};
+  Pos hacker_pos =  scene._hacker->pos();
+  FOVHamming fov( env, hacker_pos, 4 );
+  
   std::cout << "__GL_FOV" << std::endl;
-  _gl_fov = new GLFovHamming();
+  _gl_fov = new GLFovHamming( fov );
 
   // start timer
   glfwSetTime( 0.0 );

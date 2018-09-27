@@ -1,12 +1,12 @@
-* Current => matrix2020 : gl_version of FOV
-* [4/5] GN2020
+* Current => matrix2020 : ???
+* [5/5] GN2020
 ** DONE lire monde txt
 ** DONE afficher monde txt
 ** DONE faire texture hachure et point
 ** DONE afficher monde GL avec textures
-** TODO [0/2] GLFov as dynamical VBO
-*** TODO use a std::vector to store square_vts ?
-*** TODO implement dynamical update
+** DONE [2/2] GLFov as dynamical VBO
+*** DONE use a std::vector to store square_vts ?
+*** DONE implement dynamical update
 * [4/6] New Shaders
 - test-020-window : cube en rotation
 - test-021-cells : geom pour tracer cell => NON, FAIL

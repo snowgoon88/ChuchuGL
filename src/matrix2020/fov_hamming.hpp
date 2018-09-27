@@ -102,7 +102,7 @@ public:
             }
           }
           catch (std::out_of_range& e) {
-            std::cout << "caught " << e.what() << std::endl;
+            //std::cout << "caught " << e.what() << std::endl;
             view << '_';
           }
           catch (...) {
@@ -154,7 +154,7 @@ public:
       }
     }
     catch (std::out_of_range& e) {
-      std::cout << "caught " << e.what() << std::endl;
+      //std::cout << "caught " << e.what() << std::endl;
     }
     catch (...) {
       std::cerr << "Unknown exception" << std::endl;

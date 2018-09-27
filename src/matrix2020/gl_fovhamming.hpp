@@ -10,6 +10,7 @@
 
 #include <gl_shader.hpp>
 
+#include <matrix2020/fov_hamming.hpp>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -29,9 +30,12 @@ class GLFovHamming
     GLfloat x, y, z; // pos
     GLfloat r, g, b; // color
   };
+private:
+  // max number of square to draw
+  static const unsigned int _max_size = 100;
 public:
   // *********************************************** GLFovHamming::constructor
-  GLFovHamming() : _square_vtx()
+  GLFovHamming(const FOVHamming& fov) : _fov(fov), _square_vtx()
   {
     _square_shader = new GLShader( "src/shaders/cell.v330.glsl",
                                     "src/shaders/base_fade.f330.glsl",
@@ -55,10 +59,10 @@ public:
   {
     // set up vertex data, each vertex has x,y,z r,g,b
     _square_vtx.clear();
-    _square_vtx.push_back( {0.5f, 0.5f, 0.0f,    1.0f, 1.0f, 0.0f});
-    _square_vtx.push_back( {1.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f});
-    _square_vtx.push_back( {2.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f});
-    _square_vtx.push_back( {2.5f, 4.5f, 0.0f,    1.0f, 1.0f, 0.0f});    
+    // _square_vtx.push_back( {0.5f, 0.5f, 0.0f,    1.0f, 1.0f, 0.0f});
+    // _square_vtx.push_back( {1.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f});
+    // _square_vtx.push_back( {2.5f, 2.5f, 0.0f,    1.0f, 1.0f, 0.0f});
+    // _square_vtx.push_back( {2.5f, 4.5f, 0.0f,    1.0f, 1.0f, 0.0f});    
     
     glGenVertexArrays( 1, &_square_vao );
     glGenBuffers( 1, &_square_vbo );
@@ -69,7 +73,7 @@ public:
     // glBufferData( GL_ARRAY_BUFFER, sizeof(square_vtx), square_vtx,
     //               GL_STATIC_DRAW );
     glBufferData( GL_ARRAY_BUFFER,
-                  _square_vtx.size() * sizeof(Vertex),
+                  GLFovHamming::_max_size * sizeof(Vertex),
                   _square_vtx.data(),
                   GL_DYNAMIC_DRAW );
 
@@ -85,16 +89,21 @@ public:
     glEnableVertexAttribArray(1);
   }
   // *********************************************** GLFovHamming::update_data
-  void update_data( float time )
+  void update_data()
   {
-    // update 2nd square
-    _square_vtx[2].x = time;
+    // build list of cell in FOV
+    _square_vtx.clear();
+    for( auto& cell: _fov._status) {
+      auto& pos = cell.first;
+      _square_vtx.push_back( {(float)pos.x-0.5f, (float)pos.y-0.5f, 0.f,
+            1.0f, 1.0f, 0.0f} );
+    }
 
     // use std::vector to store data ?
     // ask for reallocation, glBufferData with NULL and same parameters
     // see https://www.khronos.org/opengl/wiki/Buffer_Object_Streaming)
     glBufferData( GL_ARRAY_BUFFER,
-                  _square_vtx.size() * sizeof(Vertex),
+                  GLFovHamming::_max_size * sizeof(Vertex),
                   NULL, 
                   GL_DYNAMIC_DRAW );
     
@@ -127,16 +136,17 @@ public:
     glUniformMatrix4fv( _model_loc_square, 1, GL_FALSE,
                         glm::value_ptr(model) );
 
-    float square_length = 1.5f;
+    float square_length = 1.0f;
     glUniform1f( _c_length_loc_square, square_length );
     float square_fade = 0.75f;
     glUniform1f( _fade_square, square_fade );
   
     glBindVertexArray(_square_vao);
-    glDrawArrays(GL_POINTS, 0, 4 ); // mode, first, count
+    glDrawArrays(GL_POINTS, 0, _square_vtx.size() ); // mode, first, count
     
   }
   // ************************************************* GLFovHamming::attributs
+  const FOVHamming& _fov;
   std::vector<Vertex> _square_vtx;
   GLShader* _square_shader;
   GLuint _proj_view_loc_square;

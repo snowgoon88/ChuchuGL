@@ -23,9 +23,11 @@
 
 // Model
 #include <matrix2020/m_scene.hpp>
+#include <matrix2020/fov_hamming.hpp>
 // Viewer
 #include <matrix2020/gl_environment.hpp>
 #include <matrix2020/gl_hacker.hpp>
+#include <matrix2020/gl_fovhamming.hpp>
 
 using namespace matrix2020;
 
@@ -38,7 +40,8 @@ public:
   // ************************************************** GLBasicLevel::creation
   GLBasicLevel( GLEngine& engine ) :
     _window( engine.window() ),
-    _scene(nullptr)
+    _scene(nullptr),
+    _hacker_pos( {0,0} )
   {
   }
   // ****************************************************** GLBasicLevel::init
@@ -52,11 +55,14 @@ public:
     _env.load_from_txt( "data/matrix00.txt" );
     _scene = new Scene( _env );
     _scene->init();
+    _scene->_hacker->_pos = {5,5};
+    _hacker_pos = _scene->_hacker->pos();
+    _fov = new FOVHamming( _env, _hacker_pos, 4 /* size of fov */ ); 
 
     // And graphic object
     _gl_env = new GLEnvironment( _env );
     _gl_hacker = new GLHacker( _scene->_hacker );
-    
+    _gl_fov = new GLFovHamming( *_fov );
   }
   // **************************************************** GLBasicLevel::render
   void render()
@@ -75,8 +81,15 @@ public:
       glClearColor(0., 0., 0., 1.0);
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
+      // Update model
+      // TODO: BEURK
+      _hacker_pos =_scene->_hacker->pos();
+      _fov->refresh();
+      _gl_fov->update_data();
+      
       // Render
       _gl_env->render();
+      _gl_fov->render();
       _gl_hacker->render();
 
       glfwSwapBuffers(_window);
@@ -88,10 +101,15 @@ public:
   // ************************************************* GLBasicLevel::attributs
   GLFWwindow* _window;
   int _screen_width, _screen_height;
-  Environment _env;
-  Scene *_scene;
-  GLEnvironment *_gl_env;
-  GLHacker *_gl_hacker;
+  
+  Environment  _env;
+  Scene *      _scene;
+  Pos          _hacker_pos;
+  FOVHamming*  _fov;
+
+  GLEnvironment* _gl_env;
+  GLHacker*      _gl_hacker;
+  GLFovHamming*  _gl_fov;
   // ************************************************** GLBasicLevel::callback
   /**
    * Callback qui gère les événements 'key'
