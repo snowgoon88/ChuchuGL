@@ -1,12 +1,22 @@
-* Current => matrix2020 : ???
+* Current => matrix2020 : [[Autre agent]]
 * [5/5] GN2020
+** [0/5] Autre agent
+*** TODO avec orientation
+*** TODO Affichage textuel avec flèches ?
+*** TODO déplacement automatique => règles
+*** TODO tir/action si assez près ou ligne de vue
+*** TODO pouvoir cliquer sur agent pour info
+** [0/2] découvrir le monde
+*** TODO mur (immuable) sont gardés sans fade
+*** TODO dernière position des agents, faded 
+** [/] display info, [[affichage fps][FPS]]
 ** DONE lire monde txt
 ** DONE afficher monde txt
 ** DONE faire texture hachure et point
 ** DONE afficher monde GL avec textures
 ** DONE [2/2] GLFov as dynamical VBO
 *** DONE use a std::vector to store square_vts ?
-*** DONE implement dynamical update
+*** DONE implement dynamical update [[file:src/matrix2020/gl_fovhamming.hpp]]
 * [4/6] New Shaders
 - test-020-window : cube en rotation
 - test-021-cells : geom pour tracer cell => NON, FAIL
@@ -15,6 +25,7 @@
 ** make slow rotation => model
 ** TODO new trackball
 ** TODO affichage fps
+<<affichage fps>> est un lien/ancre préféré à 'affichage fps'
 ** billboard ??
 ** line width
 ** DONE 2D cell viewer with geometry shader
@@ -248,4 +259,12 @@ The product of two rotation quaternions will be equivalent to the rotation a1 + 
 *** Static
 *** Dynamic
 ** TODO Charger Tie Fighter 3D model ??
+* ORG
+** Link [[link][display
+*** file:rel_path::NNN or ::search words
+*** C-c l : store link
+*** C-c C-o : follow link
+*** C-c C-l : edit link/insert link
+** TODO
+*** C-c / t : sparse todo tree
    

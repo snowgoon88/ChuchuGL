@@ -4,7 +4,7 @@
 #define M_GAMEOBJECT_HPP
 
 /** 
- * GameObject has one Pos.
+ * GameObject has string name, Pos pos, Pos dir.
  */
 
 #include <matrix2020/m_def.hpp>
@@ -20,22 +20,25 @@ class GameObject
 public:
   // **************************************************** GameObject::creation
   GameObject( const std::string name ) :
-    _pos({0,0}), _name(name)
+    _name(name), _pos({0,0}), _orient( D_UP )
   {
   }
   // ********************************************************* GameObject::str
   std::string str_dump() const
   {
     std::stringstream dump;
-    dump << "GO: " << _name << " Pos= " << _pos;
+    dump << "GO: " << _name << " Pos= " << _pos << " Dir= " << _orient;
 
     return dump.str();
   }
   // *************************************************** GameObject::attributs
   Pos pos() const { return _pos; }
+  Pos orient() const { return _orient; }
 
-  Pos _pos;
   std::string _name;
+  Pos _pos;
+  Pos _orient;
+
 };
 // ********************************************************** GameObject - END
 

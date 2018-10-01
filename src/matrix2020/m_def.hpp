@@ -9,6 +9,7 @@
 
 #include <memory>                         // std::shared_ptr
 #include <iostream>
+#include <vector>
 
 #include <matrix2020/m_pos.hpp>
 namespace matrix2020
@@ -18,7 +19,9 @@ static const Pos D_UP( {0,1});
 static const Pos D_DOWN( {0,-1});
 static const Pos D_RIGHT( {1,0});
 static const Pos D_LEFT( {-1,0});
-static const Pos AllDir[] = {D_UP, D_RIGHT, D_DOWN, D_LEFT};
+static const std::vector<Pos> AllDir {D_UP, D_RIGHT, D_DOWN, D_LEFT};
+Pos turn_right( const Pos& dir );
+Pos turn_left( const Pos& dir );
 // ************************************************************* Environment
 class Environment;
 // ************************************************************** GameObject
