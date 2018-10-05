@@ -20,7 +20,11 @@ class GameObject
 public:
   // **************************************************** GameObject::creation
   GameObject( const std::string name ) :
-    _name(name), _pos({0,0}), _orient( D_UP )
+    _name(name), _pos({0,0}), _orient( D_UP ), _action( {{0,0}, D_UP} )
+  {
+  }
+  // ************************************************** GameObject::destructor
+  virtual ~GameObject()
   {
   }
   // ********************************************************* GameObject::str
@@ -31,14 +35,22 @@ public:
 
     return dump.str();
   }
+  // *********************************************** GameObject::take_decision
+  virtual void take_decision( bool debug=false )
+  {
+  }
   // *************************************************** GameObject::attributs
+  void pos( const Pos& pos) { _pos = pos; }
   Pos pos() const { return _pos; }
+  void orient( const Pos& dir ) { _orient=dir; }
   Pos orient() const { return _orient; }
+  Move action() const { return _action; }
+  void action( const Move& action ) { _action = action; }
 
   std::string _name;
   Pos _pos;
   Pos _orient;
-
+  Move _action;
 };
 // ********************************************************** GameObject - END
 

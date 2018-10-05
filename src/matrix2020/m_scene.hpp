@@ -10,6 +10,7 @@
 #include <matrix2020/m_def.hpp>
 #include <matrix2020/m_environment.hpp>
 #include <matrix2020/m_gameobject.hpp>
+#include <matrix2020/m_agent.hpp>
 
 #include <list>
 
@@ -26,7 +27,13 @@ public:
   //TODO maybe copy, assign, etc
   // ********************************************************* Scene::creation
   Scene( Environment& env ) :
-    _env(env)
+    _env(env), _gobjects(), _hacker(nullptr)
+  {
+    _gobjects.clear();
+    init();
+  }
+  // ******************************************************* Scene::destructor
+  virtual ~Scene()
   {
     _gobjects.clear();
   }
@@ -35,8 +42,18 @@ public:
   {
     // Hacker at entrance
     _hacker = GameObjectPtr( new GameObject( "hacker" ) );
-    _hacker->_pos = {4, 0};
-    add( _hacker );
+    _hacker->pos( {4, 0} );
+    //add( _hacker );
+
+    // Agent at (1,5)
+    auto agent = GameObjectPtr( new Agent( _env, "A1" ) );
+    agent->pos( {1, 5} );
+    add( agent );
+
+    // Agent at (0,4)
+    agent = GameObjectPtr( new Agent( _env, "A2" ) );
+    agent->pos( {4, 0} );
+    add( agent );
   }
   // ************************************************************** Scene::str
   std::string str_dump() const
@@ -44,7 +61,8 @@ public:
     std::stringstream dump;
     dump << "SCENE:" << std::endl;
     dump << _env.str_display();
-
+    dump << "Hacker: " << _hacker->pos() << std::endl;
+    
     dump << "GameObjects:" << std::endl;
     for( auto& go: _gobjects ) {
       dump << go->str_dump() << std::endl;
@@ -64,13 +82,21 @@ public:
       for( int col = 0; col < (int) _env._nb_col; ++col) {
         Pos pos( col, row );
         bool displayed = false;
-        
-        // Check GameObject
-        for( auto& go: _gobjects) {
-          if ( go->pos() == pos ) {
-            view << '+';
-            displayed = true;
-          }
+
+        // Check Hacker
+        if (_hacker->pos() == pos ) {
+          view << "*";
+          displayed = true;
+        }
+
+        if (not displayed) {
+          // Check GameObject
+         for( auto& go: _gobjects) {
+           if ( go->pos() == pos ) {
+             view << '+';
+             displayed = true;
+           }
+         }
         }
 
         // Check environement
@@ -109,41 +135,65 @@ public:
   // ************************************************************* Scene::move
   /** If possible, move hacker in 'dir'
    */
-  void move( const Pos& dir )
+  template<class T>
+  void valid_move( T& obj, Pos dest)
   {
-    Pos dest( _hacker->pos() + dir );
     if (dest.x < 0) dest.x = 0;
     if (dest.y < 0) dest.y = 0;
     
-    Pos final_dest = dest; 
-    if (_env.is_cell( final_dest )) {
-      _hacker->_pos = final_dest;
+    if (_env.is_cell( dest )) {
+      obj.pos( dest );
     }
     else {
-      std::cerr << "Game::move Invalid move to " << final_dest;
+      std::cerr << "Game::move Invalid move of " << obj._name << "to " << dest;
       std::cerr << std::endl;
     }
   }
+  void move_hacker( const Pos& dir )
+  {
+    _hacker->action( {_hacker->pos() + dir, dir} );
+  }
+  /** All Object are moved if valid action */
+  void move_all()
+  {
+    // Hacker
+    valid_move( *_hacker, _hacker->action().pos );
+    
+    for( auto& obj: _gobjects) {
+      // GameObject decides where it would like to go
+      obj->take_decision( true );
 
+      // Move if valid
+      Pos dest = obj->action().pos;
+      valid_move<GameObject>( *obj, dest );
+      obj->orient( obj->action().dir );
+    }
+
+  }
   // ************************************************** Sceen::public_callback
   void on_key_up()
   {
-    move( D_UP );
+    move_hacker( D_UP );
+    move_all();
   }
   void on_key_down()
   {
-    move( D_DOWN );
+    move_hacker( D_DOWN );
+    move_all();
   }
   void on_key_left()
   {
-    move( D_LEFT );
+    move_hacker( D_LEFT );
+    move_all();
   }
   void on_key_right()
   {
-    move( D_RIGHT );
+    move_hacker( D_RIGHT );
+    move_all();
   }
   void on_key_fire()
   {
+    move_all();
   }
   // ******************************************************** Scene::attributs
   Environment& _env;

@@ -1,9 +1,9 @@
 * Current => matrix2020 : [[Autre agent]]
-* [5/5] GN2020
-** [0/5] Autre agent
-*** TODO avec orientation
+* [5/6] GN2020
+** TODO [2/5] Autre agent
+*** DONE avec orientation
 *** TODO Affichage textuel avec flèches ?
-*** TODO déplacement automatique => règles
+*** DONE déplacement automatique => règles
 *** TODO tir/action si assez près ou ligne de vue
 *** TODO pouvoir cliquer sur agent pour info
 ** [0/2] découvrir le monde

@@ -12,3 +12,6 @@ GPATH
 GRTAGS
 GSYMS
 GTAGS
+
+## Valgrind
+/valcheck

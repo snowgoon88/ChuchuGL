@@ -76,9 +76,9 @@ void matrix2020::Environment::free_env()
 {
   if( _env != nullptr ) {
     for( unsigned int i = 0; i < _nb_row; ++i) {
-      delete _env[i];
+      delete[] _env[i];
     }
-    delete _env;
+    delete[] _env;
   }
   _nb_row = 0; _nb_col = 0;
 }

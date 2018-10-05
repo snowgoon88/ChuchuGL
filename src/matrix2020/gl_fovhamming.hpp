@@ -66,7 +66,8 @@ public:
     
     glGenVertexArrays( 1, &_square_vao );
     glGenBuffers( 1, &_square_vbo );
-
+    std::cout << "GLFovHamming array=" << _square_vao << " buff=" << _square_vbo << std::endl;
+    
     glBindVertexArray( _square_vao );
 
     glBindBuffer( GL_ARRAY_BUFFER, _square_vbo );
@@ -74,7 +75,7 @@ public:
     //               GL_STATIC_DRAW );
     glBufferData( GL_ARRAY_BUFFER,
                   GLFovHamming::_max_size * sizeof(Vertex),
-                  _square_vtx.data(),
+                  NULL, //not _square_vtx.data() as it might be empty
                   GL_DYNAMIC_DRAW );
 
     // position attribute
@@ -99,6 +100,8 @@ public:
             1.0f, 1.0f, 0.0f} );
     }
 
+    // specify the buffer we are about to update
+    glBindBuffer( GL_ARRAY_BUFFER, _square_vbo );
     // use std::vector to store data ?
     // ask for reallocation, glBufferData with NULL and same parameters
     // see https://www.khronos.org/opengl/wiki/Buffer_Object_Streaming)

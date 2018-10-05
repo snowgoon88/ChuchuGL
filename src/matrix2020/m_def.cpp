@@ -4,6 +4,7 @@
  * Implement turningg
  */
 #include <m_def.hpp>
+#include <math.h>
 #include <iostream>
 
 namespace matrix2020 {
@@ -27,5 +28,8 @@ Pos turn_left( const Pos& dir )
 {
   return AllDir[(get_dir_index(dir) - 1) % AllDir.size()];
 }
-
+float angle_from_dir( const Pos& dir )
+{
+  return ((get_dir_index(dir) - 1) % AllDir.size()) * (-M_PI/2.0);
+}
 };  // matrix2020

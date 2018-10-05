@@ -114,7 +114,8 @@ public:
 
     glGenVertexArrays( 1, &_wall_vao );
     glGenBuffers( 1, &_wall_vbo );
-
+    std::cout << "GLenv WALL array=" << _wall_vao << " buff=" << _wall_vbo << std::endl;
+    
     glBindVertexArray( _wall_vao );
 
     glBindBuffer( GL_ARRAY_BUFFER, _wall_vbo );
@@ -183,7 +184,8 @@ public:
 
     glGenVertexArrays( 1, &_cell_vao );
     glGenBuffers( 1, &_cell_vbo );
-
+    std::cout << "GLEnv CELL array=" << _cell_vao << " buff=" << _cell_vbo << std::endl;
+    
     glBindVertexArray( _cell_vao );
 
     glBindBuffer( GL_ARRAY_BUFFER, _cell_vbo );

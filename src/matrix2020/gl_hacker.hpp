@@ -46,6 +46,8 @@ public:
     };
     glGenVertexArrays(1, &_vao);
     glGenBuffers(1, &_vbo);
+    std::cout << "GLHacker array=" << _vao << " buff=" << _vbo << std::endl;
+    
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindVertexArray(_vao);
   
