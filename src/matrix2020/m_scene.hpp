@@ -23,11 +23,16 @@ using GameObjectPtrC = std::list<GameObjectPtr>;
 // ***************************************************************************
 class Scene
 {
+  using Cursor = struct s_Cursor {
+    Pos pos;
+    bool visible;
+  };
 public:
   //TODO maybe copy, assign, etc
   // ********************************************************* Scene::creation
   Scene( Environment& env ) :
-    _env(env), _gobjects(), _hacker(nullptr)
+    _env(env), _gobjects(), _hacker(nullptr),
+    _cursor( {{0, 0}, false} )
   {
     _gobjects.clear();
     init();
@@ -138,6 +143,7 @@ public:
   template<class T>
   void valid_move( T& obj, Pos dest)
   {
+    // TODO: should also test if too large x and y
     if (dest.x < 0) dest.x = 0;
     if (dest.y < 0) dest.y = 0;
     
@@ -170,6 +176,22 @@ public:
     }
 
   }
+  // *********************************************************** Scene::cursor
+  void set_cursor_visible( bool visible )
+  {
+    _cursor.visible = visible;
+  }
+  void move_cursor( const Pos& dir )
+  {
+    if (not _cursor.visible) return;
+    
+    _cursor.pos += dir;
+    // keep cursor in scene (torus world)
+    if ( _cursor.pos.x < 0 ) _cursor.pos.x = (int) _env._nb_col;
+    if ( _cursor.pos.x > (int) _env._nb_col ) _cursor.pos.x = 0;
+    if ( _cursor.pos.y < 0 ) _cursor.pos.y = (int) _env._nb_row;
+    if ( _cursor.pos.y > (int) _env._nb_row ) _cursor.pos.y = 0;
+  }
   // ************************************************** Sceen::public_callback
   void on_key_up()
   {
@@ -195,11 +217,16 @@ public:
   {
     move_all();
   }
+  void on_cursor_up()     { move_cursor( D_UP ); }
+  void on_cursor_down()   { move_cursor( D_DOWN ); }
+  void on_cursor_right()  { move_cursor( D_RIGHT ); }
+  void on_cursor_left()   { move_cursor( D_LEFT ); }
+  void on_cursor_switch() { set_cursor_visible( not _cursor.visible ); }
   // ******************************************************** Scene::attributs
   Environment& _env;
   GameObjectPtrC _gobjects;
   GameObjectPtr _hacker;
-  
+  Cursor _cursor;
 }; // Scene
 // *************************************************************** Scene - END
 

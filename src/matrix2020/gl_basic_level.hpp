@@ -30,6 +30,7 @@
 #include <matrix2020/gl_hacker.hpp>
 #include <matrix2020/gl_fovhamming.hpp>
 #include <matrix2020/gl_agent.hpp>
+#include <matrix2020/gl_cursor.hpp>
 using namespace matrix2020;
 
 // ***************************************************************************
@@ -42,7 +43,8 @@ public:
   GLBasicLevel( GLEngine& engine ) :
     _window( engine.window() ),
     _scene(nullptr), _hacker_pos( {0,0} ), _fov(nullptr),
-    _gl_env(nullptr), _gl_hacker(nullptr), _gl_fov(nullptr), _gl_agent(nullptr)
+    _gl_env(nullptr), _gl_hacker(nullptr), _gl_fov(nullptr), _gl_agent(nullptr),
+    _gl_cursor(nullptr)
   {
   }
   // ************************************************ GLBasicLevel::destructor
@@ -55,6 +57,7 @@ public:
     if (_gl_hacker) delete _gl_hacker;
     if (_gl_fov) delete _gl_fov;
     if (_gl_agent) delete _gl_agent;
+    if (_gl_cursor) delete _gl_cursor;
   }
   // ****************************************************** GLBasicLevel::init
   void init()
@@ -77,6 +80,7 @@ public:
     _gl_hacker = new GLHacker( _scene->_hacker );
     _gl_fov = new GLFovHamming( *_fov );
     _gl_agent = new GLAgent( _scene->_gobjects );
+    _gl_cursor = new GLCursor( _scene->_cursor.pos );
   }
   // **************************************************** GLBasicLevel::render
   void render()
@@ -107,6 +111,8 @@ public:
       _gl_fov->render();
       _gl_hacker->render();
 
+      if (_scene->_cursor.visible) _gl_cursor->render();
+
       glfwSwapBuffers(_window);
       glfwPollEvents();
     }        
@@ -126,6 +132,7 @@ public:
   GLHacker*      _gl_hacker;
   GLFovHamming*  _gl_fov;
   GLAgent*       _gl_agent;
+  GLCursor*      _gl_cursor;
   // ************************************************** GLBasicLevel::callback
   /**
    * Callback qui gère les événements 'key'
@@ -157,6 +164,11 @@ public:
     else if( key == GLFW_KEY_RIGHT) {
       _scene->on_key_right();
     }
+    else if (key == GLFW_KEY_W)     _scene->on_cursor_up();
+    else if (key == GLFW_KEY_S)     _scene->on_cursor_down();
+    else if (key == GLFW_KEY_A)     _scene->on_cursor_left();
+    else if (key == GLFW_KEY_D)     _scene->on_cursor_right();
+    else if (key == GLFW_KEY_SPACE) _scene->on_cursor_switch();
     std::cout << _scene->str_dump() << std::endl;
   }
 }; // GLBasicLevel
