@@ -1,4 +1,4 @@
-* Current => matrix2020 : [[FOV special][FOV mais]]
+* Current => matrix2020 : [[FOV special][FOV mais]] ou [[Position de la souris]]
 * TODO [5/7] GN2020
 ** TODO [2/6] Autre agent
 *** DONE avec orientation
@@ -6,7 +6,9 @@
 *** TODO Affichage textuel avec flèches ?
 *** DONE déplacement automatique => règles
 *** TODO tir/action si assez près ou ligne de vue
-*** TODO pouvoir cliquer sur agent pour info
+*** TODO [1/2] pouvoir cliquer sur agent pour info
+**** DONE click => environment coordinate
+**** TODO get info on agent/hacker if any
 ** [0/2] découvrir le monde
 *** TODO mur (immuable) sont gardés sans fade
 *** TODO dernière position des agents, faded 

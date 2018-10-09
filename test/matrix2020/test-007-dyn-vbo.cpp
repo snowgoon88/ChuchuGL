@@ -32,6 +32,8 @@ using namespace matrix2020;
 GLWindow* _win = nullptr;
 GLFovHamming* _gl_fov = nullptr;
 
+glm::mat4 _proj, _view, _projview;
+
 void render()
 {
   auto now = glfwGetTime();
@@ -39,7 +41,7 @@ void render()
     glfwSetTime( 0.0 );
   }
   _gl_fov->update_data();
-  _gl_fov->render();
+  _gl_fov->render( _projview );
 }
 
 
@@ -62,6 +64,17 @@ int main(int argc, char *argv[])
 
   // start timer
   glfwSetTime( 0.0 );
+
+  // Camera mode : static
+  _proj = glm::mat4( 1.0f );
+  _proj = glm::ortho( -3.f, 15.f, // left;right
+                      -3.f, 11.f, // bottom,top
+                      -1.f, 100.f // near far
+                      );
+  _view = glm::mat4( 1.0f );
+  _view = glm::translate(_view, glm::vec3(0.0f, 0.0f, -10.0f));
+  _projview = _proj * _view;
+  
   _win->run( render );
 
   delete _gl_fov;

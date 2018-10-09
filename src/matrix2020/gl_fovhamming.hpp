@@ -117,7 +117,7 @@ public:
                      _square_vtx.data() );                // data
   }
   // **************************************************** GLFovHamming::render
-  void render()
+  void render( const glm::mat4& projview )
   {
     // Transparence
     // Enable alpha
@@ -125,17 +125,13 @@ public:
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     // create transformations
-    glm::mat4 view(1.0f);
-    glm::mat4 projection(1.0f);
     glm::mat4 model( 1.0f );
-    projection = glm::ortho( -1.f, 10.f, -1.f, 10.0f, 0.1f, 100.0f );
-    view       = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
 
     // draw squares
     _square_shader->use();
     // pass transformation matrices to the shader
     glUniformMatrix4fv( _proj_view_loc_square, 1, GL_FALSE,
-                        glm::value_ptr(projection*view) );
+                        glm::value_ptr( projview ) );
     glUniformMatrix4fv( _model_loc_square, 1, GL_FALSE,
                         glm::value_ptr(model) );
 

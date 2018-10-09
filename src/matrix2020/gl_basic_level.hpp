@@ -65,7 +65,8 @@ public:
     // Installe les callback pour les touches
     glfwSetWindowUserPointer( _window, this);
     glfwSetKeyCallback(_window, key_callback);
-
+    glfwSetMouseButtonCallback( _window, mouse_button_callback );
+    
     // Init Scene
     _env.load_from_txt( "data/matrix00.txt" );
     _scene = new Scene( _env );
@@ -90,6 +91,16 @@ public:
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    // Camera mode : static
+    _proj = glm::mat4( 1.0f );
+    _proj = glm::ortho( -3.f, 15.f, // left;right
+                        -3.f, 11.f, // bottom,top
+                        -1.f, 100.f // near far
+                        );
+    _view = glm::mat4( 1.0f );
+    _view = glm::translate(_view, glm::vec3(0.0f, 0.0f, -10.0f));
+    _projview = _proj * _view;
+    
     while (!glfwWindowShouldClose(_window)) {
        // update screen size
       glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
@@ -99,6 +110,7 @@ public:
       glClearColor(0., 0., 0., 1.0);
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
+      
       // Update model
       // TODO: BEURK
       _hacker_pos =_scene->_hacker->pos();
@@ -106,10 +118,10 @@ public:
       _gl_fov->update_data();
       
       // Render
-      _gl_env->render();
-      _gl_agent->render();
-      _gl_fov->render();
-      _gl_hacker->render();
+      _gl_env->render( _projview );
+      _gl_agent->render( _projview );
+      _gl_fov->render( _projview );
+      _gl_hacker->render( _projview );
 
       if (_scene->_cursor.visible) _gl_cursor->render();
 
@@ -122,6 +134,7 @@ public:
   // ************************************************* GLBasicLevel::attributs
   GLFWwindow* _window;
   int _screen_width, _screen_height;
+  glm::mat4 _proj, _view, _projview;
   
   Environment  _env;
   Scene *      _scene;
@@ -139,7 +152,7 @@ public:
    */
   static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
   {
-    // ESC => Quit"ACRUX HAMA X-Style Pad"
+    // ESC => Quit
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GL_TRUE);
     // sinon callback de la classe
@@ -170,6 +183,65 @@ public:
     else if (key == GLFW_KEY_D)     _scene->on_cursor_right();
     else if (key == GLFW_KEY_SPACE) _scene->on_cursor_switch();
     std::cout << _scene->str_dump() << std::endl;
+  }
+  // ***************************************************** GLBasicLevel::mouse
+  static void mouse_button_callback(GLFWwindow* window, int button,
+				    int action, int mods)
+  {
+    // callback from Classe
+    ((GLBasicLevel *)glfwGetWindowUserPointer(window))->on_mouse_button( button, action, mods );
+  }
+  void on_mouse_button( int button, int action, int mods ) 
+  {
+    double x, y;
+    glfwGetCursorPos( _window, &x, &y);
+    std::cout <<"Mouse Button at (" << x <<  ", " << y << ")\n";
+
+    if( action == GLFW_PRESS ) {
+      if( button == GLFW_MOUSE_BUTTON_LEFT ) {
+        // Infer the model that has been clicked.
+        auto pt = glm::vec4{ (float)x, (float)y, 0.f, 1.f };
+        if( get_mouse_horizontal( pt )){
+          std::cout << " cliked on " << glm::to_string(pt) << std::endl;
+        }
+      }
+    }
+  }
+  // *********************************************** GLBasicLevel::get_clicked
+  // *********************************************** GLBoidsSceen::get_clicked
+  /**
+   * Compute the pt clicked by the mouse which is on the Oxy plane in World 
+   * coordinate
+   *
+   * Param: pt_mouse = (x,y,*,*) in Screen Coordinate
+   * Return:
+   *  - pt_mouse = (x,y,z,1) in World Coordinate
+   *  - true if intersection, false otherwise.
+   */
+  bool get_mouse_horizontal( glm::vec4& pt_mouse ) const
+  {
+    // Normalised in [-1;1],[-1;1],z,w
+    pt_mouse.x = 2.f * pt_mouse.x / _screen_width - 1.f;
+    pt_mouse.y = -2.f * pt_mouse.y / _screen_height + 1.f;
+    pt_mouse.z = 0.f;
+    pt_mouse.w = 1.f;
+    // Camera coordinate, unprojected
+    pt_mouse = glm::inverse( _proj ) * pt_mouse;
+    // World coordinate, unviewed
+    pt_mouse = glm::inverse( _view ) * pt_mouse;
+    std::cout << "  computed at " << glm::to_string(pt_mouse) << std::endl;
+    
+     // As we use orthogonal projection, need only the World coordinate of 0,0,1
+    auto vec_w = glm::vec4(0.f,0.f, 1.f, 0.f);
+    vec_w = glm::inverse( _view ) * vec_w;
+    
+    // Then compute the projection of pt_mouse on 0xy
+    if (fabs(vec_w.z) > 0.001) {
+      auto t0 = pt_mouse.z / vec_w.z;
+      pt_mouse = pt_mouse - vec_w * t0;
+      return true;
+    }
+    return false;
   }
 }; // GLBasicLevel
 

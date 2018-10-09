@@ -73,16 +73,11 @@ public:
     delete _shader;
   }
   // ********************************************************* GLAgent::render
-  void render()
+  void render( const glm::mat4& projview )
   {
     // create transformations
-    glm::mat4 view(1.0f);
-    glm::mat4 projection(1.0f);
     glm::mat4 model( 1.0f );
     glm::mat4 identity( 1.0f );
-    
-    projection = glm::ortho( -1.f, 10.f, -1.f, 10.0f, 0.1f, 100.0f );
-    view       = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
     
     // activate program
     _shader->use();
@@ -94,7 +89,7 @@ public:
     
     // pass transformation matrices to the shader
     glUniformMatrix4fv( _proj_view_loc, 1, GL_FALSE,
-                        glm::value_ptr(projection*view) );
+                        glm::value_ptr( projview ) );
 
     // ori position
     glUniform3f( _pos_loc, 0.f, 0.F, 0.f );
