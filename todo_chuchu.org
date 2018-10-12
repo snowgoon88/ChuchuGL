@@ -1,4 +1,4 @@
-* Current => matrix2020 : [[FOV special][FOV mais]] ou [[Position de la souris]]
+* Current => matrix2020 : [[FOV special][FOV mais]] ou gl_text info cursor
 * TODO [5/7] GN2020
 ** TODO [2/6] Autre agent
 *** DONE avec orientation
@@ -6,18 +6,19 @@
 *** TODO Affichage textuel avec flèches ?
 *** DONE déplacement automatique => règles
 *** TODO tir/action si assez près ou ligne de vue
-*** TODO [1/2] pouvoir cliquer sur agent pour info
+*** TODO [2/3] pouvoir cliquer sur agent pour info
 **** DONE click => environment coordinate
-**** TODO get info on agent/hacker if any
+**** DONE get info on agent/hacker if any
+**** TODO gl_text les info
 ** [0/2] découvrir le monde
 *** TODO mur (immuable) sont gardés sans fade
 *** TODO dernière position des agents, faded 
-** TODO [1/3] display info, [[affichage fps][FPS]]
+** TODO [3/4] display info, [[affichage fps][FPS]]
 *** FPS pourrait être aussi affiché dans Anttweak
 *** DONE déplacer un curseur => [[Input]] ds Chuchu
-*** TODO curseur actif
+*** DONE curseur actif
 *** TODO curseur avec épaisseur => ligne [[line width]]
-*** pointer avec souris => [[Position de la souris]]
+*** DONE pointer avec souris => [[Position de la souris]]
 ** DONE lire monde txt
 ** DONE afficher monde txt
 ** DONE faire texture hachure et point

@@ -123,7 +123,7 @@ public:
       _gl_fov->render( _projview );
       _gl_hacker->render( _projview );
 
-      if (_scene->_cursor.visible) _gl_cursor->render();
+      if (_scene->_cursor.visible) _gl_cursor->render( _projview );
 
       glfwSwapBuffers(_window);
       glfwPollEvents();
@@ -182,6 +182,8 @@ public:
     else if (key == GLFW_KEY_A)     _scene->on_cursor_left();
     else if (key == GLFW_KEY_D)     _scene->on_cursor_right();
     else if (key == GLFW_KEY_SPACE) _scene->on_cursor_switch();
+    else if (key == GLFW_KEY_E)     print_info_cursor();
+
     std::cout << _scene->str_dump() << std::endl;
   }
   // ***************************************************** GLBasicLevel::mouse
@@ -202,13 +204,16 @@ public:
         // Infer the model that has been clicked.
         auto pt = glm::vec4{ (float)x, (float)y, 0.f, 1.f };
         if( get_mouse_horizontal( pt )){
-          std::cout << " cliked on " << glm::to_string(pt) << std::endl;
+          std::cout << "  cliked on " << glm::to_string(pt) << std::endl;
+          std::cout << "  pos=" << world_to_env(pt) << std::endl;
+
+          _scene->set_cursor( world_to_env(pt) );
+          print_info_cursor();
         }
       }
     }
   }
   // *********************************************** GLBasicLevel::get_clicked
-  // *********************************************** GLBoidsSceen::get_clicked
   /**
    * Compute the pt clicked by the mouse which is on the Oxy plane in World 
    * coordinate
@@ -242,6 +247,26 @@ public:
       return true;
     }
     return false;
+  }
+  // ***************************************** GLBasicLevel::print_info_cursor
+  void print_info_cursor()
+  {
+    if (_scene->_cursor.visible) {
+      std::cout << "__INFO " << std::endl;
+      auto objects = _scene->get_obj_cursor();
+      for( auto& obj : objects ) {
+        std::cout << "  " << obj->str_dump() << std::endl;
+      }
+    }
+  }
+  // ********************************************** GLBasicLevel::world_to_env
+  /** transform word coordinate to environment/scene coordinate */
+  Pos world_to_env( const glm::vec4& world_pt )
+  {
+    // Interested in x and y only
+    Pos env_pt = { static_cast<int>( world_pt.x+0.5f ),
+                   static_cast<int>( world_pt.y+0.5f )};
+    return env_pt;
   }
 }; // GLBasicLevel
 

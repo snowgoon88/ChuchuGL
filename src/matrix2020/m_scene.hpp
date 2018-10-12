@@ -192,6 +192,33 @@ public:
     if ( _cursor.pos.y < 0 ) _cursor.pos.y = (int) _env._nb_row;
     if ( _cursor.pos.y > (int) _env._nb_row ) _cursor.pos.y = 0;
   }
+  void set_cursor( const Pos& pos )
+  {
+    // check in scene
+    if (pos.x < 0 or pos.x > (int) _env._nb_col) return;
+    if (pos.y < 0 or pos.y > (int) _env._nb_row) return;
+
+    // set cursor and make it visible
+    _cursor.pos = pos;
+    set_cursor_visible( true );
+  }
+  GameObjectPtrC get_obj_cursor()
+  {
+    GameObjectPtrC result;
+
+    // check hacker
+    if (_hacker->pos() == _cursor.pos) {
+      result.push_back( _hacker );
+    }
+    // and other objects
+    for( auto& obj : _gobjects ) {
+      if (obj->pos() == _cursor.pos) {
+        result.push_back( obj );
+      }
+    }
+
+    return result;
+  }
   // ************************************************** Sceen::public_callback
   void on_key_up()
   {
