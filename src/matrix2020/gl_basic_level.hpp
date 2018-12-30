@@ -31,6 +31,7 @@
 #include <matrix2020/gl_fovhamming.hpp>
 #include <matrix2020/gl_agent.hpp>
 #include <matrix2020/gl_cursor.hpp>
+#include <matrix2020/gl_overlay.hpp>
 using namespace matrix2020;
 
 // ***************************************************************************
@@ -44,7 +45,7 @@ public:
     _window( engine.window() ),
     _scene(nullptr), _hacker_pos( {0,0} ), _fov(nullptr),
     _gl_env(nullptr), _gl_hacker(nullptr), _gl_fov(nullptr), _gl_agent(nullptr),
-    _gl_cursor(nullptr)
+    _gl_cursor(nullptr), _gl_overlay(nullptr)
   {
   }
   // ************************************************ GLBasicLevel::destructor
@@ -82,6 +83,7 @@ public:
     _gl_fov = new GLFovHamming( *_fov );
     _gl_agent = new GLAgent( _scene->_gobjects );
     _gl_cursor = new GLCursor( _scene->_cursor.pos );
+    _gl_overlay = new GLOverlay( 2.0, 3.0, "__MSG Overlay", {1.0, 1.0, 1.0} );
   }
   // **************************************************** GLBasicLevel::render
   void render()
@@ -104,7 +106,9 @@ public:
     while (!glfwWindowShouldClose(_window)) {
        // update screen size
       glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
-      
+      // text_shaders assume a screen -1,1 x -1,1
+      float sx = 2.f / _screen_width;
+      float sy = 2.f / _screen_height;
       glViewport(0, 0, _screen_width, _screen_height);
       /* Clear the background as black */
       glClearColor(0., 0., 0., 1.0);
@@ -123,8 +127,11 @@ public:
       _gl_fov->render( _projview );
       _gl_hacker->render( _projview );
 
-      if (_scene->_cursor.visible) _gl_cursor->render( _projview );
+      // TODO: this changes the projection (side effect on projection )
+      _gl_overlay->render( sx, sy );
 
+      if (_scene->_cursor.visible) _gl_cursor->render( _projview );
+      
       glfwSwapBuffers(_window);
       glfwPollEvents();
     }        
@@ -146,6 +153,7 @@ public:
   GLFovHamming*  _gl_fov;
   GLAgent*       _gl_agent;
   GLCursor*      _gl_cursor;
+  GLOverlay*     _gl_overlay;
   // ************************************************** GLBasicLevel::callback
   /**
    * Callback qui gère les événements 'key'

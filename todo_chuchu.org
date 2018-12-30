@@ -1,4 +1,5 @@
-* Current => matrix2020 : [[FOV special][FOV mais]] ou gl_text info cursor
+* Current => matrix2020 : "FOV mais..." ou gl_text info cursor
+TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
 * TODO [5/7] GN2020
 ** TODO [2/6] Autre agent
 *** DONE avec orientation
