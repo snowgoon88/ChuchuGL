@@ -1,5 +1,4 @@
-* Current => matrix2020 : "FOV mais..." ou gl_text info cursor
-TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
+* Current => matrix2020 : [[Info vu]]
 * TODO [5/7] GN2020
 ** TODO [2/6] Autre agent
 *** DONE avec orientation
@@ -15,10 +14,13 @@ TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
 *** TODO mur (immuable) sont gardés sans fade
 *** TODO dernière position des agents, faded 
 ** TODO [3/4] display info, [[affichage fps][FPS]]
+*** TODO [0/1] Info vu
+**** TODO msg + cadre autour du msg + cadre autour cell + line => dynamic VBO
+Chaque autre agent dans FOV pourrait déclencher un Overlay
 *** FPS pourrait être aussi affiché dans Anttweak
 *** DONE déplacer un curseur => [[Input]] ds Chuchu
 *** DONE curseur actif
-*** TODO curseur avec épaisseur => ligne [[line width]]
+*** curseur avec épaisseur => ligne [[line width]]
 *** DONE pointer avec souris => [[Position de la souris]]
 ** DONE lire monde txt
 ** DONE afficher monde txt

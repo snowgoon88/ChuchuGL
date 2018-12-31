@@ -83,7 +83,9 @@ public:
     _gl_fov = new GLFovHamming( *_fov );
     _gl_agent = new GLAgent( _scene->_gobjects );
     _gl_cursor = new GLCursor( _scene->_cursor.pos );
-    _gl_overlay = new GLOverlay( 2.0, 3.0, "__MSG Overlay", {1.0, 1.0, 1.0} );
+    _gl_overlay = new GLOverlay();
+    _gl_overlay->add_text( "__MSG OVERLAY", {1.0, 0.0, 0.0} );
+    _gl_overlay->add_text( " Hello", {1.0, 1.0, 1.0} );
   }
   // **************************************************** GLBasicLevel::render
   void render()
@@ -128,7 +130,7 @@ public:
       _gl_hacker->render( _projview );
 
       // TODO: this changes the projection (side effect on projection )
-      _gl_overlay->render( sx, sy );
+      _gl_overlay->render( _projview, sx, sy );
 
       if (_scene->_cursor.visible) _gl_cursor->render( _projview );
       

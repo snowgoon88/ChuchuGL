@@ -4,8 +4,8 @@
 #define GL_FOCHAMMING_HPP
 
 /** 
- * Display 2 squares
- * // TODO: dynamic VBO
+ * Display FOV as a vector of square
+ * using dynamic VBO
  */
 
 #include <gl_shader.hpp>
