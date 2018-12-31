@@ -22,6 +22,8 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include <list>
+#include <vector>
+#include <memory>   // shared_ptr
 
 // ******************************************************************** DEFINE
 // Compute from level coordinate to text coordinate
@@ -39,11 +41,50 @@ using OverlayLine = struct ol {
   std::string msg;
   Color col = {0.0, 0.0, 0.0};
 };
-using OverlayMsg = struct om {
-  std::list<OverlayLine> lines;
-  double xori, yori;
-  Color col;
-};
+// using OverlayMsg = struct om {
+//   std::list<OverlayLine> lines;
+//   double xori, yori;
+//   Color col;
+// };
+
+// ***************************************************************************
+// **************************************************************** OverlayMsg
+// ***************************************************************************
+class OverlayMsg
+{
+public:
+  // ************************************************* OverlayMsg::constructor
+  OverlayMsg( double xori = 0.0, double yori = 0.0, Color col = {1.0,0.0,0.0}):
+    _xori(xori), _yori(yori), _col(col)
+  {
+    _textlines.clear();
+  }
+  virtual ~OverlayMsg()
+  {
+  }
+  // ******************************************************** OverlayMsg::text
+  void add_text( const std::string& msg, const Color& col )
+  {
+    _textlines.push_back( {msg, col} );
+  }
+  // ****************************************************** OverlayMsg::update
+  void update_origin( double xori, double yori )
+  {
+    _xori = xori;
+    _yori = yori;
+  }
+  void update_color( Color col )
+  {
+    _col = col;
+  }
+
+  // *************************************************** OverlayMsg::attributs
+  double _xori, _yori;
+  Color _col;
+  std::list<OverlayLine> _textlines;
+
+}; // OverlayMsg
+using OverlayMsgPtr = std::shared_ptr<OverlayMsg>;
 
 // ***************************************************************************
 // ***************************************************************** GLOverlay
@@ -71,6 +112,8 @@ public:
     // Font size
     _gltext.set_size( 12 );
 
+    // No overlays
+    _overlays.clear();
     // No messages for the moment
     _textlines.clear();
   }
@@ -80,10 +123,18 @@ public:
     glDeleteBuffers( 1, &_line_vbo);
     delete _line_shader;
   }
-  // ***************************************************** GLOverlay::add_text
-  void add_text( const std::string& msg, const Color& col )
+  // ********************************************************** GLOverlay::add
+  OverlayMsgPtr add_overlay( double xori = 0.0, double yori = 0.0,
+                             Color col = {1.0,0.0,0.0})
   {
-    _textlines.push_back( {msg, col} );
+    auto over_ptr = OverlayMsgPtr( new OverlayMsg( xori, yori, col ));
+    _overlays.push_back( over_ptr );
+    return over_ptr;
+  }
+  OverlayMsgPtr add_overlay( OverlayMsgPtr over_ptr )
+  {
+    _overlays.push_back( over_ptr );
+    return over_ptr;
   }
   // ******************************************************** GLOverlay::vbo
   void build_vbo()
@@ -133,23 +184,34 @@ public:
     _gltext.set_scale( screen_ratio_x, screen_ratio_y );
 
     _line_vtx.clear();
-    // add first vertical point, red
-    _line_vtx.push_back( overlay2projview( textx - 0.01,
-                                           texty + 1.5 * _gltext.line_height()) );
-    for( auto& l: _textlines) {
-      _gltext.set_color( {l.col.r, l.col.g, l.col.b, 1.0} );
-      _gltext.render( l.msg, textx, texty );
+
+    // Render all OverlayMsg texts while computing line vtx
+    for( auto& ovr: _overlays) {
+      // add first vertical point, Color of ovr
+      _line_vtx.push_back( vtx_from_overlay( textx - 0.01,
+                                          texty + 1.5 * _gltext.line_height(),
+                                          ovr->_col) );
+      for( auto& l: ovr->_textlines) {
+        _gltext.set_color( {l.col.r, l.col.g, l.col.b, 1.0} );
+        _gltext.render( l.msg, textx, texty );
+        texty -= 1.5 * _gltext.line_height();
+      }
+      // Add last vertical point, Color of ovr
+      _line_vtx.push_back( vtx_from_overlay( textx - 0.01,
+                                             texty + 0.5*_gltext.line_height(),
+                                             ovr->_col) );
+      // Again, to start horizontal, Color of ovr
+      _line_vtx.push_back( vtx_from_overlay( textx - 0.01,
+                                             texty + 0.5*_gltext.line_height(),
+                                             ovr->_col) );
+      // And an horizontal end, Color of ovr
+      _line_vtx.push_back( vtx_from_overlay( textx + 0.1,
+                                             texty + 0.5*_gltext.line_height(),
+                                             ovr->_col) );
+
+      // increase a bit texty
       texty -= 1.5 * _gltext.line_height();
     }
-    // Add last vertical point, red
-    _line_vtx.push_back( overlay2projview( textx - 0.01,
-                                           texty + 0.5*_gltext.line_height()  ));
-    // Again, to start horizontal, red
-    _line_vtx.push_back( overlay2projview( textx - 0.01,
-                                           texty + 0.5*_gltext.line_height()  ));
-    // And an horizontal end, red
-    _line_vtx.push_back( overlay2projview( textx + 0.1,
-                                           texty + 0.5*_gltext.line_height()  ));
     
     _gltext.post_render();
 
@@ -160,7 +222,7 @@ public:
     //   std::cout << "  col=" << vtx.r << ", " << vtx.g << ", " << vtx.b << std::endl;
     // }
 
-    // dynamic VBA and VBO
+    // Now the lines using a dynamic VBA and VBO
     // specify the buffer we are about to update
     glBindBuffer( GL_ARRAY_BUFFER, _line_vbo );
     // ask for reallocation, glBufferData with NULL and same parameters
@@ -190,18 +252,20 @@ public:
   }
   // **************************************************** GLOverlay::transform
   /** Vertex in projview coordinate (red by default) */
-  Vertex overlay2projview( double x, double y )
+    Vertex vtx_from_overlay( double x, double y,
+                             Color col = {1.0, 0.0, 0.0} )
   {
     Vertex vtx {
       float(((x - -1.0) / (1.0 - -1.0)) * (15.0 - -3.0) + -3.0),
         float(((y - -1.0) / (1.0 - -1.0)) * (11.0 - -3.0) + -3.0),
         0.1f,
-        1.f, 0.f, 0.f };
+        float(col.r), float(col.g), float(col.b) };
     return vtx;
   }
   
   // **************************************************** GLOverlay::attributs
   GLTextShaders _gltext;
+  std::list<OverlayMsgPtr> _overlays;
   std::list<OverlayLine> _textlines;
   std::vector<Vertex> _line_vtx;
   GLShader* _line_shader;
