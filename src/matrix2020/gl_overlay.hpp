@@ -187,6 +187,13 @@ public:
 
     // Render all OverlayMsg texts while computing line vtx
     for( auto& ovr: _overlays) {
+      // add square around ori position of Overlay
+      add_square( ovr->_xori, ovr->_yori, ovr->_col );
+      // and a vtx at the begining of frame
+      _line_vtx.push_back( vtx_from_overlay( textx - 0.01,
+                                             texty,
+                                             ovr->_col) );
+      
       // add first vertical point, Color of ovr
       _line_vtx.push_back( vtx_from_overlay( textx - 0.01,
                                           texty + 1.5 * _gltext.line_height(),
@@ -252,8 +259,8 @@ public:
   }
   // **************************************************** GLOverlay::transform
   /** Vertex in projview coordinate (red by default) */
-    Vertex vtx_from_overlay( double x, double y,
-                             Color col = {1.0, 0.0, 0.0} )
+  Vertex vtx_from_overlay( double x, double y,
+                           Color col = {1.0, 0.0, 0.0} )
   {
     Vertex vtx {
       float(((x - -1.0) / (1.0 - -1.0)) * (15.0 - -3.0) + -3.0),
@@ -262,7 +269,6 @@ public:
         float(col.r), float(col.g), float(col.b) };
     return vtx;
   }
-  
   // **************************************************** GLOverlay::attributs
   GLTextShaders _gltext;
   std::list<OverlayMsgPtr> _overlays;
@@ -272,7 +278,36 @@ public:
   GLuint _proj_view_loc_line;
   GLuint _model_loc_line;
   GLuint _line_vao, _line_vbo;
-  
+
+private:
+  // *************************************************** GLOverlay::add_square
+  void add_square( double xori, double yori,
+                   Color col = {1.0, 0.0, 0.0} )
+  {
+    // (i/2) takes value 0 0 1 1
+    // (i+1)/2%2 takes 0 1 1 0
+    for( int i=0; i<4; ++i ) {
+      int xini = (-1 + 2*(((i+1)/2)%2));
+      int xend = (1 - 2*(i/2));
+      int yini = (-1 + 2*(i/2));
+      int yend = (-1 + 2*(((i+1)/2)%2));
+
+      add_point( xori + double(xini) * 0.5,
+                 yori + double(yini) * 0.5,
+                 col );
+      add_point( xori + double(xend) * 0.5,
+                 yori + double(yend) * 0.5,
+                 col );
+    }
+    // and a vtx at half of right side
+    add_point( xori + 0.5, yori, col );
+  }
+  void add_point( double xori, double yori,
+                   Color col = {1.0, 0.0, 0.0} )
+  {
+    _line_vtx.push_back( { float(xori), float(yori), 0.1f,
+          float(col.r), float(col.g), float(col.b) } );
+  }
 }; // GLOverlay
 
 #endif // GL_OVERLAY_HPP

@@ -85,11 +85,11 @@ public:
     _gl_cursor = new GLCursor( _scene->_cursor.pos );
     _gl_overlay = new GLOverlay();
     // add a first message, framed in red
-    auto ovr = _gl_overlay->add_overlay( 0.0, 0.0, {1.0, 0.0, 0.0} );
+    auto ovr = _gl_overlay->add_overlay( 6.0, 6.0, {1.0, 0.0, 0.0} );
     ovr->add_text( "__MSG OVERLAY", {1.0, 0.0, 0.0} );
     ovr->add_text( " Hello", {1.0, 1.0, 1.0} );
     // second message, framed in green
-    ovr = _gl_overlay->add_overlay( 0.0, 0.0, {0.0, 1.0, 0.0} );
+    ovr = _gl_overlay->add_overlay( 7.0, 2.0, {0.0, 1.0, 0.0} );
     ovr->add_text( "__MSG OVERLAY", {0.0, 1.0, 0.0} );
     ovr->add_text( " How are you ?", {1.0, 1.0, 1.0} );
   }
