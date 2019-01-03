@@ -8,7 +8,7 @@
 #include <list>
 #include <iostream>
 #include <string>
-
+#include <algorithm>
 // ********************************************************************* Types
 using Thing = struct th {
   std::string name;
@@ -82,6 +82,59 @@ void sort()
   std::cout << "  B = " << *it_b << std::endl;
   std::cout << "  C = " << *it_c << std::endl;
 }
+void change()
+{
+  std::cout << "__CHANGE A" << std::endl;
+  it_a->x = 1.5;
+  std::cout << "  A = " << *it_a << std::endl;
+  std::cout << "  B = " << *it_b << std::endl;
+  std::cout << "  C = " << *it_c << std::endl;
+}
+void move_last_up()
+{
+  std::cout << "__MOVE LAST UP" << std::endl;
+  auto itlast = std::prev(_collec.end());
+  std::move( itlast, std::next(itlast), std::prev(itlast) );
+  std::cout << "  A = " << *it_a << std::endl;
+  std::cout << "  B = " << *it_b << std::endl;
+  std::cout << "  C = " << *it_c << std::endl;
+}
+void move_first_down()
+{
+  std::cout << "__MOVE FIRST DOWN" << std::endl;
+  auto itfirst = _collec.begin();
+  std::move( itfirst, std::next(itfirst), std::next(itfirst) );
+  std::cout << "  A = " << *it_a << std::endl;
+  std::cout << "  B = " << *it_b << std::endl;
+  std::cout << "  C = " << *it_c << std::endl;
+}
+void move_2_1()
+{
+  std::cout << "__MOVE 2 1" << std::endl;
+  auto itsrc = std::next(_collec.begin());
+  std::move( itsrc, std::next(itsrc), std::prev(itsrc) );
+  std::cout << "  A = " << *it_a << std::endl;
+  std::cout << "  B = " << *it_b << std::endl;
+  std::cout << "  C = " << *it_c << std::endl;
+}  
+void rotate()
+{
+  std::cout << "__ROTATE PREMS" << std::endl;
+  std::rotate( _collec.begin(), std::next(_collec.begin()),
+               std::next( std::next( _collec.begin() )) );
+  std::cout << "  A = " << *it_a << std::endl;
+  std::cout << "  B = " << *it_b << std::endl;
+  std::cout << "  C = " << *it_c << std::endl;
+}
+void splice()
+{
+  std::cout << "__SPLICE" << std::endl;
+  // pos, other, it
+  _collec.splice( _collec.begin(), _collec, std::next( _collec.begin() ));
+  std::cout << "  A = " << *it_a << std::endl;
+  std::cout << "  B = " << *it_b << std::endl;
+  std::cout << "  C = " << *it_c << std::endl;
+}
 // ********************************************************************** MAIN
 int main(int argc, char *argv[])
 {
@@ -93,7 +146,28 @@ int main(int argc, char *argv[])
 
   sort();
   display_list();
+
+  change();
+  display_list();
+
+  sort();
+  display_list();
+
+  // move_last_up();
+  // display_list();
+
+  // move_first_down();
+  // display_list();
+
+  // move_2_1();
+  // display_list();
+
+  // rotate();
+  // display_list();
+  splice();
+  display_list();
   
+
   return 0;
 }
 
