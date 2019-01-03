@@ -84,6 +84,11 @@ public:
     _gl_agent = new GLAgent( _scene->_gobjects );
     _gl_cursor = new GLCursor( _scene->_cursor.pos );
     _gl_overlay = new GLOverlay();
+    // Overlay info for hacker
+    _ovr_hacker = _gl_overlay->add_overlay( _scene->_hacker->pos().x,
+                                            _scene->_hacker->pos().y,
+                                            {0.0, 1.0, 1.0} );
+    _ovr_hacker->add_text( "__HACKER", {0.0, 1.0, 1.0} );
     // add a first message, framed in red
     auto ovr = _gl_overlay->add_overlay( 6.0, 6.0, {1.0, 0.0, 0.0} );
     ovr->add_text( "__MSG OVERLAY", {1.0, 0.0, 0.0} );
@@ -92,10 +97,25 @@ public:
     ovr = _gl_overlay->add_overlay( 7.0, 2.0, {0.0, 1.0, 0.0} );
     ovr->add_text( "__MSG OVERLAY", {0.0, 1.0, 0.0} );
     ovr->add_text( " How are you ?", {1.0, 1.0, 1.0} );
+
+    update();
+  }
+  // **************************************************** GLBasicLevel::update
+  void update()
+  {
+    // TODO: BEURK
+    _hacker_pos =_scene->_hacker->pos();
+    _fov->refresh();
+    _gl_fov->update_data();
+    // Update hacker overlay position
+    _ovr_hacker->update_origin( _scene->_hacker->pos().x,
+                                _scene->_hacker->pos().y );
+    // Ask for an update of overlays
+    _gl_overlay->update();
   }
   // **************************************************** GLBasicLevel::render
   void render()
-  {
+  {  
     // Transparence
     // Enable alpha
     glEnable(GL_BLEND);
@@ -124,12 +144,9 @@ public:
 
       
       // Update model
-      // TODO: BEURK
-      _hacker_pos =_scene->_hacker->pos();
-      _fov->refresh();
-      _gl_fov->update_data();
-      
+       
       // Render
+      //std::cout << "__RENDER BASIC LEVEL" << std::endl;
       _gl_env->render( _projview );
       _gl_agent->render( _projview );
       _gl_fov->render( _projview );
@@ -162,6 +179,8 @@ public:
   GLAgent*       _gl_agent;
   GLCursor*      _gl_cursor;
   GLOverlay*     _gl_overlay;
+  OverlayMsgIte  _ovr_hacker;
+  
   // ************************************************** GLBasicLevel::callback
   /**
    * Callback qui gère les événements 'key'
@@ -200,7 +219,10 @@ public:
     else if (key == GLFW_KEY_SPACE) _scene->on_cursor_switch();
     else if (key == GLFW_KEY_E)     print_info_cursor();
 
+    update();
+    
     std::cout << _scene->str_dump() << std::endl;
+    std::cout << _gl_overlay->str_dump() << std::endl;
   }
   // ***************************************************** GLBasicLevel::mouse
   static void mouse_button_callback(GLFWwindow* window, int button,
