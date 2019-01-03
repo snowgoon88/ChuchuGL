@@ -60,7 +60,7 @@ int kbhit(void)
   oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
   fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
 
-  // test keyboard/consol
+  // test keyboard/console
   ch = getchar();
 
   //the old settings will be written back to STDIN
@@ -78,7 +78,11 @@ int kbhit(void)
 
 void wait_keypressed()
 {
+  int c;
+  while((c = getchar()) != '\n' && c != EOF)
+		/* discard */ ;
   std::cout << "Press any key to continue..." << std::endl;
+  fflush(stdout);
   while (!kbhit()) {
     sleep(0);
   }
