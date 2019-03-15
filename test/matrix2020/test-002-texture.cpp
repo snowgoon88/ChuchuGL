@@ -152,7 +152,9 @@ void set_shaders()
 
   // Textures
   // std::cout << "__IMAGE" << std::endl;
-  std::string filename{"data/stripe_yel_80x80.png"};
+  //std::string filename{"data/stripe_yel_80x80.png"};
+  //std::string filename{"data/tex_mvm_463x210.png"};
+  std::string filename{"data/tex_mvm_512x512.png"};
   // std::string filename{"data/tex_titlerocket.png"};
   // std::cout << "__TEXTURE avant=" << _texture_id  << std::endl;
   // glGenTextures( 1, &_texture_id);

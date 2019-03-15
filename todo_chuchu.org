@@ -279,4 +279,4 @@ The product of two rotation quaternions will be equivalent to the rotation a1 + 
 *** C-c C-l : edit link/insert link
 ** TODO
 *** C-c / t : sparse todo tree
-   
+* SOIL : image width doit être un multiple de 4 !!   
