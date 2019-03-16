@@ -86,6 +86,62 @@ private:
 }; // class Moveable
 // ***************************************************************************
 
+// ***************************************************************************
+// ********************************************************************** Sink
+// ***************************************************************************
+class Sink
+{
+public:
+  using Pos2D = glm::vec2;
+  using Vertex = struct s_Vertex {
+    GLfloat x, y, z; // pos
+    GLfloat r, g, b; // color
+  };
+  using VertexV = std::vector<Vertex>;
+  using Color = struct {
+    GLfloat r,g,b;
+};
+public:
+  // ********************************************************** Sink::creation
+  Sink( const Pos2D& pos, const Pos2D& topleft, const Pos2D& botright ) :
+    _pos( pos ) , _topleft( topleft ), _botright( botright )
+  {
+  }
+  std::string str_dump () const
+  {
+    std::stringstream dump;
+    dump << "at=( " << _pos[0] << ", " << _pos[1] << ")";
+
+    return dump.str();
+  }
+  // ****************************************************** Sink::add_vertices
+  void add_vertices( VertexV& vec, float depth_z, Color col = {1.f,1.f,1.f} )
+  {
+    // frame around
+    vec.push_back( Vertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b });
+    vec.push_back( Vertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+
+    vec.push_back( Vertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( Vertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+
+    vec.push_back( Vertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( Vertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+
+    vec.push_back( Vertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( Vertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+
+    // inside cross
+    vec.push_back( Vertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( Vertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+
+    vec.push_back( Vertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( Vertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+  }
+  // ***************************************************** Moveable::attributs
+private:
+  Pos2D _pos;
+  Pos2D _topleft, _botright;
+}; // class Sink
 
 // ***************************************************************************
 // ********************************************************* GLMoveableManager
@@ -103,6 +159,8 @@ private:
   using Pos2D = Moveable::Pos2D;
   using TexVertex = Moveable::TexVertex;
   using TexVertexV = Moveable::TexVertexV;
+  using Vertex = Sink::Vertex;
+  using VertexV = Sink::VertexV;
 private:
   // max number of square to draw
   static const unsigned int _max_size = 100;
@@ -111,10 +169,13 @@ private:
 public:
   using MoveablePtr = Moveable*;
   using ListMoveable = std::list<Moveable>;
+  using SinkPtr = Sink *;
+  using ListSink = std::list<Sink>;
   // ********************************************* GLMoveableManager::creation
   GLMoveableManager() :
-    _current_moveable(nullptr), _offset( {0.0, 0.0} )//, _current_sink(nullptr)
+    _current_moveable(nullptr), _offset( {0.0, 0.0} ), _current_sink(nullptr)
   {
+    // TEXTURES
     _texture_shader = new GLShader( "src/shaders/texture.v330.glsl",
                                     "src/shaders/texture.f330.glsl" );
     _proj_view_loc_tex = _texture_shader->getUniformLocation( "proj_view" );
@@ -163,6 +224,35 @@ public:
                            (3+2) * sizeof(float), // stride
                            (void*)(3 * sizeof(float)) ); // offset
     glEnableVertexAttribArray(1);
+
+    // Lines with Colors
+    _line_shader = new GLShader( "src/shaders/base3D.vert330.glsl",
+                                 "src/shaders/base3D.frag330.glsl" );
+    _proj_view_loc_line = _line_shader->getUniformLocation( "proj_view" );
+    _model_loc_line = _line_shader->getUniformLocation( "model" );
+
+    glGenVertexArrays( 1, &_line_vao );
+    glGenBuffers( 1, &_line_vbo );
+    glBindVertexArray( _line_vao );
+
+    glBindBuffer( GL_ARRAY_BUFFER, _line_vbo );
+    // glBufferData( GL_ARRAY_BUFFER, sizeof(square_vtx), square_vtx,
+    //               GL_STATIC_DRAW );
+    glBufferData( GL_ARRAY_BUFFER,
+                  GLMoveableManager::_max_size * sizeof(Vertex),
+                  NULL, //not _line_vtx.data() as it might be empty
+                  GL_DYNAMIC_DRAW );
+
+    // position attribute
+    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE,
+                           (3+3) * sizeof(float), // stride
+                           (void*)0); // offset
+    glEnableVertexAttribArray(0);
+    // color coordinate
+    glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE,
+                           (3+3) * sizeof(float), // stride
+                           (void*)(3 * sizeof(float)) ); // offset
+    glEnableVertexAttribArray(1); 
   }
   // ****************************************** GLMoveableManager::destruction
   virtual ~GLMoveableManager()
@@ -173,6 +263,10 @@ public:
     glDeleteVertexArrays( 1, &_moveable_vao);
     glDeleteBuffers( 1, &_moveable_vbo);
     delete _texture_shader;
+
+    glDeleteVertexArrays( 1, &_line_vao);
+    glDeleteBuffers( 1, &_line_vbo);
+    delete _line_shader;
   }
   // ************************************************** GLMoveableManager::str
   std::string str_dump () const
@@ -186,13 +280,13 @@ public:
     else {
       dump << "NULL";
     }
-    // dump << "sink=";
-    // if (_current_sink) {
-    //   dump << _current_sink->str_dump();
-    // }
-    // else {
-    //   dump << "NULL";
-    // }
+    dump << "sink=";
+    if (_current_sink) {
+      dump << _current_sink->str_dump();
+    }
+    else {
+      dump << "NULL";
+    }
     dump << "\nVertices";
     for( auto& vtx: _moveable_vtx) {
       dump << "  (" << vtx.x << "/" << vtx.y << "/" << vtx.z;
@@ -225,11 +319,35 @@ public:
                      0,                                   //start of sub
                      _moveable_vtx.size() * sizeof(TexVertex), //length sub
                      _moveable_vtx.data() );                // data
+
+    // update list of Sinks
+    _line_vtx.clear();
+    for( auto& sink: _sinks) {
+      sink.add_vertices( _line_vtx, GLMoveableManager::_posz, {1.f,1.f,0.f} );
+    }
+    // specify the buffer we are about to update
+    glBindBuffer( GL_ARRAY_BUFFER, _line_vbo );
+    // ask for reallocation, glBufferData with NULL and same parameters
+    // see https://www.khronos.org/opengl/wiki/Buffer_Object_Streaming)
+    glBufferData( GL_ARRAY_BUFFER,
+                  GLMoveableManager::_max_size * sizeof(Vertex),
+                  NULL, 
+                  GL_DYNAMIC_DRAW );
+    // will call glBufferSubData on the entire buffer
+    glBufferSubData( GL_ARRAY_BUFFER,
+                     0,                                   //start of sub
+                     _line_vtx.size() * sizeof(Vertex), //length sub
+                     _line_vtx.data() );                // data
   }
   // ********************************************* GLMoveableManager::Moveable
   void add_moveable( MoveablePtr moveable )
   {
     _moveables.push_back( *moveable );
+  }
+  // ************************************************* GLMoveableManager::Sink
+  void add_sink( SinkPtr sink )
+  {
+    _sinks.push_back( *sink );
   }
   // *********************************************** GLMOveableManager::render
   void render( const glm::mat4& projview )
@@ -238,8 +356,21 @@ public:
     // Enable alpha
     // glEnable(GL_BLEND);
     // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    // draw squares
+
+    // draw sinks using lines
+    _line_shader->use();
+    // create transformations
+    glm::mat4 model( 1.0f );
+    // pass transformation matrices to the shader
+    glUniformMatrix4fv( _proj_view_loc_line, 1, GL_FALSE,
+                        glm::value_ptr( projview ) );
+    glUniformMatrix4fv( _model_loc_line, 1, GL_FALSE,
+                        glm::value_ptr(model) );
+
+    glBindVertexArray(_line_vao);
+    glDrawArrays(GL_LINES, 0, _line_vtx.size() ); // mode, first, count
+
+    // draw moveable usin textures
     _texture_shader->use();
     // pass transformation matrices to the shader
     glUniformMatrix4fv( _proj_view_loc_tex, 1, GL_FALSE,
@@ -266,10 +397,10 @@ public:
 private:
   // ******************************************** GLMoveableManager::attributs
   ListMoveable _moveables;
-  //ListSink    _sinks;
+  ListSink    _sinks;
   Moveable* _current_moveable;
   Pos2D _offset;  // offset between mouse Pos and Moveable Pos
-  //Sink*    _current_sink;
+  Sink*    _current_sink;
   
   // For graphics
   GLShader* _texture_shader;
@@ -278,6 +409,12 @@ private:
   GLuint _texture_id;
   GLuint _moveable_vao, _moveable_vbo;
   TexVertexV _moveable_vtx;
+
+  GLShader* _line_shader;
+  GLuint _proj_view_loc_line;
+  GLuint _model_loc_line;
+  GLuint _line_vao, _line_vbo;
+  VertexV _line_vtx;
 
 }; // class GLMoveableManager
 

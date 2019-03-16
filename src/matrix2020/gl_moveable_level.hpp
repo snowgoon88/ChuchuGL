@@ -54,7 +54,7 @@ public:
     
     // Init Moveables
     _gl_movmgr = new GLMoveableManager();
-    // first card
+    // first cards
     _cards.push_back( Moveable( {-1.0,1.33}, {1.0,-1.33},
                                 {0.0, 209.f/210.f}, {156.f/464.f,0.0} ));
     _cards[0].pos( {0.5, 0.5} );
@@ -69,6 +69,13 @@ public:
     for (auto itm = _cards.begin(); itm != _cards.end(); ++itm) {
       _gl_movmgr->add_moveable( &(*itm) );
     }
+    // then Sinks
+    _sinks.push_back( Sink(  {-0.5,3.0}, {-1.0,1.33}, {1.0,-1.33}  ));
+    _sinks.push_back( Sink(  {2.0,3.0}, {-1.0,1.33}, {1.0,-1.33}  ));
+    for (auto its = _sinks.begin(); its != _sinks.end(); ++its) {
+      _gl_movmgr->add_sink( &(*its) );
+    }
+    
     _gl_movmgr->update_vbo();
     std::cout << "__GL_MoveableManager" << std::endl;
     std::cout << _gl_movmgr->str_dump() << std::endl;
@@ -116,6 +123,7 @@ public:
   glm::mat4 _proj, _view, _projview;
 
   std::vector<Moveable> _cards;
+  std::vector<Sink> _sinks;
   GLMoveableManager* _gl_movmgr;
 
   // ************************************************** GLBasicLevel::callback
