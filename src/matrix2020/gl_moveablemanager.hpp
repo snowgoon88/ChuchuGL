@@ -10,12 +10,12 @@
  * - move and drop on Sink
  */
 
-#include <vector>
 #include <list>
 #include <sstream>
 
 #include <gl_shader.hpp>
 #include <SOIL/SOIL.h>               // Load images
+#include <matrix2020/gl_def.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -30,11 +30,9 @@ class Moveable
 {
 public:
   using Pos2D = glm::vec2;
-  using TexVertex = struct s_TexVertex {
-    GLfloat x, y, z; // pos screen (+ depth)
-    GLfloat s, t;    // pos texture
+  using Color = struct {
+    GLfloat r,g,b;
   };
-  using TexVertexV = std::vector<TexVertex>;
 public:
   // ****************************************************** Moveable::creation
   Moveable( const Pos2D& topleft, const Pos2D& botright,
@@ -62,7 +60,7 @@ public:
     return false;
   }
   // ************************************************** Moveable::add_vertices
-  void add_vertices( TexVertexV& vec, float depth_z )
+  void add_texture( TexVertexV& vec, float depth_z )
   {
     // First triangle 0,0 -> 0,1 -> 1,1
     vec.push_back( TexVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, _tex_topleft[0], _tex_botright[1] } );
@@ -73,6 +71,21 @@ public:
     vec.push_back( TexVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, _tex_topleft[0], _tex_botright[1] } );
     vec.push_back( TexVertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, _tex_botright[0], _tex_topleft[1] } );
     vec.push_back( TexVertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, _tex_topleft[0], _tex_topleft[1] } );
+  }
+  void add_frame( LineVertexV& vec, float depth_z, Color col={1.f,0.f,0.f} )
+  {
+    // frame around
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b });
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
   }
   // ***************************************************** Moveable::attributs
   Pos2D pos() const { return _pos; }
@@ -93,14 +106,9 @@ class Sink
 {
 public:
   using Pos2D = glm::vec2;
-  using Vertex = struct s_Vertex {
-    GLfloat x, y, z; // pos
-    GLfloat r, g, b; // color
-  };
-  using VertexV = std::vector<Vertex>;
   using Color = struct {
     GLfloat r,g,b;
-};
+  };
 public:
   // ********************************************************** Sink::creation
   Sink( const Pos2D& pos, const Pos2D& topleft, const Pos2D& botright ) :
@@ -115,27 +123,28 @@ public:
     return dump.str();
   }
   // ****************************************************** Sink::add_vertices
-  void add_vertices( VertexV& vec, float depth_z, Color col = {1.f,1.f,1.f} )
+  void add_frame_cross( LineVertexV& vec, float depth_z,
+                        Color col = {1.f,1.f,1.f} )
   {
     // frame around
-    vec.push_back( Vertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b });
-    vec.push_back( Vertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b });
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
 
-    vec.push_back( Vertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
-    vec.push_back( Vertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
 
-    vec.push_back( Vertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
-    vec.push_back( Vertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
 
-    vec.push_back( Vertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
-    vec.push_back( Vertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
 
     // inside cross
-    vec.push_back( Vertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
-    vec.push_back( Vertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
 
-    vec.push_back( Vertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
-    vec.push_back( Vertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
   }
   // ***************************************************** Moveable::attributs
 private:
@@ -157,10 +166,6 @@ class GLMoveableManager
 //   using TexVertexV = std::vector<TexVertex>;
 private:
   using Pos2D = Moveable::Pos2D;
-  using TexVertex = Moveable::TexVertex;
-  using TexVertexV = Moveable::TexVertexV;
-  using Vertex = Sink::Vertex;
-  using VertexV = Sink::VertexV;
 private:
   // max number of square to draw
   static const unsigned int _max_size = 100;
@@ -239,7 +244,7 @@ public:
     // glBufferData( GL_ARRAY_BUFFER, sizeof(square_vtx), square_vtx,
     //               GL_STATIC_DRAW );
     glBufferData( GL_ARRAY_BUFFER,
-                  GLMoveableManager::_max_size * sizeof(Vertex),
+                  GLMoveableManager::_max_size * sizeof(LineVertex),
                   NULL, //not _line_vtx.data() as it might be empty
                   GL_DYNAMIC_DRAW );
 
@@ -301,7 +306,7 @@ public:
     // TODO: could only update positions, as Tex Coord should be ok
     _moveable_vtx.clear();
     for( auto& mov: _moveables) {
-      mov.add_vertices( _moveable_vtx, GLMoveableManager::_posz );
+      mov.add_texture( _moveable_vtx, GLMoveableManager::_posz );
     }
     
     // specify the buffer we are about to update
@@ -323,20 +328,24 @@ public:
     // update list of Sinks
     _line_vtx.clear();
     for( auto& sink: _sinks) {
-      sink.add_vertices( _line_vtx, GLMoveableManager::_posz, {1.f,1.f,0.f} );
+      sink.add_frame_cross( _line_vtx, GLMoveableManager::_posz, {1.f,1.f,0.f} );
+    }
+    // if needed, a frame around current_moveable
+    if (_current_moveable != nullptr ) {
+      _current_moveable->add_frame( _line_vtx, GLMoveableManager::_posz-0.1f );
     }
     // specify the buffer we are about to update
     glBindBuffer( GL_ARRAY_BUFFER, _line_vbo );
     // ask for reallocation, glBufferData with NULL and same parameters
     // see https://www.khronos.org/opengl/wiki/Buffer_Object_Streaming)
     glBufferData( GL_ARRAY_BUFFER,
-                  GLMoveableManager::_max_size * sizeof(Vertex),
+                  GLMoveableManager::_max_size * sizeof(LineVertex),
                   NULL, 
                   GL_DYNAMIC_DRAW );
     // will call glBufferSubData on the entire buffer
     glBufferSubData( GL_ARRAY_BUFFER,
                      0,                                   //start of sub
-                     _line_vtx.size() * sizeof(Vertex), //length sub
+                     _line_vtx.size() * sizeof(LineVertex), //length sub
                      _line_vtx.data() );                // data
   }
   // ********************************************* GLMoveableManager::Moveable
@@ -398,7 +407,9 @@ private:
   // ******************************************** GLMoveableManager::attributs
   ListMoveable _moveables;
   ListSink    _sinks;
+public:
   Moveable* _current_moveable;
+private:
   Pos2D _offset;  // offset between mouse Pos and Moveable Pos
   Sink*    _current_sink;
   
@@ -414,7 +425,7 @@ private:
   GLuint _proj_view_loc_line;
   GLuint _model_loc_line;
   GLuint _line_vao, _line_vbo;
-  VertexV _line_vtx;
+  LineVertexV _line_vtx;
 
 }; // class GLMoveableManager
 

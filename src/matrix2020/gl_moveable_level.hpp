@@ -69,6 +69,9 @@ public:
     for (auto itm = _cards.begin(); itm != _cards.end(); ++itm) {
       _gl_movmgr->add_moveable( &(*itm) );
     }
+    // set second as current
+    _gl_movmgr->_current_moveable = &(_cards[1]);
+    
     // then Sinks
     _sinks.push_back( Sink(  {-0.5,3.0}, {-1.0,1.33}, {1.0,-1.33}  ));
     _sinks.push_back( Sink(  {2.0,3.0}, {-1.0,1.33}, {1.0,-1.33}  ));
