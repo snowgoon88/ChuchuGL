@@ -173,7 +173,7 @@ private:
   constexpr static const float _posz = 0.5f;
 public:
   using MoveablePtr = Moveable*;
-  using ListMoveable = std::list<Moveable>;
+  using ListMoveable = std::list<MoveablePtr>;
   using SinkPtr = Sink *;
   using ListSink = std::list<Sink>;
   // ********************************************* GLMoveableManager::creation
@@ -306,7 +306,7 @@ public:
     // TODO: could only update positions, as Tex Coord should be ok
     _moveable_vtx.clear();
     for( auto& mov: _moveables) {
-      mov.add_texture( _moveable_vtx, GLMoveableManager::_posz );
+      mov->add_texture( _moveable_vtx, GLMoveableManager::_posz );
     }
     
     // specify the buffer we are about to update
@@ -351,7 +351,7 @@ public:
   // ********************************************* GLMoveableManager::Moveable
   void add_moveable( MoveablePtr moveable )
   {
-    _moveables.push_back( *moveable );
+    _moveables.push_back( moveable );
   }
   // ************************************************* GLMoveableManager::Sink
   void add_sink( SinkPtr sink )
@@ -390,18 +390,40 @@ public:
     glDrawArrays(GL_TRIANGLES, 0, _moveable_vtx.size()); // mode, first, count
   }
   // *********************************************** GLMoveableManager::on_xxx
-  void on_click( const Pos2D& pos )
+  void on_mouse_press( const Pos2D& pos )
   {
     // Look in ListMoveable for a suitable Moveable to move
     // by default, _current_sink will be the Sink of the Moveable
+    for( auto& mov: _moveables) {
+      if (mov->is_inside( pos )) {
+        std::cout << "++ inside " << mov->str_dump() << std::endl;
+        _current_moveable = mov;
+        _offset = pos - _current_moveable->pos();
+        std::cout << "  offset=(" << _offset[0] << ", " << _offset[1] << ")" << std::endl;
+      }
+    }
   }
-  void on_release( const Pos2D& pos )
+  void on_mouse_release( const Pos2D& pos )
   {
     // If has _current_moveable, set in potential Sink
+    _current_moveable = nullptr;
+    // TODO: could only update texture pos, and pop out last of _line_vtx and
+    // TODO: add a new frame..
+    update_vbo();
   }
   void on_move( const Pos2D& pos )
   {
-    // if has _current_moveable, move and check for new _current_sink
+    if (_current_moveable) {
+      _current_moveable->pos( pos-_offset );
+      // TODO: could only update texture pos, and pop out last of _line_vtx and
+      // TODO: add a new frame..
+      update_vbo();
+      // check for new _current_sink
+    }
+  }
+  bool is_grabbing()
+  {
+    return (_current_moveable != nullptr );
   }
 private:
   // ******************************************** GLMoveableManager::attributs
