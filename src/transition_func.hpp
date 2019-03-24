@@ -69,6 +69,9 @@ private:
     return res;
   }
   // ******************************************* TransitionFunction::attributs
+public:
+  double delta_t() const { return _delta_t; }
+private:
   double _a, _b, _delta_t;
   int _order;
   std::vector<int> _coef;

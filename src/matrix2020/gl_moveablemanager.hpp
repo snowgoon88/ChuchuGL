@@ -12,10 +12,12 @@
 
 #include <list>
 #include <sstream>
+#include <memory>
 
 #include <gl_shader.hpp>
 #include <SOIL/SOIL.h>               // Load images
 #include <matrix2020/gl_def.hpp>
+#include <transition_func.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -25,6 +27,65 @@
 
 namespace matrix2020 {
 
+
+// ***************************************************************************
+// ********************************************************************** Sink
+// ***************************************************************************
+class Sink
+{
+public:
+  using Pos2D = glm::vec2;
+  using Color = struct {
+    GLfloat r,g,b;
+  };
+public:
+  // ********************************************************** Sink::creation
+  Sink( const std::string name,
+       const Pos2D& pos, const Pos2D& topleft, const Pos2D& botright ) :
+    _name(name),
+    _pos( pos ) , _topleft( topleft ), _botright( botright )
+  {
+  }
+  std::string str_dump () const
+  {
+    std::stringstream dump;
+    dump << _name << " at=( " << _pos[0] << ", " << _pos[1] << ")";
+
+    return dump.str();
+  }
+  // ****************************************************** Sink::add_vertices
+  void add_frame_cross( LineVertexV& vec, float depth_z,
+                        Color col = {1.f,1.f,1.f} )
+  {
+    // frame around
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b });
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+
+    // inside cross
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+
+    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
+    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
+  }
+  // ********************************************************* Sink::attributs
+public:
+  Pos2D pos() const { return _pos; }
+private:
+  std::string _name;
+  Pos2D _pos;
+  Pos2D _topleft, _botright;
+}; // class Sink
+
 // ****************************************************************** Moveable
 class Moveable
 {
@@ -33,19 +94,23 @@ public:
   using Color = struct {
     GLfloat r,g,b;
   };
+  using TFPtr = std::unique_ptr<TransitionFunction>;
 public:
   // ****************************************************** Moveable::creation
-  Moveable( const Pos2D& topleft, const Pos2D& botright,
+  Moveable( const std::string name,
+            const Pos2D& topleft, const Pos2D& botright,
             const Pos2D& tex_topleft, const Pos2D& tex_botright) :
+    _name(name),
     _pos( {0.0, 0.0} ),
     _topleft( topleft ), _botright( botright ),
-    _tex_topleft( tex_topleft ), _tex_botright( tex_botright )
+    _tex_topleft( tex_topleft ), _tex_botright( tex_botright ),
+    _target(nullptr), _transition(nullptr)
   {
   }
   std::string str_dump () const
   {
     std::stringstream dump;
-    dump << "at=( " << _pos[0] << ", " << _pos[1] << ")";
+    dump << _name << " at=( " << _pos[0] << ", " << _pos[1] << ")";
 
     return dump.str();
   }
@@ -58,6 +123,40 @@ public:
       return true;
     }
     return false;
+  }
+  // ******************************************************** Moveable::moving
+  void self_move()
+  {
+    // if not moving, return
+    if (_target == nullptr) return;
+
+    double time_delta = glfwGetTime() - _time_start;
+    // End of transition reached ?
+    if (time_delta > _transition->delta_t()) {
+      stop_self_move();
+    }
+    else {
+      // move according to current value of Transition
+      auto deltapos = _target->pos() - _start_pos;
+      deltapos = deltapos * (float) _transition->val( time_delta );
+      deltapos += _start_pos;
+      pos( deltapos );
+    }
+  }
+  void set_transition( Sink* target, double time_length )
+  {
+    std::cout << "__TRANSITION of " << _name << " " << target->str_dump() << std::endl;
+    _target = target;
+    _start_pos = pos();
+    _time_start = glfwGetTime();
+    _transition.reset( new TransitionFunction( 0.f, 1.f, time_length,
+                                               1 /* order */ ) );
+  }
+  void stop_self_move()
+  {
+    std::cout << "__TRANSITION stop for " << _name << std::endl;
+    _target = nullptr;
+    _transition.reset( nullptr );
   }
   // ************************************************** Moveable::add_vertices
   void add_texture( TexVertexV& vec, float depth_z )
@@ -91,67 +190,21 @@ public:
   Pos2D pos() const { return _pos; }
   void pos( const Pos2D& pos ) { _pos = pos; }
 private:
+  std::string _name;
   Pos2D _pos;
   Pos2D _topleft, _botright;
   
   Pos2D _tex_topleft, _tex_botright;
-  
+
+  // Target
+  Sink* _target;                    // nullptr or Sink
+  TFPtr _transition;                // nullptr or TF used to move it
+  double _time_start;               // glfwTime when Transition started
+  Pos2D _start_pos;
 }; // class Moveable
 // ***************************************************************************
 
-// ***************************************************************************
-// ********************************************************************** Sink
-// ***************************************************************************
-class Sink
-{
-public:
-  using Pos2D = glm::vec2;
-  using Color = struct {
-    GLfloat r,g,b;
-  };
-public:
-  // ********************************************************** Sink::creation
-  Sink( const Pos2D& pos, const Pos2D& topleft, const Pos2D& botright ) :
-    _pos( pos ) , _topleft( topleft ), _botright( botright )
-  {
-  }
-  std::string str_dump () const
-  {
-    std::stringstream dump;
-    dump << "at=( " << _pos[0] << ", " << _pos[1] << ")";
-
-    return dump.str();
-  }
-  // ****************************************************** Sink::add_vertices
-  void add_frame_cross( LineVertexV& vec, float depth_z,
-                        Color col = {1.f,1.f,1.f} )
-  {
-    // frame around
-    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b });
-    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
-
-    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
-    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
-
-    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
-    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
-
-    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
-    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
-
-    // inside cross
-    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
-    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
-
-    vec.push_back( LineVertex{ _pos[0] + _botright[0], _pos[1] + _botright[1], depth_z, col.r, col.g, col.b  });
-    vec.push_back( LineVertex{ _pos[0] + _topleft[0], _pos[1] + _topleft[1], depth_z, col.r, col.g, col.b  });
-  }
-  // ***************************************************** Moveable::attributs
-private:
-  Pos2D _pos;
-  Pos2D _topleft, _botright;
-}; // class Sink
-
+  
 // ***************************************************************************
 // ********************************************************* GLMoveableManager
 // ***************************************************************************
@@ -306,6 +359,7 @@ public:
     // TODO: could only update positions, as Tex Coord should be ok
     _moveable_vtx.clear();
     for( auto& mov: _moveables) {
+      mov->self_move();
       mov->add_texture( _moveable_vtx, GLMoveableManager::_posz );
     }
     
@@ -399,17 +453,24 @@ public:
         std::cout << "++ inside " << mov->str_dump() << std::endl;
         _current_moveable = mov;
         _offset = pos - _current_moveable->pos();
+        // stop self_move
+        _current_moveable->stop_self_move();
         std::cout << "  offset=(" << _offset[0] << ", " << _offset[1] << ")" << std::endl;
+        return;
       }
     }
   }
   void on_mouse_release( const Pos2D& pos )
   {
-    // If has _current_moveable, set in potential Sink
-    _current_moveable = nullptr;
-    // TODO: could only update texture pos, and pop out last of _line_vtx and
-    // TODO: add a new frame..
-    update_vbo();
+    if (_current_moveable) {
+      // Set a target for self move
+      _current_moveable->set_transition( _current_sink, 2.0 /*delta_t*/ );
+      // If has _current_moveable, set in potential Sink
+      _current_moveable = nullptr;
+      // TODO: could only update texture pos, and pop out last of _line_vtx and
+      // TODO: add a new frame..
+      //update_vbo();
+    }
   }
   void on_move( const Pos2D& pos )
   {
@@ -417,7 +478,7 @@ public:
       _current_moveable->pos( pos-_offset );
       // TODO: could only update texture pos, and pop out last of _line_vtx and
       // TODO: add a new frame..
-      update_vbo();
+      //update_vbo();
       // check for new _current_sink
     }
   }
@@ -431,9 +492,9 @@ private:
   ListSink    _sinks;
 public:
   Moveable* _current_moveable;
+  Sink*    _current_sink;
 private:
   Pos2D _offset;  // offset between mouse Pos and Moveable Pos
-  Sink*    _current_sink;
   
   // For graphics
   GLShader* _texture_shader;

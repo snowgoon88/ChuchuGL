@@ -56,13 +56,13 @@ public:
     // Init Moveables
     _gl_movmgr = new GLMoveableManager();
     // first cards
-    _cards.push_back( Moveable( {-1.0,1.33}, {1.0,-1.33},
+    _cards.push_back( Moveable( "m00", {-1.0,1.33}, {1.0,-1.33},
                                 {0.0, 209.f/210.f}, {156.f/464.f,0.0} ));
     _cards[0].pos( {0.5, 0.5} );
-    _cards.push_back( Moveable( {-1.0,1.33}, {1.0,-1.33},
+    _cards.push_back( Moveable( "m01", {-1.0,1.33}, {1.0,-1.33},
                                 {156.f/464.f, 209.f/210.f}, {308.f/464.f,0.0} ));
     _cards[1].pos( {2.5, 0.5} );
-    _cards.push_back( Moveable( {-1.0,1.33}, {1.0,-1.33},
+    _cards.push_back( Moveable( "m02", {-1.0,1.33}, {1.0,-1.33},
                                 {310.f/464.f, 209.f/210.f}, {462.f/464.f,0.0} ));
     _cards[2].pos( {2.5, 2.5} );
     
@@ -74,13 +74,14 @@ public:
     //_gl_movmgr->_current_moveable = &(_cards[1]);
     
     // then Sinks
-    _sinks.push_back( Sink(  {-0.5,3.0}, {-1.0,1.33}, {1.0,-1.33}  ));
-    _sinks.push_back( Sink(  {2.0,3.0}, {-1.0,1.33}, {1.0,-1.33}  ));
+    _sinks.push_back( Sink( "s00", {-0.5,3.0}, {-1.0,1.33}, {1.0,-1.33}  ));
+    _sinks.push_back( Sink( "s01", {2.0,3.0}, {-1.0,1.33}, {1.0,-1.33}  ));
     for (auto its = _sinks.begin(); its != _sinks.end(); ++its) {
       _gl_movmgr->add_sink( &(*its) );
     }
+    _gl_movmgr->_current_sink = &(_sinks[0]);
     
-    _gl_movmgr->update_vbo();
+    //_gl_movmgr->update_vbo();
     std::cout << "__GL_MoveableManager" << std::endl;
     std::cout << _gl_movmgr->str_dump() << std::endl;
   }
@@ -110,7 +111,7 @@ public:
 
       
       // Update model
-       
+      _gl_movmgr->update_vbo();
       // Render
       //std::cout << "__RENDER BASIC LEVEL" << std::endl;
       _gl_movmgr->render( _projview );
@@ -205,7 +206,7 @@ public:
     pt_mouse = glm::inverse( _proj ) * pt_mouse;
     // World coordinate, unviewed
     pt_mouse = glm::inverse( _view ) * pt_mouse;
-    std::cout << "  computed at " << glm::to_string(pt_mouse) << std::endl;
+    //std::cout << "  computed at " << glm::to_string(pt_mouse) << std::endl;
     
      // As we use orthogonal projection, need only the World coordinate of 0,0,1
     auto vec_w = glm::vec4(0.f,0.f, 1.f, 0.f);
@@ -230,7 +231,7 @@ public:
     // only if MoveableManger is grabbing
     if ( _gl_movmgr->is_grabbing() ) {
       auto pt = glm::vec4{ (float)posx, (float)posy, 0.f, 1.f };
-      std::cout << "  moving at " <<  glm::to_string(pt) << std::endl;
+      //std::cout << "  moving at " <<  glm::to_string(pt) << std::endl;
       if( get_mouse_horizontal( pt )){
         _gl_movmgr->on_move( {pt[0], pt[1]} );
       }
