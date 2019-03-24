@@ -444,7 +444,7 @@ public:
     glDrawArrays(GL_TRIANGLES, 0, _moveable_vtx.size()); // mode, first, count
   }
   // *********************************************** GLMoveableManager::on_xxx
-  void on_mouse_press( const Pos2D& pos )
+  void grab( const Pos2D& pos )
   {
     // Look in ListMoveable for a suitable Moveable to move
     // by default, _current_sink will be the Sink of the Moveable
@@ -460,7 +460,7 @@ public:
       }
     }
   }
-  void on_mouse_release( const Pos2D& pos )
+  void release_to_sink( const Pos2D& pos )
   {
     if (_current_moveable) {
       // Set a target for self move
@@ -472,7 +472,12 @@ public:
       //update_vbo();
     }
   }
-  void on_move( const Pos2D& pos )
+  void release_in_place( const Pos2D& pos )
+  {
+    // release current (in place)
+    _current_moveable = nullptr;
+  }
+  void move( const Pos2D& pos )
   {
     if (_current_moveable) {
       _current_moveable->pos( pos-_offset );

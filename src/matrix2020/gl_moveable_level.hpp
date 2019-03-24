@@ -165,13 +165,13 @@ public:
     std::cout <<"Mouse Button at (" << x <<  ", " << y << ")\n";
 
     if( action == GLFW_PRESS ) {
-      if( button == GLFW_MOUSE_BUTTON_LEFT ) {
+      if (button == GLFW_MOUSE_BUTTON_LEFT or button == GLFW_MOUSE_BUTTON_RIGHT) {
         // Infer the model that has been clicked.
         auto pt = glm::vec4{ (float)x, (float)y, 0.f, 1.f };
         if( get_mouse_horizontal( pt )){
-          std::cout << "  cliked press on " << glm::to_string(pt) << std::endl;
+          std::cout << "  cliked L press on " << glm::to_string(pt) << std::endl;
 
-          _gl_movmgr->on_mouse_press( {pt[0], pt[1]} );
+          _gl_movmgr->grab( {pt[0], pt[1]} );
         }
       }
     }
@@ -180,8 +180,16 @@ public:
         // Infer the model that has been clicked.
         auto pt = glm::vec4{ (float)x, (float)y, 0.f, 1.f };
         if( get_mouse_horizontal( pt )){
-          std::cout << "  cliked release on " << glm::to_string(pt) << std::endl;
-        _gl_movmgr->on_mouse_release( {pt[0], pt[1]} );
+          std::cout << "  L release on " << glm::to_string(pt) << std::endl;
+        _gl_movmgr->release_to_sink( {pt[0], pt[1]} );
+        }
+      }
+      else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        // Infer the model that has been clicked.
+        auto pt = glm::vec4{ (float)x, (float)y, 0.f, 1.f };
+        if( get_mouse_horizontal( pt )){
+          std::cout << "  R release on " << glm::to_string(pt) << std::endl;
+        _gl_movmgr->release_in_place( {pt[0], pt[1]} );
         }
       }
     }
@@ -233,7 +241,7 @@ public:
       auto pt = glm::vec4{ (float)posx, (float)posy, 0.f, 1.f };
       //std::cout << "  moving at " <<  glm::to_string(pt) << std::endl;
       if( get_mouse_horizontal( pt )){
-        _gl_movmgr->on_move( {pt[0], pt[1]} );
+        _gl_movmgr->move( {pt[0], pt[1]} );
       }
     }
   }
