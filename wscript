@@ -109,7 +109,12 @@ def configure(conf):
     conf.check_cfg(package='freetype2',
                    uselib_store='FREETYPE2',
                    args=['--cflags', '--libs']
-    ) 
+    )
+    ## Required Lua5.3
+    conf.check_cfg(package='lua53',
+                   uselib_store='LUA53',
+                   args=['--cflags', '--libs']
+    )
     ## Require/Check libboost
     conf.env.LIB_BOOST = ['boost_program_options']
     conf.env.LIBPATH_BOOST = ['/usr/lib/x86_64-linux-gnu','/usr/lib/i386-linux-gnu']

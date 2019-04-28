@@ -11,17 +11,29 @@ def build(bld):
     # detect files that should be build
     for file in os.listdir( bld.path.abspath() ):
         if file.endswith(".cpp"):
-            # print(" _should build "+file[:-4])
-            bld.program(
-                source=[file],
-                target = file[:-4],
-                includes=['.', '../include', '../src'],
-                libs = ['m'],
-                use = ['chuchu_objs','SOIL','PA',
-                       'VORBIS','FTGL','OPENGL','GLFW3',
-                       'FREETYPE2','BOOST'
-                ]
-            )
+            if not file.startswith( "test-2" ):
+                print(" _should build "+file[:-4])
+                bld.program(
+                    source=[file],
+                    target = file[:-4],
+                    includes=['.', '../include', '../src'],
+                    libs = ['m'],
+                    use = ['chuchu_objs','SOIL','PA',
+                           'VORBIS','FTGL','OPENGL','GLFW3',
+                           'FREETYPE2','BOOST'
+                    ]
+                )
+            else:
+                print(" _should build with LUA "+file[:-4])
+                bld.program(
+                    source=[file],
+                    target = file[:-4],
+                    includes=['.', '../include', '../src'],
+                    libs = ['m'],
+                    use = [ 'LUA53',
+                    ]
+                )
+
         
     
     
