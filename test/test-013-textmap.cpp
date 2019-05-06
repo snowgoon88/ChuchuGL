@@ -101,11 +101,12 @@ void free_shaders()
 {
   glDeleteVertexArrays( 1, &_line_vao);
   glDeleteBuffers( 1, &_line_vbo);
+
   if (_base3D_shader) delete _base3D_shader;
   if (_axes_shader) {
     glDeleteVertexArrays( 1, &_axe_vao);
     glDeleteBuffers( 1, &_axe_vbo);
-    delete _base3D_shader;
+    delete _axes_shader;
   }
 }
 
