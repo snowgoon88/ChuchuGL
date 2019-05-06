@@ -1,7 +1,7 @@
 /* -*- coding: utf-8 -*- */
 
 /** 
- * Teste GLTextShaders
+ * Teste GLTextmapShaders
  */
 // OpenGL
 #define GL_GLEXT_PROTOTYPES
@@ -9,7 +9,8 @@
 #include <GL/glext.h>
 #include <GLFW/glfw3.h>
 
-#include <gl_text_shaders.hpp>
+#include <gl_textmap_shaders.hpp>
+
 #include <gl_shader.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,7 +20,7 @@
 
 // ******************************************************************** Global
 GLFWwindow* _window;
-int _screen_width=800, _screen_height=600;
+int _win_width=800, _win_height=600;
 
 /**
  * callback pour gérer les messages d'erreur de GLFW
@@ -41,13 +42,24 @@ float line_vertices[] = {
   -1.f, -1.f, 0.0f,     0.0f, 1.0f, 0.0f,
    1.f,  1.f, 0.0f,     0.0f, 1.0f, 0.0f
 };
-GLShader* _base3D_shader = NULL;
+float axes_vertices[] = {
+  // positions            // color
+  0.0f, 0.0f, 0.0f,     1.0f, 0.0f, 0.0f,
+};
+GLShader* _base3D_shader = nullptr;
+GLShader* _axes_shader = nullptr;
 GLuint _proj_view_loc_3D;
 GLuint _model_loc_3D;
 GLuint _line_vbo, _line_vao;
+GLuint _axe_vbo, _axe_vao;
 
 void set_shader()
 {
+  // Axes as a two lines crossing at 0,0
+  _axes_shader = new GLShader( "src/shaders/base.v330.glsl",
+                               "src/shaders/base.f330.glsl",
+                               "src/shaders/axes.g330.glsl" );
+  
   _base3D_shader = new GLShader( "src/shaders/base3D.vert330.glsl",
                               "src/shaders/base3D.frag330.glsl" );
   _proj_view_loc_3D = _base3D_shader->getUniformLocation( "proj_view" );
@@ -69,24 +81,43 @@ void set_shader()
   // color attribute of shader
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
+
+  // AXES vertices
+  glGenVertexArrays(1, &_axe_vao);
+  glGenBuffers(1, &_axe_vbo);
+  // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+  glBindVertexArray(_axe_vao);
+  
+  glBindBuffer(GL_ARRAY_BUFFER, _axe_vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(axes_vertices), axes_vertices,
+               GL_STATIC_DRAW);
+
+  // reset bindings
+  glBindBuffer( GL_ARRAY_BUFFER, 0 );
+  glBindVertexArray( 0 );
+  
 }
 void free_shaders()
 {
   glDeleteVertexArrays( 1, &_line_vao);
   glDeleteBuffers( 1, &_line_vbo);
-  if (_base3D_shader != NULL) delete _base3D_shader;
+  if (_base3D_shader) delete _base3D_shader;
+  if (_axes_shader) {
+    glDeleteVertexArrays( 1, &_axe_vao);
+    glDeleteBuffers( 1, &_axe_vbo);
+    delete _base3D_shader;
+  }
 }
 
 // ********************************************************************** main
 int main( int argc, char *argv[] )
 {
-  //TODO Ouvrir une fenêtre basique avec GLFWT
   if (!glfwInit())
     exit(EXIT_FAILURE);
   glfwSetErrorCallback(error_callback);
 
-  _window = glfwCreateWindow(_screen_width, _screen_height,
-			     "Essai GLTextShaders", NULL, NULL);
+  _window = glfwCreateWindow(_win_width, _win_height,
+			     "Essai GLTextmapShaders", nullptr, nullptr);
   if (!_window) {
     glfwTerminate();
     exit(EXIT_FAILURE);
@@ -96,74 +127,57 @@ int main( int argc, char *argv[] )
   
   /* Make the window's context current */
   glfwMakeContextCurrent(_window);
-
-  glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
-  float _sx = 2.0 / _screen_width;
-  float _sy = 2.0 / _screen_height;
+  /* Enable blending, necessary for our alpha texture */
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   
-  GLTextShaders gltext;
-  gltext.set_size( 16 );
+  GLTextmapShaders gltext;
+  // gltext.set_size( 16 );
+  // gltext.build_map();
+  std::cout << gltext.str_dump() << std::endl;
 
   set_shader();
-  
-  std::cout << "Blanc en " <<  -1 + 8 * _sx << ", " << 1 - 50 * _sy << std::endl;
+  // create transformations
+  glm::mat4 _proj(1.0f);
+  _proj = glm::ortho( -1.f, 1.f, // left;right
+                      -1.f, 1.f, // bottom,top
+                      -1.f, 100.f // near far
+                      );
   
   /* Loop until the user closes the window */
   while (!glfwWindowShouldClose(_window))
     {
-      glfwGetFramebufferSize(_window, &_screen_width, &_screen_height);
-      float sx = 2.0 / _screen_width;
-      float sy = 2.0 / _screen_height;
+      glfwGetFramebufferSize(_window, &_win_width, &_win_height);
+      // which part of the window is used
+      glViewport( 0, 0, _win_width, _win_height );
+      //glViewport(- _win_width / 2, - _win_height / 2,
+      //           _win_width / 2, _win_height / 2);
+      //float sx = 2.0 / _win_width;
+      //float sy = 2.0 / _win_height;
       
       /* Render here */
       glClearColor( 0,0,0,1 );
-      glClear(GL_COLOR_BUFFER_BIT);
+      glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-      /* line */
-      // create transformations
-      glm::mat4 proj_view(1.0f);
-      _base3D_shader->use();
-      glUniformMatrix4fv( _proj_view_loc_3D, 1, GL_FALSE,
-                          glm::value_ptr( proj_view ));
-      glUniformMatrix4fv( _model_loc_3D, 1, GL_FALSE,
-                          glm::value_ptr( proj_view) );
-      glBindVertexArray( _line_vao );
-      glDrawArrays( GL_LINES, 0, 2 );
+      // /* line */
       
-      gltext.pre_render();
-      gltext.set_color( {1,1,1,1} );
-      gltext.set_size( 16 );
-      gltext.render_text("Cette phrase est en blanc",
-        		 -1 + 8 * sx, 1 - 50 * sy,
-        		 sx, sy);
-      gltext.set_size( 40 );
-      gltext.set_color( {0,0,1,1} );
-      gltext.render_text("Celle-la est bleu, enfin normalement...",
-        		 -1 + 16 * sx, 1 - 100 * sy,
-        		 sx, sy);
-      gltext.set_size( 16 );
-      gltext.set_color( {1,0,0,1} );
-      gltext.render_text("Et hop du rouge énervé",
-        		 -1 + 16 * sx, 1 - 150 * sy,
-        		 sx, sy);
-      gltext.render_text(u"Et hop du rouge énervé",
-        		 -1 + 16 * sx, 1 - 180 * sy,
-        		 sx, sy);
-      
-      gltext.set_color( {1,1,1,1} );
-      gltext.render_text(u"Centré",
-        		 0, 0,
-        		 sx, sy);
-      gltext.post_render();
+      // _base3D_shader->use();
+      // glUniformMatrix4fv( _proj_view_loc_3D, 1, GL_FALSE,
+      //                     glm::value_ptr( _proj ));
+      // glUniformMatrix4fv( _model_loc_3D, 1, GL_FALSE,
+      //                     glm::value_ptr( _proj ) );
+      // glBindVertexArray( _line_vao );
+      // glDrawArrays( GL_LINES, 0, 2 );
 
-      _base3D_shader->use();
-      glUniformMatrix4fv( _proj_view_loc_3D, 1, GL_FALSE,
-                          glm::value_ptr( proj_view ));
-      glUniformMatrix4fv( _model_loc_3D, 1, GL_FALSE,
-                          glm::value_ptr( proj_view) );
-      glBindVertexArray( _line_vao );
-      glDrawArrays( GL_LINES, 0, 2 );
+      // text
+      // gltext.pre_render();
+      // gltext.set_color( {1,0,1,1} );
+      gltext.render_textmap( _proj );
 
+      // and now axes
+      _axes_shader->use();
+      glBindVertexArray(_axe_vao);
+      glDrawArrays(GL_POINTS, 0, 1); // mode, first, count
       
       /* Swap front and back buffers */
       glfwSwapBuffers(_window);
@@ -173,5 +187,6 @@ int main( int argc, char *argv[] )
     }
   
   glfwTerminate();
+  free_shaders();
   return 0;
 }

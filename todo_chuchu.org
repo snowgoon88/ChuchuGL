@@ -1,5 +1,6 @@
 * Current => matrix2020 : "FOV mais..." ou gl_text info cursor
 TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
+* Current [[outline_glyph]]
 * TODO [5/7] GN2020
 ** TODO [2/6] Autre agent
 *** DONE avec orientation
@@ -27,9 +28,24 @@ TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
 ** DONE [2/2] GLFov as dynamical VBO
 *** DONE use a std::vector to store square_vts ?
 *** DONE implement dynamical update [[file:src/matrix2020/gl_fovhamming.hpp]]
-* [4/6] New Shaders
+* [4/7] New Shaders
 - test-020-window : cube en rotation
 - test-021-cells : geom pour tracer cell => NON, FAIL
+** TODO [0/1] new Text Shader <2019-05-05 dim.>
+- inspiré de https://learnopengl.com/Getting-started/Shaders
+*** Comparer shaders
+- vShader : mul by projection
+- fShader : use RED as alpha value
+*** Comparer Shader Load and use program
+- learn = same, but with a set of setBool, setFloat, etc... that need to request, each time, the location of the uniform
+- learn : does not load geometry
+++ (maybe) does not question which glUniformXX to use
+*** Render Text
+-- does not need coord attribut, as layout 0
+*** Texture Atlas
+https://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_02
+*** TODO Outline glyph in rendering texture atlas ?
+<<outline_glyph>>
 ** DONE init of glm::mat ??
 ** DONE [/] cube with MVP
 ** make slow rotation => model
@@ -277,4 +293,4 @@ The product of two rotation quaternions will be equivalent to the rotation a1 + 
 *** C-c C-l : edit link/insert link
 ** TODO
 *** C-c / t : sparse todo tree
-   
+    
