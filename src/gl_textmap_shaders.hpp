@@ -17,6 +17,15 @@
 #include <iostream>               // std::cerr
 #include <sstream>
 #include <map>
+#include <vector>
+
+
+
+#include <cstdlib>
+#include <cstring>
+#include <cwctype>
+#include <locale>
+#include <clocale>
 
 #include <gl_shader.hpp>
 
@@ -47,21 +56,30 @@
 class GLTextmapShaders
 {
   struct GLGlyph {
-    glm::ivec2 size;
-    glm::ivec2 bearing;
-    GLuint     advance;
+    // TODO: use float instead
+    // TODO: add tex offset
+    glm::vec2 size;    // width, height
+    glm::vec2 bearing; // left, top
+    glm::vec2 advance; // TODO: could use advance x.y
+    glm::vec2 offset;  // in texture coordinate
   };
   std::string str_glyph( const GLGlyph& gg) const
   {
     std::stringstream dump;
-    dump << "s=" << gg.size[0] << ", " << gg.size[1];
-    dump << " b=" << gg.bearing[0] << ", " << gg.bearing[1];
-    dump << " ad=" << gg.advance;
+    dump << "size=" << gg.size[0] << ", " << gg.size[1];
+    dump << " bear=" << gg.bearing[0] << ", " << gg.bearing[1];
+    dump << " adva=" << gg.advance[0] << ", " << gg.advance[1];
+    dump << " off =" << gg.offset[0] << ", " << gg.offset[1];
 
     return dump.str();
   }
+  using CharGlyph = std::pair<char16_t,GLGlyph>;
+  using GlyphMap  = std::map<char16_t,GLGlyph>;
     
-  struct point { GLfloat x; GLfloat y; GLfloat s; GLfloat t; };
+  struct TexPoint { GLfloat x; GLfloat y; GLfloat s; GLfloat t; };
+  using LinePt = struct s_LinePt {
+    GLfloat x; GLfloat y; GLfloat z; GLfloat r; GLfloat g; GLfloat b;
+  };
 public:
   // ************************************************* GLTextShaders::creation
   GLTextmapShaders() :
@@ -73,6 +91,12 @@ public:
     _proj_view_loc = _tex_shader->getUniformLocation( "proj_view" );
     _tex_loc = _tex_shader->getUniformLocation( "tex" );
     _text_color_loc = _tex_shader->getUniformLocation( "text_color" );
+
+    // Load Shaders : lines with x,y,z and r,g,b color
+    _line_shader = new GLShader( "src/shaders/base3D.vert330.glsl",
+                                 "src/shaders/base3D.frag330.glsl" );
+    _proj_view_loc_line = _line_shader->getUniformLocation( "proj_view" );
+    _model_loc_line = _line_shader->getUniformLocation( "model" );
     
     // Init FreeType
     if( FT_Init_FreeType( &_ft )) {
@@ -97,6 +121,11 @@ public:
     // A VBO/VAO
     glGenVertexArrays( 1, &_vao_tex ); 
     glGenBuffers(1, &_vbo_tex );
+
+    // LINE vertices
+    glGenVertexArrays(1, &_vao_line);
+    glGenBuffers(1, &_vbo_line);
+    
     // build map
     build_map();
     
@@ -116,39 +145,55 @@ public:
   void build_map()
   {
     FT_GlyphSlot g = _face->glyph;
-    
-    auto text = std::u16string( u"ABÉ" );
 
+    
+    auto text = std::u16string( u"ABÉgiéç" );
+    auto wtext = std::wstring( text.begin(), text.end() );
+
+    // trying to print it
+    constexpr char locale_name[] = "";
+    std::locale::global(std::locale(locale_name));
+    std::wcout.imbue(std::locale());
+    constexpr wchar_t msg_w[] = L"¡Hola, mundo! \U0001F600";
+    std::wcout << msg_w << std::endl;
+    std::wcout << wtext << std::endl;
+
+    // std::wstring_convert<std::codecvt_utf16<wchar_t>, wchar_t> char_conv;
+    // std::basic_string<wchar_t> text_conv = char_conv.from_bytes(text);
+    // std::wout << text_conv;
+    // std::cout << std::endl;
+    
     // Find size to hold map
-    unsigned int map_w = 0;
-    unsigned int map_h = 0;
+    _map_w = 0;
+    _map_h = 0;
 
     unsigned int row_w = 0;
     unsigned int row_h = 0;
-    for (auto itt = text.begin(); itt != text.end(); ++itt) {
-      std::cout << "size for " << *itt << std::endl;
+
+    for (std::u16string::iterator itt = text.begin(); itt != text.end(); ++itt) {
+      std::wcout << "size for " << *itt << std::endl;
       FT_UInt glyph_index = FT_Get_Char_Index( _face, *itt );
       /* Try to load and render the character */
       if (FT_Load_Glyph(_face, glyph_index, FT_LOAD_RENDER))
 	continue;
       // TODO: antialiasing ??
-      std::cout << "  index="<< glyph_index;
-      std::cout << " " << g->bitmap.width << "x" << g->bitmap.rows << std::endl;
+      std::wcout << "  index="<< glyph_index;
+      std::wcout << " " << g->bitmap.width << "x" << g->bitmap.rows << std::endl;
       
       if( row_w + g->bitmap.width + 1 >= MAXWIDTH ) {
         // create a new row in texture
-        map_w = std::max( map_w, row_w );
-        map_h += row_h;
+        _map_w = std::max( _map_w, row_w );
+        _map_h += row_h;
         row_w = 0;
         row_h = 0;
       }
       row_w += g->bitmap.width+1;
       row_h = std::max( row_h, g->bitmap.rows );
     }
-    map_w = std::max( map_w, row_w );
-    map_h += row_h;
+    _map_w = std::max( _map_w, row_w );
+    _map_h += row_h;
 
-    std::cout << "Map size = " << map_w << " x " << map_h << std::endl;
+    std::wcout << "Map size = " << _map_w << " x " << _map_h << std::endl;
 
     // Generate texture
     glActiveTexture(GL_TEXTURE0);
@@ -156,7 +201,7 @@ public:
     glBindTexture( GL_TEXTURE_2D, _textmap );
     // Create mutable (texture size and format) storage
     glTexImage2D( GL_TEXTURE_2D, 0 /*level*/, GL_RED /*format*/,
-                  map_w, map_h, 0, /*width x height, border */
+                  _map_w, _map_h, 0, /*width x height, border */
                   GL_RED, GL_UNSIGNED_BYTE, NULL /* format, type, pixels */ );
     // We require 1 byte alignment when uploading texture data
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -175,7 +220,7 @@ public:
     row_h = 0;
     
     for (auto itt = text.begin(); itt != text.end(); ++itt) {
-      std::cout << "Pasting  " << *itt << std::endl;
+      std::wcout << "Pasting  " << *itt << std::endl;
       FT_UInt glyph_index = FT_Get_Char_Index( _face, *itt );
       /* Try to load and render the character */
       if (FT_Load_Glyph(_face, glyph_index, FT_LOAD_RENDER))
@@ -193,10 +238,20 @@ public:
                        GL_RED, GL_UNSIGNED_BYTE, /*format, type*/
                        g->bitmap.buffer /* pixels */);
 
+      // new Glyph
+      GLGlyph gl = {
+        glm::vec2( g->bitmap.width, g->bitmap.rows),
+        glm::vec2( g->bitmap_left, g->bitmap_top),
+        // note that advance is number of 1/64 pixels
+        glm::vec2( g->advance.x >> 6, g->advance.y >>6 ),
+        glm::vec2( gx / (float) _map_w, gy / (float) _map_h )
+      };
+      _glyphs.insert( CharGlyph(*itt, gl ));
+      
       row_h = std::max( row_h, g->bitmap.rows);
       gx += g->bitmap.width + 1;
     }
-    std::cout << "__TEX generated" << std::endl;
+    std::wcout << "__TEX generated" << std::endl;
 
     //for( const char16_t* p = text; *p; p++  ) {
     //   // Load Glyph
@@ -228,7 +283,7 @@ public:
   std::string str_dump () const
   {
     std::stringstream dump;
-    dump << "TextMap" << std::endl;
+    dump << "TextMap " << _map_w << " x " << _map_h << std::endl;
     for( auto& gg: _glyphs) {
       dump << " " << gg.first << " : " << str_glyph( gg.second ) << std::endl;
     }
@@ -238,6 +293,8 @@ public:
   // ******************************************* GLTextmapShaders::render_dump
   void render_textmap( const glm::mat4& proj )
   {
+    // std::cout << "__RENDER" << std::endl;
+    // std::cout << str_dump() << std::endl;
     //   //pre_render();
     _tex_shader->use();
     // pass transformation matrices to the shader
@@ -278,6 +335,70 @@ public:
 
     glDrawArrays( GL_TRIANGLES, 0, 6 );
 
+    // Now, set up lines to highlight glyphs
+    std::vector<LinePt> lines;
+    // border in red
+    push_rect( lines, -0.2f, 0.5f, 0.0f, 0.5f, 1.0f, 0.0f, 0.0f );
+
+    // glyphs : border in green, bearing in red
+    // upper left of texture is (0,0), because inversed coordinate frame (??)
+    for( auto& cg: _glyphs ) {
+      auto gly = cg.second;
+      // border
+      auto xmin = -0.2f + (gly.offset[0]) * 0.7f;
+      auto xmax = xmin + gly.size[0] / _map_w * 0.7f;
+      auto ymax = 0.5f - (gly.offset[1]) * 0.5f;
+      auto ymin = ymax - gly.size[1] / _map_h * 0.5f;
+      push_rect( lines, xmin, xmax, ymin, ymax,
+                 0.0f, 1.0f, 0.0f );
+      // bearing
+      lines.push_back( { xmin,
+            ymax - gly.bearing[1] / _map_h * 0.5f,
+            0.0f,
+            0.f, 0.f, 1.0f } );
+      lines.push_back( { xmax,
+            ymax - gly.bearing[1] / _map_h * 0.5f,
+            0.0f,
+            0.f, 0.f, 1.0f } );
+      lines.push_back( { xmin + gly.bearing[0] / _map_w * 0.7f,
+            ymin,
+            0.0f,
+            0.f, 0.f, 1.0f } );
+      lines.push_back( { xmin + gly.bearing[0] / _map_w * 0.7f,
+            ymax,
+            0.0f,
+            0.f, 0.f, 1.0f } );       
+    }
+
+    _line_shader->use();
+    // VBO/VAO for lines
+    glBindVertexArray( _vao_line );
+    glBindBuffer( GL_ARRAY_BUFFER, _vbo_line );
+    glBufferData( GL_ARRAY_BUFFER,
+                  lines.size() * sizeof(LinePt),
+                  lines.data(),
+                  GL_DYNAMIC_DRAW );
+     // position attribute of shader
+    // position attribute of shader
+    glEnableVertexAttribArray(0); // x,y,z
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, // idx, size, type
+                          (3+3) * sizeof(GLfloat), // stride
+                          (void*)0);               // offset
+    glEnableVertexAttribArray(1); // r,g,b
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,     // idx, size, type
+                          (3+3) * sizeof(GLfloat),      // stride
+                          (void*) (3*sizeof(GLfloat))); // offset
+
+    // create transformations
+    glm::mat4 model( 1.0f );
+    // pass transformation matrices to the shader
+    glUniformMatrix4fv( _proj_view_loc_line, 1, GL_FALSE,
+                        glm::value_ptr( proj ) );
+    glUniformMatrix4fv( _model_loc_line, 1, GL_FALSE,
+                        glm::value_ptr(model) );
+    glDrawArrays( GL_LINES, 0, lines.size() );
+    
+    // No binding
     glBindVertexArray( 0 );
     glBindTexture( GL_TEXTURE_2D, 0 );
 
@@ -319,6 +440,75 @@ public:
     _sy = scale_y;
     compute_lineheight();
   }
+  // ********************************************* GLTextmapShader::pre_render
+  /** Bu default, display in white */
+  void pre_render( const glm::mat4& proj )
+  {
+    // our Shader
+    _tex_shader->use();
+    
+    // Use textmap
+    glBindTexture( GL_TEXTURE_2D, _textmap );
+    glUniform1i( _tex_loc, 0);
+
+    // pass transformation matrices to the shader
+    glUniformMatrix4fv( _proj_view_loc, 1, GL_FALSE,
+                        glm::value_ptr( proj ) );
+    glUniform4f( _text_color_loc, 1.f, 1.f, 1.f, 1.f );
+  }
+  // ********************************************* GLTextmapShader::render_text
+  void render_text( const std::u16string& text, float x, float y,
+                    float sx=1.f, float sy=1.f)
+  {
+    // vector to store triangle vertices for glyphs
+    std::vector<TexPoint> vertices;
+    
+    for (auto itt = text.begin(); itt != text.end(); ++itt) {
+      GLGlyph gl = _glyphs[*itt];
+
+      GLfloat xpos = x + gl.bearing[0] * sx;
+      GLfloat ypos = y - (gl.size[1] - gl.bearing[1]) * sy;
+      GLfloat w = gl.size[0] * sx;
+      GLfloat h = gl.size[1] * sy;
+
+      // advance cursor
+      x += gl.advance[0] * sx;
+      y += gl.advance[1] * sy;
+
+      //Skip glyphs that have no pixels
+      if ( w == 0.f || h == 0.f)
+        continue;
+      
+      vertices.push_back( {xpos,   ypos+h, gl.offset[0], gl.offset[1]} );
+      vertices.push_back( {xpos,   ypos,   gl.offset[0], gl.offset[1] + gl.size[1] / _map_h });
+      vertices.push_back( {xpos+w, ypos,   gl.offset[0] + gl.size[0] / _map_w, gl.offset[1] + gl.size[1] / _map_h});
+
+      vertices.push_back( {xpos,   ypos+h, gl.offset[0], gl.offset[1]} );
+      vertices.push_back( {xpos+w, ypos,   gl.offset[0] + gl.size[0] / _map_w, gl.offset[1] + gl.size[1] / _map_h });
+      vertices.push_back( {xpos+w, ypos+h, gl.offset[0] + gl.size[0] / _map_w, gl.offset[1] });
+    }
+
+    // Draw all character in one go
+    /* Set up the VAO/VBO for our vertex data */
+    glBindVertexArray( _vao_tex );
+    glBindBuffer( GL_ARRAY_BUFFER, _vbo_tex );
+    glBufferData( GL_ARRAY_BUFFER,
+                  vertices.size() * sizeof(TexPoint), vertices.data(),
+                  GL_DYNAMIC_DRAW );
+    //glBufferSubData( GL_ARRAY_BUFFER, 0 /*offset*/,  sizeof(vertices), vertices );
+    // position attribute of shader
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,
+                          4 * sizeof(GLfloat), // stride
+                          (void*)0);         // offset
+
+    glDrawArrays( GL_TRIANGLES, 0, vertices.size() );
+
+    // No binding
+    glBindVertexArray( 0 );
+    glBindTexture( GL_TEXTURE_2D, 0 );
+  }
+  
   // // ********************************************** GLTextShaders::render_text
   // /**
   //  * Render text using the currently loaded font and currently set font size.
@@ -494,12 +684,41 @@ protected:
   GLShader *_tex_shader;
   /** Variables for Shader */
   GLuint _proj_view_loc, _tex_loc, _text_color_loc;
-
   /** Vertex Buffer Object */
   GLuint _vao_tex, _vbo_tex;
+
+  // line shader
+  GLShader *_line_shader;
+  GLuint _proj_view_loc_line, _model_loc_line;
+  GLuint _vao_line, _vbo_line;
+  
   /* Create a texture that will be used to hold one "glyph" */
   GLuint _textmap, _tex;
-  std::map<char16_t,GLGlyph> _glyphs;
+  GlyphMap _glyphs;
+  unsigned int _map_w = 0;
+  unsigned int _map_h = 0;
+
+  // *************************************************************** rectangle
+private:
+  void push_rect( std::vector<LinePt> &vec,
+                  float xmin, float xmax, float ymin, float ymax,
+                  float r, float g, float b )
+  {
+    // std::cout << "Rect (" << xmin << ", " << ymin;
+    // std::cout << ") -> (" << xmax << ", " << ymax << ")" << std::endl;
+    
+    vec.push_back( {xmin,ymin,0.f, r,g,b} );
+    vec.push_back( {xmax,ymin,0.f, r,g,b} );
+
+    vec.push_back( {xmax,ymin,0.f, r,g,b} );
+    vec.push_back( {xmax,ymax,0.f, r,g,b} );
+
+    vec.push_back( {xmax,ymax,0.f, r,g,b} );
+    vec.push_back( {xmin,ymax,0.f, r,g,b} );
+
+    vec.push_back( {xmin,ymax,0.f, r,g,b} );
+    vec.push_back( {xmin,ymin,0.f, r,g,b} );    
+  }
 };
 
 #endif // GL_TEXT_SHADERS_HPP

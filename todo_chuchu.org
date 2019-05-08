@@ -1,6 +1,6 @@
 * Current => matrix2020 : "FOV mais..." ou gl_text info cursor
 TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
-* Current [[outline_glyph]]
+* Current [[build TextMap]]
 * TODO [5/7] GN2020
 ** TODO [2/6] Autre agent
 *** DONE avec orientation
@@ -31,7 +31,7 @@ TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
 * [4/7] New Shaders
 - test-020-window : cube en rotation
 - test-021-cells : geom pour tracer cell => NON, FAIL
-** TODO [0/1] new Text Shader <2019-05-05 dim.>
+** TODO [1/3] new Text Shader <2019-05-05 dim.>
 - inspiré de https://learnopengl.com/Getting-started/Shaders
 *** Comparer shaders
 - vShader : mul by projection
@@ -44,8 +44,11 @@ TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
 -- does not need coord attribut, as layout 0
 *** Texture Atlas
 https://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_02
-*** TODO Outline glyph in rendering texture atlas ?
-<<outline_glyph>>
+*** DONE Outline glyph in rendering texture atlas ?
+*** TODO Build entire TextMap
+<<build TextMap>>
+*** TODO Different TextMap at different font size -> struct/class for TextMap
+
 ** DONE init of glm::mat ??
 ** DONE [/] cube with MVP
 ** make slow rotation => model

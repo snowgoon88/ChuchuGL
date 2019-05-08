@@ -153,8 +153,8 @@ int main( int argc, char *argv[] )
       glViewport( 0, 0, _win_width, _win_height );
       //glViewport(- _win_width / 2, - _win_height / 2,
       //           _win_width / 2, _win_height / 2);
-      //float sx = 2.0 / _win_width;
-      //float sy = 2.0 / _win_height;
+      float sx = 2.0 / _win_width; // size GL / size pixel
+      float sy = 2.0 / _win_height;
       
       /* Render here */
       glClearColor( 0,0,0,1 );
@@ -174,6 +174,10 @@ int main( int argc, char *argv[] )
       // gltext.pre_render();
       // gltext.set_color( {1,0,1,1} );
       gltext.render_textmap( _proj );
+
+      gltext.pre_render( _proj );
+      gltext.set_color( {1,0,1,1} );
+      gltext.render_text( u"AgiçéBÉA", 0.f, -0.5f, sx, sy );
 
       // and now axes
       _axes_shader->use();
