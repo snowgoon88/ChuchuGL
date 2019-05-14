@@ -44,6 +44,35 @@ void init_locale(void)
 
 int main(void)
 {
+  // print some utf8 normally
+  std::string sutf8 = std::string( "ABÉgiéç" );
+  std::cout << "UTF8 = " << sutf8 << std::endl;
+  for (auto it = sutf8.begin(); it != sutf8.end(); ++it) {
+    int code = static_cast<int>( *it );
+    std::cout << "c=" << *it;
+    std::cout << "\tcode=" << code;
+    std::cout << " (" << std::hex << code << std::dec << ")";
+    std::cout << "\tc+=" << (*it)+256 << std::endl;
+  }
+  // Not working => canot cout u16string
+  std::u16string sutf16 = std::u16string( u"ABÉgiéç" );
+  std::cout << u"UTF16 = " << std::endl; // << sutf16 << std::endl;
+  for (auto it = sutf16.begin(); it != sutf16.end(); ++it) {
+    int code = static_cast<int>( *it );
+    std::cout << "c=" << *it;
+    std::cout << "\tcode=" << code;
+    std::cout << " (" << std::hex << code << std::dec << ")" << std::endl;
+  }
+  std::wstring sw = std::wstring( L"ABÉgiéç" );
+  std::wcout << L"SW = " << sw << std::endl;
+  for (auto it = sw.begin(); it != sw.end(); ++it) {
+    int code = static_cast<int>( *it );
+    std::wcout << "c=" << *it;
+    std::wcout << "\tcode=" << code;
+    std::wcout << " (" << std::hex << code << std::dec << ")" << std::endl;
+  }
+
+  
   constexpr char16_t msg_utf16[] = u"¡Hola, mundo! \U0001F600"; // Shouldn't assume endianness.
   constexpr wchar_t msg_w[] = L"¡Hola, mundo! \U0001F600";
   constexpr char32_t msg_utf32[] = U"¡Hola, mundo! \U0001F600";

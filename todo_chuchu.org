@@ -61,6 +61,20 @@ https://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Ren
 ** DONE [1/1] Comprendre
 *** DONE sans MVP, tracer axes avec geom
 **** faire varier (x,y,z), puis w
+*** Unicode => [[test/test-014-utf8.cpp]]
+https://stackoverflow.com/questions/50403342/how-do-i-properly-use-stdstring-on-utf-8-in-c
+https://en.wikipedia.org/wiki/UTF-8
+
+Idée principale : un Codepoint est représenté par un certain nomnbre de bit qu'il faut représenter avec plus ou moins de UTF8 (8bits) ou UTF16 (16bits) ou plus.
+
+Si U > x7F, alors c'est sur 2 octets 110x xxxx et 10xx xxxx
+Ex : É = U+C9 (221) = 1100 1001 => 1100 0011 et 1000 1001
+
+0 0000  4 0100  8 1000  C 1100
+1 0001  5 0101  9 1001  D 1101
+2 0010  6 0110  A 1010  E 1110
+3 0011  7 0111  B 1011  F 1111
+
 * [5/7] Boids
 ** [0/2] adding Physics
 *** TODO Orientation of BoidBody is not aligned to speed

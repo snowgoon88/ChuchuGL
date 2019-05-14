@@ -34,7 +34,8 @@ public:
   GLWindow(const std::string& title = "GL Window",
 	   int width=800, int height=600,
 	   bool fullsize=false) :
-    _screen_width(width), _screen_height(height)
+    _screen_width(width), _screen_height(height),
+    _key_debug(false)
   {
     glfwSetErrorCallback(error_callback);
 
@@ -82,6 +83,11 @@ public:
     glGetDoublev( GL_DEPTH_RANGE, gl_data );
     std::cout << "GL_DEPTH_RANGE: " << gl_data[0] << ", " << gl_data[1];
     std::cout << std::endl;
+
+    // set key callback
+    glfwSetKeyCallback(_window, key_callback);
+    glfwSetCharCallback(_window, character_callback);
+
   }
   // *********************************************************** GLWindow::run
   /** 
@@ -89,9 +95,6 @@ public:
    * stop with ESC */
   void run( void (*render)() )
   {
-    // set key callback
-    glfwSetKeyCallback(_window, key_callback);
-    
     // render white window
     while (!glfwWindowShouldClose(_window)) {
       // update screen size
@@ -115,7 +118,8 @@ public:
   //private:
   GLFWwindow* _window;
   int _screen_width=800, _screen_height=600;
-
+  bool _key_debug;
+  
   // ****************************************************** GLWindow::callback
   /**
    * Callback qui gère les événements 'key'
@@ -125,7 +129,26 @@ public:
     // ESC
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GL_TRUE);
+
+    
+    if (((GLWindow *)glfwGetWindowUserPointer(window))->_key_debug) {
+      std::cout << "key=" << key << "(" << std::hex << key << std::dec << ")";
+      std::cout << "\tscan=" << scancode << "(" << std::hex << scancode << std::dec << ")";
+      std::cout << "\tact=" << action << "\tmods=" << mods << std::endl;
+    }
   }
+  /**
+   * callback for TextInput
+   */
+  static void character_callback(GLFWwindow* window, unsigned int codepoint)
+  {
+    if (((GLWindow *)glfwGetWindowUserPointer(window))->_key_debug) {
+      std::cout << "Char=" << codepoint << std::endl;
+      std::wstring uc = std::to_wstring( codepoint );
+      std::wcout << "uChar=" << codepoint << "\tuc= " << uc << std::endl;
+    }
+  }
+
   /**
    * callback pour gérer les messages d'erreur de GLFW
    */
