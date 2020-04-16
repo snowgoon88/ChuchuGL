@@ -34,6 +34,10 @@ TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
 ** DONE [/] cube with MVP
 ** make slow rotation => model
 ** TODO new trackball
+<<trackball>>
+use the one from VisuGL ?
+** TODO status of GL3DObject -> usefull as hiererchy ???? or only as include ?
+compare Ship and Icosphere ?
 ** TODO affichage fps
 <<affichage fps>> est un lien/ancre préféré à 'affichage fps'
 ** billboard ??
@@ -100,6 +104,18 @@ TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
 ** TODO vecteur vitesse angulaire ?
 ** lien entre 2 pts
 ** click pour avoir info
+** Planet
+http://planetpixelemporium.com/tutorials.php
+http://www.planetaryvisions.com/Texture_map.php?pid=32
+*** DONE Dark space with Frame ?
+*** [/] Sphere
+http://www.songho.ca/opengl/gl_sphere.html
+**** DONE as Icosphere WireFrame
+Projection
+http://www.rwgrayprojects.com/rbfnotes/maps/graymap2.html
+http://www.rwgrayprojects.com/rbfnotes/maps/graymapa.html
+**** Rotation (see [[trackball]])
+
 * [6/6] Chuchu Model
 ** DONE [2/2] leaving Cell
 *** DONE _arrow => prend dir de _arrow

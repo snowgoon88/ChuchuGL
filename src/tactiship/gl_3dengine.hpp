@@ -8,6 +8,17 @@
  * shaders intialized.
  * Can run a GLScreen (TODO see glconcept::GLScreen)
  *
+ * Shaders, tu be used with
+ *    ATT: glEnableVertexAttribArray and glVertexAttribPointer
+ *    UNI: glUniformMatrix4fv/1f/ ( ... )
+ * _gl_unicolor : 
+ *    ATT: vec3 coord3d
+ *    UNI: mat4 mvp, vec3 l_color, float fade
+ * _gl_multicolor :
+ *    ATT: vec3 coord3d, vec3 v_color
+ *    UNI: mat4 mvp, float fade
+ *
+ *
  * SINGLETON : cannot be copied or assigned !
  */
 

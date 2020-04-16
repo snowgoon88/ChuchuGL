@@ -14,3 +14,9 @@ def build(bld):
         libs=['m'],
         use = ['OPENGL','GLFW3','FREETYPE2','FTGL']
     )
+    bld.program(
+        source=['solar.cpp'], target='solar',
+        includes=['.','..'],
+        libs=['m'],
+        use = ['OPENGL','GLFW3','FREETYPE2','FTGL']
+    )
