@@ -120,6 +120,12 @@ def configure(conf):
     conf.env.INCLUDES_STB = [stb_path]
     print "Checking for 'stb' Library"
     conf.find_file( 'stb_image.h', conf.env.INCLUDES_STB )
+
+    # look for 'include' higher in hierarchy
+    print( "Looking for ../include, and ../include/visugl" )
+    incnode = conf.path.find_node( '../include' );
+    conf.env.INCLUDES_PROJECT = [incnode.abspath()]
+    conf.find_file( 'visugl',  conf.env.INCLUDES_PROJECT )
     
 def build(bld):
     print('→ build from ' + bld.path.abspath() + " with CXX=" + str(bld.env.CXX))

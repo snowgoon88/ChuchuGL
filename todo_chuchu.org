@@ -1,3 +1,4 @@
+* _Current_ : working on [[planet]]
 * Current => matrix2020 : "FOV mais..." ou gl_text info cursor
 TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
 * TODO [5/7] GN2020
@@ -104,17 +105,20 @@ compare Ship and Icosphere ?
 ** TODO vecteur vitesse angulaire ?
 ** lien entre 2 pts
 ** click pour avoir info
-** Planet
+** [1/2] Planet
+<<planet>>
 http://planetpixelemporium.com/tutorials.php
 http://www.planetaryvisions.com/Texture_map.php?pid=32
 *** DONE Dark space with Frame ?
-*** [/] Sphere
+*** TODO [3/4] Sphere
 http://www.songho.ca/opengl/gl_sphere.html
 **** DONE as Icosphere WireFrame
+**** DONE as Icosphere Faces
 Projection
 http://www.rwgrayprojects.com/rbfnotes/maps/graymap2.html
 http://www.rwgrayprojects.com/rbfnotes/maps/graymapa.html
-**** Rotation (see [[trackball]])
+**** TODO as Icosphere with textures
+**** DONE Rotation (see [[trackball]])
 
 * [6/6] Chuchu Model
 ** DONE [2/2] leaving Cell
