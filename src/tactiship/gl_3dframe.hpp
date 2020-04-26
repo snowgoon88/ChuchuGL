@@ -44,8 +44,8 @@ public:
 	_gl_text.post_render();
     // 2ème, green avec rotation
     glm::mat4 rot = glm::rotate(glm::mat4(1.0f),
-								(float) M_PI/2.f,
-								glm::vec3(0,0,1));
+                                (float) M_PI/2.f,
+                                glm::vec3(0,0,1));
     glm::mat4 vpm = mvp * rot;
     _vect_viewer.render( vpm, {0,1,0} /* green */ );
 	_gl_text.pre_render( vpm );

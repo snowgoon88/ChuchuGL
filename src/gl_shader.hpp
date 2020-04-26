@@ -78,6 +78,10 @@ public:
   {
     return glGetUniformLocation( _program, name.c_str() );
   }
+  GLuint getAttribLocation( const std::string& name ) const
+  {
+    return glGetAttribLocation( _program, name.c_str() );
+  }
     
   std::string read_code( const std::string& path )
   {

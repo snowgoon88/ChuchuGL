@@ -23,6 +23,9 @@ top = '.'
 ##   can be changed with --out=cbuild (par exemple)
 out = 'wbuild'
 
+opt_flags = '-O3'
+debug_flags = '-O0 -g'
+
 ## une Command pour WAF a toujours un contexte, qu'on peut appeler comme
 ## on veut (ctx, bld, opt, ...)
 def info(ctx):
@@ -43,7 +46,10 @@ def options(opt):
     ##opt.add_option('--clang', action='store_true', default=False, help='Use clang compiler')
     ## C++ ready (gcc g++)
     opt.load('compiler_cxx')
-
+    
+    # option debug
+    opt.add_option('--debug', dest='debug', action="store_true", default=False,
+                   help='compile with debugging symbols' )
 def configure(conf):
     global out
     print('→ config from ' + conf.path.abspath())
@@ -129,14 +135,21 @@ def configure(conf):
     
 def build(bld):
     print('→ build from ' + bld.path.abspath() + " with CXX=" + str(bld.env.CXX))
+
+    # check debug option
+    if bld.options.debug:
+        bld.env['CXXFLAGS'] += debug_flags.split(' ')
+    else:
+        bld.env['CXXFLAGS'] += opt_flags.split(' ')
     print('  CXXFLAGS=' + str(bld.env.CXXFLAGS) )
 
     bld.recurse('src')
-    bld.recurse('src/tactiship')
-    bld.recurse('src/boid')
-    bld.recurse('src/matrix2020')
-    bld.recurse('test')
-    bld.recurse('test/matrix2020')
+    bld.recurse('src/3d')
+    #bld.recurse('src/tactiship')
+    #bld.recurse('src/boid')
+    #bld.recurse('src/matrix2020')
+    #bld.recurse('test')
+    #bld.recurse('test/matrix2020')
 
     def copy_data(bld):
         src = bld.srcnode.abspath()+'/data'

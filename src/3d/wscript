@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
+def build(bld):
+    bld.program(
+        source=['tetra_app.cpp'], target='tetra_app',
+        includes=['.','..'],
+        libs=['m'],
+        use = ['OPENGL','GLFW3','FREETYPE2','FTGL','PROJECT']
+    )
+    bld.program(
+        source=['ico_app.cpp'], target='ico_app',
+        includes=['.','..'],
+        libs=['m'],
+        use = ['OPENGL','GLFW3','FREETYPE2','FTGL','PROJECT']
+    )

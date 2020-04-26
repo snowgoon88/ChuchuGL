@@ -103,6 +103,7 @@ compare Ship and Icosphere ?
 ** DONE discs
 ** TODO vect vitesse
 ** TODO vecteur vitesse angulaire ?
+
 ** lien entre 2 pts
 ** click pour avoir info
 ** [1/2] Planet
@@ -110,16 +111,51 @@ compare Ship and Icosphere ?
 http://planetpixelemporium.com/tutorials.php
 http://www.planetaryvisions.com/Texture_map.php?pid=32
 *** DONE Dark space with Frame ?
-*** TODO [3/4] Sphere
+*** TODO [3/5] Sphere
 http://www.songho.ca/opengl/gl_sphere.html
 **** DONE as Icosphere WireFrame
 **** DONE as Icosphere Faces
 Projection
 http://www.rwgrayprojects.com/rbfnotes/maps/graymap2.html
 http://www.rwgrayprojects.com/rbfnotes/maps/graymapa.html
+*** [5/12] Better Engine
+**** DONE tryout in [[file:src/tactiship/test-023-3dsmartshaders][test-023-smartshaders]]
+**** TODO (need a window ?)
+**** DONE glfwTime -> model mat4
+**** TODO 3DFrame
+**** DONE use Elements to draw lines from the same verticies using lines
+**** TODO nice doc
+**** TODO make 'generic' -> dir 3d, useable in test :o)
+- set_uniform( color ) vs set_attrib_color() ??
+- set_fade
+**** ScreenRunner( window, canvas, screen )
+- init
+- attach callbacks
+- render
+**** WARNING Screen need to use a Canvas, and a Window
+
+**** TODO change GLWindow to add callbacks (see VisuGL)
+**** DONE VAO = englobe le VBO et les glEnableVertexAttrib et autre
+https://stackoverflow.com/questions/8923174/opengl-vao-best-practices
+void Setup() {
+    glGenVertexArrays(..);
+    glBindVertexArray(..);
+    // now setup all your VertexAttribPointers that will be bound to this VAO
+   glBindBuffer(..);
+   glVertexAttribPointer(..);
+   glEnableVertexAttribArray(..);
+}
+
+void Render() {
+    glBindVertexArray(vao);
+    // that's it, now call one of glDraw... functions
+    // no need to set up vertex attrib pointers and buffers!
+    glDrawXYZ(..)
+}
+
+**** TODO use newer texture shader 3D
 **** TODO as Icosphere with textures
 **** DONE Rotation (see [[trackball]])
-
 * [6/6] Chuchu Model
 ** DONE [2/2] leaving Cell
 *** DONE _arrow => prend dir de _arrow
