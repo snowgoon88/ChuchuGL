@@ -148,7 +148,7 @@ def build(bld):
     #bld.recurse('src/tactiship')
     #bld.recurse('src/boid')
     #bld.recurse('src/matrix2020')
-    #bld.recurse('test')
+    bld.recurse('test')
     #bld.recurse('test/matrix2020')
 
     def copy_data(bld):

@@ -1,3 +1,4 @@
+* _Current_ : working on texture, for [[line_boxing]], for Tron
 * _Current_ : working on [[planet]]
 * Current => matrix2020 : "FOV mais..." ou gl_text info cursor
 TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
@@ -28,7 +29,7 @@ TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
 ** DONE [2/2] GLFov as dynamical VBO
 *** DONE use a std::vector to store square_vts ?
 *** DONE implement dynamical update [[file:src/matrix2020/gl_fovhamming.hpp]]
-* [4/6] New Shaders
+* [4/8] New Shaders
 - test-020-window : cube en rotation
 - test-021-cells : geom pour tracer cell => NON, FAIL
 ** DONE init of glm::mat ??
@@ -43,6 +44,12 @@ compare Ship and Icosphere ?
 <<affichage fps>> est un lien/ancre préféré à 'affichage fps'
 ** billboard ??
 ** line width
+** TODO [1/3] dans 3d/texture_screen.hpp and opengltuto/Tron_tuto
+<<line_boxing>>
+*** DONE display texture
+*** TODO use framebuffer and Tron texture, as done in example : understand Glow
+*** TODO geometry_shader for line boxing
+represent the line box around the line
 ** DONE 2D cell viewer with geometry shader
 ** DONE [1/1] Comprendre
 *** DONE sans MVP, tracer axes avec geom
