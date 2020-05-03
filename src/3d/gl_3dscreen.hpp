@@ -10,6 +10,8 @@
 class GL3DScreen
 {
 public:
+  GL3DScreen () {}
+  virtual ~GL3DScreen() {}
   // ****************************************************** GL3DScreen::render
   virtual void render( int win_width, int win_height )
   {

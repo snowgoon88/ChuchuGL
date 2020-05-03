@@ -47,7 +47,12 @@ compare Ship and Icosphere ?
 ** TODO [1/3] dans 3d/texture_screen.hpp and opengltuto/Tron_tuto
 <<line_boxing>>
 *** DONE display texture
-*** TODO use framebuffer and Tron texture, as done in example : understand Glow
+*** TODO [1/3] use framebuffer and Tron texture, as in example : understand Glow
+- d'abord, écrit dans un Framebuffer (ParticuleSureface.FboHandle) les boxframe autour des lignes. Ensuite, il "convolue" avec un gradient Glowing. Je crois.
+**** DONE remake part of glow that use geometry shader to draw box around line
+**** TODO draw the texture as planned by Glow
+**** TODO "convolution" with the texture
+=> d'abord afficher le TronProgram avec une ellipse. 
 *** TODO geometry_shader for line boxing
 represent the line box around the line
 ** DONE 2D cell viewer with geometry shader
