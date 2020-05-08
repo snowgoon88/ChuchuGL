@@ -29,7 +29,8 @@ void main()
   vec2 start_segment = end_segment[0];
   vec2 end_segment = end_segment[1];
   float d = segment_distance( pos2, start_segment, end_segment );
-  d = 1.0 - 4.0 * d;
+  d = 1.0 - 12.0 * d;
+  if (d < 0.f) d = 0.f;
   color_frag = vec4( vec3(d), 1.0 );
   //color_frag = vec4( 1.0, 0.0, 0.0, 1.0 );
   //color_frag=dbg_color;
