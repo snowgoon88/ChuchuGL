@@ -12,5 +12,5 @@ def build(bld):
         source=['ico_app.cpp'], target='ico_app',
         includes=['.','..'],
         libs=['m'],
-        use = ['OPENGL','GLFW3','FREETYPE2','FTGL','PROJECT']
+        use = ['SOIL', 'OPENGL','GLFW3','FREETYPE2','FTGL','PROJECT']
     )
