@@ -126,11 +126,12 @@ public:
     glm::mat4 z_inverter = glm::scale( glm::mat4(1.0f),
                                        glm::vec3( 1, 1, -1 ));
     auto proj_view = vp_track * z_inverter;
-
+    auto view_mod = _canvas.get_trackball_transform() * _model * z_inverter;
+    
     // Glow : make distance map on _surf_distance
     _glow_shader->use();
-    glUniformMatrix4fv( _u_pv_glow, 1, GL_FALSE, glm::value_ptr(proj_view) );
-    glUniformMatrix4fv( _u_model_glow, 1, GL_FALSE, glm::value_ptr(_model) );
+    glUniformMatrix4fv( _u_p_glow, 1, GL_FALSE, glm::value_ptr(projection) );
+    glUniformMatrix4fv( _u_vm_glow, 1, GL_FALSE, glm::value_ptr(view_mod) );
     glUniform1f( _u_radius_glow, 0.1f );
     glBindVertexArray( _ls_vao );
     glDrawElements( GL_LINE_STRIP_ADJACENCY, 7, GL_UNSIGNED_INT, 0);
@@ -371,7 +372,7 @@ protected:
   GLuint _ls_vtx_vbo, _line_idx_vbo, _ls_idx_vbo;
 
   GLShader* _glow_shader;
-  GLuint _u_model_glow, _u_pv_glow, _u_radius_glow;
+  GLuint _u_vm_glow, _u_p_glow, _u_radius_glow;
   GLuint _a_vertex_glow, _a_normal_glow, _a_color_glow;
 
   GLShader* _texture_shader;
@@ -620,12 +621,12 @@ protected:
   }
   void make_glow_shader( bool verb=false )
   {
-    _glow_shader = new GLShader( "src/shaders/m_vp_norm.v330.glsl",
+    _glow_shader = new GLShader( "src/shaders/p_vm_rgbnorm.v330.glsl",
                                  "src/shaders/segment_distance.f330.glsl",
                                  "src/shaders/ls_box_growing.g330.glsl"
                                  );
-    _u_model_glow = _glow_shader->getUniformLocation( "u_model4x4" );
-    _u_pv_glow = _glow_shader->getUniformLocation( "u_proj_view4x4" );
+    _u_vm_glow = _glow_shader->getUniformLocation( "u_view_model4x4" );
+    _u_p_glow = _glow_shader->getUniformLocation( "u_proj4x4" );
     _u_radius_glow = _glow_shader->getUniformLocation( "u_radius" );
     _a_vertex_glow = _glow_shader->getAttribLocation( "a_pos3" );
     _a_normal_glow = _glow_shader->getAttribLocation( "a_norm3" );
