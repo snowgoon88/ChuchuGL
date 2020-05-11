@@ -13,11 +13,13 @@ layout (triangle_strip, max_vertices=32) out;
 // in vec3 norm3[];          // vertex normal in 3Dspace
 // in vec3 col3[];
 
-in VTX_COL_NOR {
+in VTX_NOR {
   vec3 pos3;
   vec3 norm3;
+} gs_vtx_in[];
+in COL {
   vec3 col3;
-} gs_in[];
+} gs_col_in[];
 
 out vec2 end_segment[2];  // start and end of current segment, screen
 out vec2 pos2;            // position of point, screen
@@ -131,8 +133,8 @@ void main()
 {
   // The current segment
   // as we have line_stripe_adjacency, start is the input 1 and end is input 2
-  vec3 start_seg = gs_in[1].pos3;
-  vec3 end_seg = gs_in[2].pos3;
+  vec3 start_seg = gs_vtx_in[1].pos3;
+  vec3 end_seg = gs_vtx_in[2].pos3;
   
   // Give the segment, in screen coordinate, to Fragment
   end_segment[0] = to_screen_coord( start_seg );
@@ -146,9 +148,9 @@ void main()
   // emit_star( pos3[3], vec3(1,0,1) );
   
   // To build the faces of the BoundingBox, need some vectors
-  vec3 v01 = normalize( gs_in[1].pos3 - gs_in[0].pos3 );
-  vec3 v12 = normalize( gs_in[2].pos3 - gs_in[1].pos3 );
-  vec3 v23 = normalize( gs_in[3].pos3 - gs_in[2].pos3 );
+  vec3 v01 = normalize( gs_vtx_in[1].pos3 - gs_vtx_in[0].pos3 );
+  vec3 v12 = normalize( gs_vtx_in[2].pos3 - gs_vtx_in[1].pos3 );
+  vec3 v23 = normalize( gs_vtx_in[3].pos3 - gs_vtx_in[2].pos3 );
   vec3 dir1 = normalize( v01 + v12 );       // mean dir of line from 1
   vec3 dir2 = normalize( v12 + v23 );       // mean dir of line from 2
 
@@ -156,20 +158,20 @@ void main()
   vec3 dir, normal, perp;
   float radius = u_radius;
   
-  dir = dir1; normal = gs_in[1].norm3; perp = cross( dir, normal );
+  dir = dir1; normal = gs_vtx_in[1].norm3; perp = cross( dir, normal );
   bbox[0] = u_proj4x4 * u_view_model4x4 * vec4( start_seg + normal*radius + perp*radius, 1);
   bbox[1] = u_proj4x4 * u_view_model4x4 * vec4( start_seg + normal*radius - perp*radius, 1);
   bbox[2] = u_proj4x4 * u_view_model4x4 * vec4( start_seg - normal*radius - perp*radius, 1);
   bbox[3] = u_proj4x4 * u_view_model4x4 * vec4( start_seg - normal*radius + perp*radius, 1);
 
-  dir = dir2; normal = gs_in[2].norm3; perp = cross( dir, normal );
+  dir = dir2; normal = gs_vtx_in[2].norm3; perp = cross( dir, normal );
   bbox[4] = u_proj4x4 * u_view_model4x4 * vec4( end_seg + normal*radius + perp*radius, 1);
   bbox[5] = u_proj4x4 * u_view_model4x4 * vec4( end_seg + normal*radius - perp*radius, 1);
   bbox[6] = u_proj4x4 * u_view_model4x4 * vec4( end_seg - normal*radius - perp*radius, 1);
   bbox[7] = u_proj4x4 * u_view_model4x4 * vec4( end_seg - normal*radius + perp*radius, 1);
 
   // Now emit the 6 faces of the BoundingBox (prismoid)
-  dbg_color = vec4( gs_in[1].col3, 1);
+  dbg_color = vec4( gs_col_in[1].col3, 1);
   emit_face(0,1,3,2);
   emit_face(5,4,6,7);
   emit_face(4,5,0,1);

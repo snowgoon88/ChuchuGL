@@ -1,4 +1,3 @@
-* _Current_ : working on texture, for [[line_boxing]], for Tron
 * _Current_ : working on [[planet]]
 * Current => matrix2020 : "FOV mais..." ou gl_text info cursor
 TODO gl_overlay pour écrire le texte de ce qui est sous le curseur
@@ -126,7 +125,7 @@ represent the line box around the line
 http://planetpixelemporium.com/tutorials.php
 http://www.planetaryvisions.com/Texture_map.php?pid=32
 *** DONE Dark space with Frame ?
-*** TODO [2/2] Sphere
+*** TODO [2/3] Sphere
 http://www.songho.ca/opengl/gl_sphere.html
 **** DONE as Icosahedron WireFrame
 **** DONE as Icosahedron Faces
@@ -134,8 +133,8 @@ Projection
 http://www.rwgrayprojects.com/rbfnotes/maps/graymap2.html
 http://www.rwgrayprojects.com/rbfnotes/maps/graymapa.html
 **** Icosphere vs Icosahedron
-**** with normals
-**** with own trackball ?
+**** TODO with normals
+**** with own trackball ? => move Z vs scale ?
 **** with (astro)-physique engine ?
 *** [5/12] Better Engine
 **** DONE tryout in [[file:src/tactiship/test-023-3dsmartshaders][test-023-smartshaders]]

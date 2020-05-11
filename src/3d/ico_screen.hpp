@@ -38,9 +38,12 @@ public:
   IcoScreen( GL3DCanvas& canvas ) : GL3DCanvasScreen( canvas ),
     _model( 1.0f ),
     _mode_param( ModeT::Unicolor ), _fade_param( 1.f ),
-    _model_rotate_param( false ), _outline_param( false )
+    _model_rotate_param( false ), _outline_param( false ),
+    _normals_param( false )
   {
     make_texture_shader( true );
+    make_normal_shader( true );
+    
     build_face_texture( true );
     build_faces_and_lines( true );
     build_axes();
@@ -54,6 +57,7 @@ public:
 
     delete_texfaces();
     delete_texture_shader( true );
+    delete_normal_shader( true );
     delete _axes_shader;
   }
   // ***************************************************** IcoScreen::render
@@ -88,7 +92,15 @@ public:
     glm::mat4 z_inverter = glm::scale( glm::mat4(1.0f),
                                        glm::vec3( 1, 1, -1 ));
     auto proj_view = vp_track * z_inverter;
+    auto view_model = _canvas.get_trackball_transform()* z_inverter * _model;
+    auto view_model_inv = glm::transpose(glm::inverse( view_model ));
 
+    // std::cout << "VM" << std::endl;
+    // std::cout << glm::to_string( view_model ) << std::endl;
+   
+    // std::cout << "VM_inv" << std::endl;
+    // std::cout << glm::to_string( view_model_inv ) << std::endl;
+    
     // Tetrahedron
     // First, draw texture
     if (_mode_param == ModeT::Texture ) {
@@ -128,6 +140,18 @@ public:
       glDrawElements( GL_LINES, 30*2, GL_UNSIGNED_INT, 0);
       // back to param
       set_canvas_param( false /* not forced */ );
+    }
+
+    if (_normals_param) {
+      _normal_shader->use();
+      glBindVertexArray( _normals_vao );
+      glUniformMatrix4fv( _u_p_nor, 1, GL_FALSE, glm::value_ptr(projection) );
+      glUniformMatrix4fv( _u_vm_nor, 1, GL_FALSE, glm::value_ptr(view_model) );
+      glUniformMatrix4fv( _u_vm_inv_nor, 1, GL_FALSE,
+                          glm::value_ptr(view_model_inv) );
+      glUniform3f( _u_color_nor, 0.f, 1.f, 1.f );
+      glUniform1f( _u_length_nor, 0.25f );
+      glDrawArrays( GL_TRIANGLES, 0, 20*3 /*nb vtx*/); // mode, first, count
     }
   
     // and now axes
@@ -183,7 +207,13 @@ protected:
   
   GLuint _texface_vao, _texface_vtx_vbo;
   GLuint _planet_tex_id;
-    
+
+  GLShader* _normal_shader;
+  GLuint _u_vm_nor, _u_vm_inv_nor, _u_p_nor, _u_mode_nor;
+  GLuint _u_fade_nor, _u_color_nor, _u_length_nor;
+  GLuint _a_pos_nor, _a_rgb_nor, _a_nor_nor;
+
+  GLuint _normals_vao;
   
   // Rendering parameters
   glm::mat4 _model;
@@ -191,6 +221,7 @@ protected:
   GLfloat   _fade_param;
   bool      _model_rotate_param;
   bool      _outline_param;
+  bool      _normals_param;
 
   // Help message
   std::vector<std::string> _help_msg;
@@ -346,6 +377,33 @@ protected:
     _canvas.make_vao( faces_vtx, ico_idx,
                       _ico_faces_vao, _ico_faces_vbo, _ico_idxsides_vbo );
   }
+  VTXvec compute_normal( VTXvec& src,  const std::vector<unsigned int>& idx )
+  {
+    VTXvec normal = {0.f, 0.f, 0.f };
+    
+    GLfloat ux = src[idx[1]*3+0]-src[idx[0]*3+0];
+    GLfloat uy = src[idx[1]*3+1]-src[idx[0]*3+1];
+    GLfloat uz = src[idx[1]*3+2]-src[idx[0]*3+2];
+
+    GLfloat vx = src[idx[2]*3+0]-src[idx[0]*3+0];
+    GLfloat vy = src[idx[2]*3+1]-src[idx[0]*3+1];
+    GLfloat vz = src[idx[2]*3+2]-src[idx[0]*3+2];
+
+    GLfloat nx = uy * vz - uz * vy;
+    GLfloat ny = uz * vx - ux * vz;
+    GLfloat nz = ux * vy - uy * vx;
+
+    GLfloat length = sqrtf(nx * nx + ny * ny + nz * nz);
+    if(length > EPSILON)
+    {
+      // normalize
+      normal[0] = nx / length;
+      normal[1] = ny  / length;
+      normal[2] = nz / length;
+    }
+
+    return normal;
+  }
   void add_face( VTXvec& dest, VTXvec& src,
                  const std::vector<unsigned int>& idx, 
                  const Color& col, bool verb=false )
@@ -355,7 +413,8 @@ protected:
       std::cout << " : (" << idx[0] << ", " << idx[1] << ", " << idx[2];
       std::cout << ")";
       std::cout << "  color = (" << col[0] << ", " << col[1] << ", " << col[2] << ")" << std::endl;
-    }      
+    }
+    
     // Vertices
     for( auto& i: idx) {
       
@@ -468,12 +527,12 @@ protected:
     glBindBuffer(GL_ARRAY_BUFFER, _texface_vtx_vbo);
     // location of vtx
     glVertexAttribPointer( _a_pos_tex, 3, GL_FLOAT, GL_FALSE,
-                           (3+2) * sizeof(float), // stride
+                           (3+2+3) * sizeof(float), // stride
                            (void*)(0 * sizeof(float)) ); // offset
     glEnableVertexAttribArray( _a_pos_tex);
     // location of st
     glVertexAttribPointer( _a_st_tex, 2, GL_FLOAT, GL_FALSE,
-                           (3+2) * sizeof(float), // stride
+                           (3+2+3) * sizeof(float), // stride
                            (void*)(3 * sizeof(float)) ); // offset
     glEnableVertexAttribArray( _a_st_tex );
     
@@ -503,19 +562,42 @@ protected:
     else {
       std::cout << "__TEXTURE " << filename << " loaded as " <<  _planet_tex_id<< std::endl;
     }
+
+    // VAO for normals
+    glGenVertexArrays( 1, &_normals_vao );
+    glBindVertexArray( _normals_vao );
+    glBindBuffer(GL_ARRAY_BUFFER, _texface_vtx_vbo);
+    // location of vtx
+    glVertexAttribPointer( _a_pos_nor, 3, GL_FLOAT, GL_FALSE,
+                           (3+2+3) * sizeof(float), // stride
+                           (void*)(0 * sizeof(float)) ); // offset
+    glEnableVertexAttribArray( _a_pos_nor);
+    // location of st
+    glVertexAttribPointer( _a_nor_nor, 3, GL_FLOAT, GL_FALSE,
+                           (3+2+3) * sizeof(float), // stride
+                           (void*)(5 * sizeof(float)) ); // offset
+    glEnableVertexAttribArray( _a_nor_nor );
+    
+    glBindVertexArray( 0 );
+    
   }
   void delete_texfaces()
   {
     glDeleteVertexArrays( 1, &_texface_vao );
     glDeleteBuffers( 1, &_texface_vtx_vbo );
 
-     glDeleteTextures( 1, &_planet_tex_id );
+    glDeleteVertexArrays( 1, &_normals_vao );
+    
+    glDeleteTextures( 1, &_planet_tex_id );
   }
   void add_texface( VTXvec& dest, VTXvec& src,
                     const std::vector<unsigned int>& idx,
                     const std::vector<VTXvec>& coord,
                     bool verb=false )
   {
+    // compute normal
+    VTXvec normal = compute_normal( src, idx );
+    
     if (verb) {
       std::cout << "add_texface ";
       std::cout << " : (" << idx[0] << ", " << idx[1] << ", " << idx[2];
@@ -525,7 +607,9 @@ protected:
       std::cout << "( " << coord[1][0] << ", " << coord[1][1] << "), ";
       std::cout << "( " << coord[2][0] << ", " << coord[2][1] << ") ";
       std::cout << "}" << std::endl;
+      std::cout << "             : n= (" <<  normal[0] << ", " << normal[1] << ", " << normal[2] << ")" << std::endl;
     }
+
      // Vertices
     unsigned int idx_coord = 0;
     for( auto& i: idx) {
@@ -538,6 +622,11 @@ protected:
       dest.push_back( (float) coord[idx_coord][0] );
       dest.push_back( (float) coord[idx_coord][1] );
       idx_coord++;
+
+      // Normal
+      dest.push_back( normal[0] );
+      dest.push_back( normal[1] );
+      dest.push_back( normal[2] );
     }
   }
   // ********************************************************* IcoScreen::help
@@ -567,6 +656,7 @@ protected:
      help_msg << "), f/F: fade (" << _fade_param << ")";
      help_msg << ", s/S: stopRot (" << (not _model_rotate_param) << ")";
      help_msg << ", o/O: outline (" << _outline_param << ")";
+     help_msg << ", n/N: normals (" << _normals_param << ")";
   
      _help_msg[1] = help_msg.str(); 
   }
@@ -590,6 +680,33 @@ protected:
       std::cout << "__SHADER delete _texture_shader" << std::endl;
     }
     delete _texture_shader;
+  }
+  void make_normal_shader( bool verb=false )
+  {
+    if (verb) {
+      std::cout << "__SHADER create _normal_shader" << std::endl;
+    }
+    _normal_shader = new GLShader( "src/shaders/p_vm_rgbnorm.v330.glsl",
+                                   "src/shaders/color.f330.glsl",
+                                   "src/shaders/ext_normal.g330.glsl" );
+    _u_vm_nor = _normal_shader->getUniformLocation( "u_view_model4x4" );
+    _u_vm_inv_nor = _normal_shader->getUniformLocation( "u_viewmodel_inv4x4" );
+    _u_p_nor = _normal_shader->getUniformLocation( "u_proj4x4" );
+    _u_mode_nor = _normal_shader->getUniformLocation( "u_mode" );
+    _u_fade_nor = _normal_shader->getUniformLocation( "u_fade" );
+    _u_color_nor = _normal_shader->getUniformLocation( "u_col3" );
+    _u_length_nor = _normal_shader->getUniformLocation( "u_length" );
+
+    _a_pos_nor = _normal_shader->getAttribLocation( "a_pos3" );
+    _a_rgb_nor = _normal_shader->getAttribLocation( "a_col3" );
+    _a_nor_nor = _normal_shader->getAttribLocation( "a_norm3" );
+  }
+  void delete_normal_shader( bool verb=false )
+  {
+    if (verb) {
+      std::cout << "__SHADER delete _normal_shader" << std::endl;
+    }
+    delete _normal_shader;
   }
 public:
   // *************************************************** IcoScreen::callback
@@ -634,6 +751,12 @@ public:
     // O
     else if (key == GLFW_KEY_O && action == GLFW_PRESS) {
       _outline_param = not _outline_param;
+      //std::cout << "__PARAM outline=" << _outline_param << std::endl;
+      update_help_msg();
+    }
+    // N
+    else if (key == GLFW_KEY_N && action == GLFW_PRESS) {
+      _normals_param = not _normals_param;
       //std::cout << "__PARAM outline=" << _outline_param << std::endl;
       update_help_msg();
     }

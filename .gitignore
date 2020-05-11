@@ -13,5 +13,10 @@ GRTAGS
 GSYMS
 GTAGS
 
+## Sandbox
+/opengltuto
+/ressource
+
+
 ## Valgrind
 /valcheck
