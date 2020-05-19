@@ -8,12 +8,13 @@
 #include <3d/gl_3dcanvas.hpp>
 #include <3d/texture_screen.hpp>
 #include <3d/glow_screen.hpp>
+#include <3d/planet_screen.hpp>
 
 int main(int argc, char *argv[])
 {
   // test for argument
   if (argc != 2) {
-    std::cout << "usage: " << argv[0] << " tex | glow " << std::endl;
+    std::cout << "usage: " << argv[0] << " tex | glow | planet " << std::endl;
     exit(1);
   }
   
@@ -27,6 +28,9 @@ int main(int argc, char *argv[])
   }
   else if ( strcmp( argv[1], "glow" ) == 0 ) {
     screen = new GlowScreen( canvas );
+  }
+  else if ( strcmp( argv[1], "planet" ) == 0 ) {
+    screen = new PlanetScreen( canvas );
   }
   else {
     std::cout << argv[0] << ": argument '" << argv[1] << "' not recognized " << std::endl;

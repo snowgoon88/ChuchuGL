@@ -125,14 +125,17 @@ represent the line box around the line
 http://planetpixelemporium.com/tutorials.php
 http://www.planetaryvisions.com/Texture_map.php?pid=32
 *** DONE Dark space with Frame ?
-*** TODO [2/3] Sphere
+*** TODO [3/7] Sphere
 http://www.songho.ca/opengl/gl_sphere.html
 **** DONE as Icosahedron WireFrame
 **** DONE as Icosahedron Faces
 Projection
 http://www.rwgrayprojects.com/rbfnotes/maps/graymap2.html
 http://www.rwgrayprojects.com/rbfnotes/maps/graymapa.html
-**** Icosphere vs Icosahedron
+**** DONE as Icosaheadron with texture
+**** TODO Texture oriented in the same reference frame (or change model)
+**** TODO Icosphere vs Icosahedron (I have spherical maps) : divide
+**** TODO add reference frame
 **** TODO with normals
 **** with own trackball ? => move Z vs scale ?
 **** with (astro)-physique engine ?
