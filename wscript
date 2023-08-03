@@ -8,9 +8,6 @@
 
 # wscript in $CHUCHU
 
-## Pour avoir accès au CORE de WAF
-import waflib.Options as wo
-
 ## Pour copier les dir
 import os
 import shutil
@@ -23,51 +20,81 @@ top = '.'
 ##   can be changed with --out=cbuild (par exemple)
 out = 'wbuild'
 
-## une Command pour WAF a toujours un contexte, qu'on peut appeler comme
-## on veut (ctx, bld, opt, ...)
-def info(ctx):
-    ## les options sont toujours lues avant
-    print( "** INFO **")
-    print( "top=",top )
-    print( "out=",out )
-    print( "OPT=",wo.options )
-    print( "clang=",ctx.options.clang )
+opt_flags = '-O3'
+debug_flags = '-O0 -g'
 
-## la varialble ctx.env persiste entre les contextes.
-##    on peut y stocker des valeurs et récupérer par ${VAR}
-##    exemple : opt.env.BAR = 2 ,${BAR} est défini dans scripts
-##    caché dans [wc]build/c4che/_cache.py
-def options(opt):
-    print('→ options from ' + opt.path.abspath())
-    ## Ajouter option 'clang', False par default
-    ##opt.add_option('--clang', action='store_true', default=False, help='Use clang compiler')
-    ## C++ ready (gcc g++)
-    opt.load('compiler_cxx')
+# ************************************************************************* help
+def help(ctx):
+    print( "**** WAF for VisuGL, usual commands ************" )
+    print( "configuration :  ./waf configure --out=cbuild [--use_clang => --check_cxx_compiler=clang++]" )
+    print( "                       --prefix=[/usr/local]" )
+    print( "build :          ./waf build ")
+    print( "build specific : ./waf build --targets=test/001-curve" )
+    print( "install :        ./waf install (in --prefix) " )
+    print( "clean :          ./waf clean" )
+    print( "detailed help :  ./waf --help or see https://waf.io/book" )
+    print( "  options :      --use_clang --compil_db --atb --debug" )
+# ********************************************************************** options
+def options( opt ):
+    """
+    opt : OptionContext
+    options use the optparse https://docs.python.org/3/library/optparse.html
+    """
+    opt.load( 'compiler_cxx' )
 
+    # option use_clang
+    opt.add_option('--use_clang', dest='use_clang', action="store_true", default=False,
+                   help='use clang and compile in cbuild (replace --out --check_cxx_compiler)' )
+
+    # option debug
+    opt.add_option('--debug', dest='debug', action="store_true", default=False,
+                   help='compile with debugging symbols' )
+
+    # clang compilation database
+    opt.add_option('--compil_db', dest='compil_db', action="store_true", default=False,
+                   help='use clang compilation database' )
+
+    # define some macro for C++
+    # (equivalent to #define LABEL or -DLABEL to compilator
+    opt.add_option('-D', '--define', action="append", dest="defined_macro",
+                   help='define preprocessing macro' )
+
+
+# **************************************************************** CMD configure
 def configure(conf):
-    global out
-    print('→ config from ' + conf.path.abspath())
-    ##conf.env.CLANG = conf.options.clang
-    ## Change build dir if using clang
-    ##if conf.options.clang:
-    ##    out = 'cbuild'
-    ##print("  done setting CLANG")
-    conf.load('compiler_cxx')
-    print( "CXX=",conf.env.CXX)
-    ##conf.env.cxxflags = ['-D_REENTRANT','-Wall','-fPIC','-g','-std=c++11']
-    ##conf.env.includes = ['src']
-    ##conf.check_tool('compiler_cxx')
-    conf.env['CXXFLAGS'] = ['-D_REENTRANT','-Wall','-fPIC','-g','-std=c++11']
-    ## option --color le fair
-    # if '/usr/bin/clang++' in conf.env.CXX:
-    #     conf.env['CXXFLAGS'].append( '-fcolor-diagnostics' )
-    # else:
-    #     conf.env['CXXFLAGS'].append( '-fdiagnostics-color=always' )
-    ##conf.env['INCLUDES'] = ['src']
+    print( "__CONFIGURE" )
+    print( '→ config from ' + conf.path.abspath())
+
+    #memorise appname as it is not easily recoverable later
+    conf.env.appname = APPNAME
+    conf.env.version = VERSION
+
+    if conf.options.use_clang:
+        conf.options.check_cxx_compiler = "clang++"
+        # 'out' cannot be without option --out as it is checked BEFORE reading wscript
+
+    ## set env and options according to the possible compilers
+    ## better to set options 'out' and 'check_cxx_compiler' before loading
+    conf.load( 'compiler_cxx' )
+
+    # sys.exit()
+    if conf.options.compil_db:
+        ## To generate 'compile_commands.json' at the root of buildpath
+        # to be linked/copied in order to user 'cquery' in emacs through lsp-mode
+        # see https://github.com/cquery-project/cquery/wiki/Emacs
+        conf.load('clang_compilation_database', tooldir="ressources")
+        print( "CXX=",conf.env.CXX)
+
+    conf.env['CXXFLAGS'] = ['-D_REENTRANT','-Wall','-fPIC','-std=c++11']
 
     ## Check GLM
-    conf.check_cc(header_name="glm/glm.hpp")
+    #conf.check_cc(header_name="glm/glm.hpp")
 
+    ## Require libglm, using wrapper around pkg-config
+    conf.check_cfg(package='glm',
+                   uselib_store='GLM',
+                   args=['--cflags', '--libs']
+    )
     ## Required LIBRARIES OpenGL using wrapper around pkg-config
     conf.check_cfg(package='gl',
                    uselib_store='OPENGL',
@@ -113,17 +140,33 @@ def configure(conf):
     ## Require/Check libboost
     conf.env.LIB_BOOST = ['boost_program_options']
     conf.env.LIBPATH_BOOST = ['/usr/lib/x86_64-linux-gnu','/usr/lib/i386-linux-gnu']
-    print "Checking for 'BOOST::program_options'"
+    print("Checking for 'BOOST::program_options'")
     conf.find_file( 'lib'+conf.env.LIB_BOOST[0]+'.so', conf.env.LIBPATH_BOOST )
-    ## Require STB library
-    stb_path = conf.srcnode.parent.abspath()+"/stb"
-    conf.env.INCLUDES_STB = [stb_path]
-    print "Checking for 'stb' Library"
-    conf.find_file( 'stb_image.h', conf.env.INCLUDES_STB )
-    
+    ## Require/Check libstb
+    conf.check_cfg(package='stb',
+                   uselib_store='STB',
+                   args=['--cflags', '--libs']
+    )
+
+# ******************************************************************** CMD build
 def build(bld):
     print('→ build from ' + bld.path.abspath() + " with CXX=" + str(bld.env.CXX))
     print('  CXXFLAGS=' + str(bld.env.CXXFLAGS) )
+
+    # check debug option
+    if bld.options.debug:
+        bld.env['CXXFLAGS'] += debug_flags.split(' ')
+    else:
+        bld.env['CXXFLAGS'] += opt_flags.split(' ')
+    print( bld.env['CXXFLAGS'] )
+
+    # add macro defines as -D options
+    # print( "MACRO=", bld.options.defined_macro )
+    if bld.options.defined_macro:
+        # print( "ENV=", bld.env.DEFINES )
+        bld.env.DEFINES = bld.env.DEFINES + bld.options.defined_macro
+        # print( "new ENV=", bld.env.DEFINES )
+
 
     bld.recurse('src')
     bld.recurse('src/tactiship')
