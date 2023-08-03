@@ -50,6 +50,9 @@ def options(opt):
     # option debug
     opt.add_option('--debug', dest='debug', action="store_true", default=False,
                    help='compile with debugging symbols' )
+    # clang compilation database
+    opt.add_option('--compil_db', dest='compil_db', action="store_true", default=False,
+                   help='use clang compilation database' )
 def configure(conf):
     global out
     print('→ config from ' + conf.path.abspath())
@@ -64,6 +67,15 @@ def configure(conf):
     ##conf.env.includes = ['src']
     ##conf.check_tool('compiler_cxx')
     conf.env['CXXFLAGS'] = ['-D_REENTRANT','-Wall','-fPIC','-g','-std=c++11']
+
+    if conf.options.compil_db:
+        ## To generate 'compile_commands.json' at the root of buildpath
+        # to be linked/copied in order to user 'cquery' in emacs through lsp-mode
+        # see https://github.com/cquery-project/cquery/wiki/Emacs
+        conf.load('clang_compilation_database', tooldir="ressources")
+        print( "CXX=",conf.env.CXX)
+
+    
     ## option --color le fair
     # if '/usr/bin/clang++' in conf.env.CXX:
     #     conf.env['CXXFLAGS'].append( '-fcolor-diagnostics' )

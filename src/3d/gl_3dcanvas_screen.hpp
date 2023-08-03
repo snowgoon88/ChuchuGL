@@ -10,6 +10,7 @@
  * Children should (at least) call GL3DSCanvasScreen::key_callbak( ... ).
  */
 #include <3d/gl_3dscreen.hpp>
+#include <3d/gl_3dcanvas.hpp>
 
 class GL3DCanvasScreen : public GL3DScreen
 {
