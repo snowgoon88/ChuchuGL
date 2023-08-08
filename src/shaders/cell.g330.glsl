@@ -91,36 +91,36 @@ void one_third_mvp( vec3 pos )
   
 }
 
-void one_third()
-{
-  vec4 psrc =  gl_in[0].gl_Position;
-  vec4 pdest = gl_in[1].gl_Position;
-  vec4 dir = pdest - psrc;
+// void one_third()
+// {
+//   vec4 psrc =  gl_in[0].gl_Position;
+//   vec4 pdest = gl_in[1].gl_Position;
+//   vec4 dir = pdest - psrc;
 
-  gl_Position = psrc;
-  EmitVertex();
+//   gl_Position = psrc;
+//   EmitVertex();
 
-  gl_Position = psrc + c_length  * dir;
-  EmitVertex();
-  EndPrimitive();
+//   gl_Position = psrc + c_length  * dir;
+//   EmitVertex();
+//   EndPrimitive();
 
-  gl_Position = pdest - c_length * dir;
-  EmitVertex();
+//   gl_Position = pdest - c_length * dir;
+//   EmitVertex();
 
-  gl_Position = pdest;
-  EmitVertex();
-  EndPrimitive();
-}
+//   gl_Position = pdest;
+//   EmitVertex();
+//   EndPrimitive();
+// }
 
-void pass_through()
-{
-  gl_Position = gl_in[0].gl_Position;
-  EmitVertex();
+// void pass_through()
+// {
+//   gl_Position = gl_in[0].gl_Position;
+//   EmitVertex();
 
-  gl_Position = gl_in[1].gl_Position;
-  EmitVertex();
-  EndPrimitive();
-}
+//   gl_Position = gl_in[1].gl_Position;
+//   EmitVertex();
+//   EndPrimitive();
+// }
 
 void main()
 {
