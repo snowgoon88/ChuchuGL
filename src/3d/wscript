@@ -6,11 +6,11 @@ def build(bld):
         source=['tetra_app.cpp'], target='tetra_app',
         includes=['.','..'],
         libs=['m'],
-        use = ['OPENGL','GLFW3','FREETYPE2','FTGL','PROJECT']
+        use = ['OPENGL','GLFW3','FREETYPE2','FTGL','VISUGL','PROJECT']
     )
     bld.program(
         source=['ico_app.cpp'], target='ico_app',
         includes=['.','..'],
         libs=['m'],
-        use = ['SOIL', 'OPENGL','GLFW3','FREETYPE2','FTGL','PROJECT']
+        use = ['SOIL', 'OPENGL','GLFW3','FREETYPE2','FTGL', 'VISUGL', 'PROJECT']
     )
